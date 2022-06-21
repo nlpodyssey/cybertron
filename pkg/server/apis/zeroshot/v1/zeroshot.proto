@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package zeroshot.v1;
+
+option go_package = "github.com/nlpodyssey/cybertron/pkg/server/apis/zeroshot/v1;zeroshotv1";
+
+import "google/api/annotations.proto";
+
+service ZeroShotService {
+  rpc Classify(ClassifyRequest) returns (ClassifyResponse) {
+    option (google.api.http) = {
+      post: "/v1/classify"
+      body: "*"
+    };
+  }
+}
+
+message ClassifyRequest {
+  string input = 1;
+  ZeroShotParameters parameters = 2;
+}
+
+message ZeroShotParameters {
+  string hypothesis_template = 1;
+  repeated string candidate_labels = 2;
+  bool multi_label = 3;
+}
+
+message ClassifyResponse {
+  // TODO: string sequence = ...; ?
+  repeated string labels = 1;
+  repeated double scores = 2;
+}

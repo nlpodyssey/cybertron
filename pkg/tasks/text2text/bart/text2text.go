@@ -6,6 +6,10 @@ package bart
 
 import (
 	"fmt"
+	"math"
+	"path"
+	"path/filepath"
+
 	"github.com/nlpodyssey/cybertron/pkg/generationutils"
 	"github.com/nlpodyssey/cybertron/pkg/models/bart"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
@@ -14,9 +18,6 @@ import (
 	"github.com/nlpodyssey/spago/embeddings/store/diskstore"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
-	"math"
-	"path"
-	"path/filepath"
 )
 
 var _ text2text.Interface = &Text2Text{}

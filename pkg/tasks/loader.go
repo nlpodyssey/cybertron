@@ -12,9 +12,10 @@ import (
 	"github.com/nlpodyssey/cybertron/pkg/converter"
 	"github.com/nlpodyssey/cybertron/pkg/downloader"
 	"github.com/nlpodyssey/cybertron/pkg/models"
-	"github.com/nlpodyssey/cybertron/pkg/tasks/implementations/bart"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
+	bart_for_text_to_text "github.com/nlpodyssey/cybertron/pkg/tasks/text2text/bart"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier"
+	bart_for_zero_shot_classification "github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier/bart"
 )
 
 // Load loads a model from file.
@@ -127,7 +128,7 @@ func (l *loader[T]) resolveModelForText2Text() (T, error) {
 
 	switch modelConfig.ModelType {
 	case "bart", "marian", "pegasus":
-		return typeCheck[T](bart.LoadText2Text(modelDir))
+		return typeCheck[T](bart_for_text_to_text.LoadText2Text(modelDir))
 	default:
 		return obj, fmt.Errorf("model type %#v doesn't support the text generation task", modelConfig.ModelType)
 	}
@@ -144,7 +145,7 @@ func (l *loader[T]) resolveModelForZeroShotClassification() (T, error) {
 
 	switch modelConfig.ModelType {
 	case "bart":
-		return typeCheck[T](bart.LoadZeroShotClassifier(modelDir))
+		return typeCheck[T](bart_for_zero_shot_classification.LoadZeroShotClassifier(modelDir))
 	default:
 		return obj, fmt.Errorf("model type %#v doesn't support the zero-shot classification task", modelConfig.ModelType)
 	}

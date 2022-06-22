@@ -8,7 +8,7 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/nlpodyssey/gopickle v0.1.0
 	github.com/nlpodyssey/gotokenizers v0.2.0
-	github.com/nlpodyssey/spago v1.0.0-alpha.0.20220620194657-9555f4b06b87
+	github.com/nlpodyssey/spago v1.0.0-alpha.0.20220622190804-e507880a200e
 	github.com/nlpodyssey/spago/embeddings/store/diskstore v0.0.0-20220614221304-c7a28dec1f92
 	github.com/rs/cors v1.8.2
 	github.com/rs/zerolog v1.26.1

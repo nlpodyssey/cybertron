@@ -119,9 +119,9 @@ GOARCH=amd64 CYBERTRON_MODEL=valhalla/distilbart-mnli-12-1 CYBERTRON_MODELS_DIR=
 
 Cybertron's pricipal dependencies are:
 
-- [Spago](github.com/nlpodyssey/spago) - a lightweight self-contained machine learning framework in pure Go
-- [GoPickle](github.com/nlpodyssey/gopickle) - a Go module for loading Python's data serialized with pickle and PyTorch module files
-- [GoTokenizers](github.com/nlpodyssey/gotokenizers) - Go implementation of today's most used tokenizers
+- [Spago](https://github.com/nlpodyssey/spago) - a lightweight self-contained machine learning framework in pure Go
+- [GoPickle](https://github.com/nlpodyssey/gopickle) - a Go module for loading Python's data serialized with pickle and PyTorch module files
+- [GoTokenizers](https://github.com/nlpodyssey/gotokenizers) - Go implementation of today's most used tokenizers
 
 The rest are mainly for gRPC and HTTP API developments.
 

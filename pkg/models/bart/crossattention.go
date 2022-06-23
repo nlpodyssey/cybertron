@@ -44,7 +44,7 @@ type CrossAttentionBlockConfig struct {
 func NewCrossAttentionBlock[T float.DType](c CrossAttentionBlockConfig) ResidualNormCrossAttention {
 	block := &CrossAttentionBlock{
 		Attention: &multiheadattention.CrossAttention{
-			Model: multiheadattention.New[T](c.Dim, c.NumOfHeads, false),
+			Model: multiheadattention.New[T](c.Dim, c.NumOfHeads, false, true),
 		},
 		Norm: layernorm.New[T](c.Dim, 1e-5),
 	}

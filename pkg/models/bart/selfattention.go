@@ -51,7 +51,7 @@ type SelfAttentionBlockConfig struct {
 func NewSelfAttentionBlock[T float.DType](c SelfAttentionBlockConfig) ResidualNormSelfAttention {
 	block := &SelfAttentionBlock{
 		Attention: &multiheadattention.SelfAttention{
-			Model: multiheadattention.New[T](c.Dim, c.NumOfHeads, c.UseCausalMask),
+			Model: multiheadattention.New[T](c.Dim, c.NumOfHeads, c.UseCausalMask, false),
 		},
 		Norm: layernorm.New[T](c.Dim, 1e-5),
 	}

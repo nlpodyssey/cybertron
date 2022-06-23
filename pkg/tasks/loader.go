@@ -12,6 +12,7 @@ import (
 	"github.com/nlpodyssey/cybertron/pkg/converter"
 	"github.com/nlpodyssey/cybertron/pkg/downloader"
 	"github.com/nlpodyssey/cybertron/pkg/models"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
 	bart_for_text_to_text "github.com/nlpodyssey/cybertron/pkg/tasks/text2text/bart"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier"
@@ -21,6 +22,7 @@ import (
 var (
 	text2textInterface          = reflect.TypeOf((*text2text.Interface)(nil)).Elem()
 	zeroshotclassifierInterface = reflect.TypeOf((*zeroshotclassifier.Interface)(nil)).Elem()
+	questionansweringInterface  = reflect.TypeOf((*questionanswering.Interface)(nil)).Elem()
 )
 
 // Load loads a model from file.
@@ -68,9 +70,65 @@ func (l loader[T]) resolveLoadingFunc() (func() (T, error), error) {
 		return l.resolveModelForText2Text, nil
 	case t.Implements(zeroshotclassifierInterface):
 		return l.resolveModelForZeroShotClassification, nil
+	case t.Implements(questionansweringInterface):
+		return l.resolveModelForQuestionAnswering, nil
 	default:
 		return nil, fmt.Errorf("loader: invalid type %T", obj)
 	}
+}
+
+func (l loader[T]) resolveModelForText2Text() (obj T, _ error) {
+	modelDir := l.conf.FullModelPath()
+	modelConfig, err := models.ReadCommonModelConfig(modelDir, "")
+	if err != nil {
+		return obj, err
+	}
+
+	switch modelConfig.ModelType {
+	case "bart", "marian", "pegasus":
+		return typeCheck[T](bart_for_text_to_text.LoadText2Text(modelDir))
+	default:
+		return obj, fmt.Errorf("model type %#v doesn't support the text generation task", modelConfig.ModelType)
+	}
+}
+
+func (l loader[T]) resolveModelForZeroShotClassification() (obj T, _ error) {
+	modelDir := l.conf.FullModelPath()
+	modelConfig, err := models.ReadCommonModelConfig(modelDir, "")
+	if err != nil {
+		return obj, err
+	}
+
+	switch modelConfig.ModelType {
+	case "bart":
+		return typeCheck[T](bart_for_zero_shot_classification.LoadZeroShotClassifier(modelDir))
+	default:
+		return obj, fmt.Errorf("model type %#v doesn't support the zero-shot classification task", modelConfig.ModelType)
+	}
+}
+
+func (l loader[T]) resolveModelForQuestionAnswering() (obj T, _ error) {
+	modelDir := l.conf.FullModelPath()
+	modelConfig, err := models.ReadCommonModelConfig(modelDir, "")
+	if err != nil {
+		return obj, err
+	}
+
+	switch modelConfig.ModelType {
+	default:
+		return obj, fmt.Errorf("model type %#v doesn't support the question-answering task", modelConfig.ModelType)
+	}
+}
+
+func typeCheck[T any](i any, err error) (T, error) {
+	var empty T
+	if err != nil {
+		return empty, err
+	}
+	if mm, ok := i.(T); ok {
+		return mm, nil
+	}
+	return empty, fmt.Errorf("unexpected type: %T", i)
 }
 
 func (l loader[T]) download() error {
@@ -116,45 +174,4 @@ func (l loader[T]) convert() error {
 		return fmt.Errorf("failed to convert model: %w", err)
 	}
 	return nil
-}
-
-func (l loader[T]) resolveModelForText2Text() (obj T, _ error) {
-	modelDir := l.conf.FullModelPath()
-	modelConfig, err := models.ReadCommonModelConfig(modelDir, "")
-	if err != nil {
-		return obj, err
-	}
-
-	switch modelConfig.ModelType {
-	case "bart", "marian", "pegasus":
-		return typeCheck[T](bart_for_text_to_text.LoadText2Text(modelDir))
-	default:
-		return obj, fmt.Errorf("model type %#v doesn't support the text generation task", modelConfig.ModelType)
-	}
-}
-
-func (l loader[T]) resolveModelForZeroShotClassification() (obj T, _ error) {
-	modelDir := l.conf.FullModelPath()
-	modelConfig, err := models.ReadCommonModelConfig(modelDir, "")
-	if err != nil {
-		return obj, err
-	}
-
-	switch modelConfig.ModelType {
-	case "bart":
-		return typeCheck[T](bart_for_zero_shot_classification.LoadZeroShotClassifier(modelDir))
-	default:
-		return obj, fmt.Errorf("model type %#v doesn't support the zero-shot classification task", modelConfig.ModelType)
-	}
-}
-
-func typeCheck[T any](i any, err error) (T, error) {
-	var empty T
-	if err != nil {
-		return empty, err
-	}
-	if mm, ok := i.(T); ok {
-		return mm, nil
-	}
-	return empty, fmt.Errorf("unexpected type: %T", i)
 }

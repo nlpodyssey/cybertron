@@ -22,10 +22,15 @@ type TaskType string
 const (
 	Text2TextTask              TaskType = "text2text"
 	ZeroShotClassificationTask TaskType = "zero-shot-classification"
+	QuestionAnsweringTask      TaskType = "question-answering"
 )
 
 // TaskTypeValues is the list of supported task types.
-var TaskTypeValues = []TaskType{Text2TextTask, ZeroShotClassificationTask}
+var TaskTypeValues = []TaskType{
+	Text2TextTask,
+	ZeroShotClassificationTask,
+	QuestionAnsweringTask,
+}
 
 // ParseTaskType parses a task type.
 func ParseTaskType(s string) (TaskType, error) {

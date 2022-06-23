@@ -16,6 +16,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/nlpodyssey/cybertron/pkg/server"
 	"github.com/nlpodyssey/cybertron/pkg/tasks"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier"
 	"github.com/rs/zerolog"
@@ -65,6 +66,8 @@ func run() error {
 		m, err = tasks.Load[zeroshotclassifier.Interface](conf.loaderConfig)
 	case Text2TextTask:
 		m, err = tasks.Load[text2text.Interface](conf.loaderConfig)
+	case QuestionAnsweringTask:
+		m, err = tasks.Load[questionanswering.Interface](conf.loaderConfig)
 	}
 	if err != nil {
 		return err

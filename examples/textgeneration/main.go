@@ -25,7 +25,7 @@ func main() {
 
 	m, err := tasks.Load[text2text.Interface](tasks.DefaultConfig(modelsDir, modelName))
 	if err != nil {
-		log.Fatal().Err(err)
+		log.Fatal().Err(err).Send()
 	}
 	if m, ok := m.(io.Closer); ok {
 		defer m.Close()

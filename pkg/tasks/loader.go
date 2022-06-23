@@ -18,39 +18,25 @@ import (
 	bart_for_zero_shot_classification "github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier/bart"
 )
 
+var (
+	text2textInterface          = reflect.TypeOf((*text2text.Interface)(nil)).Elem()
+	zeroshotclassifierInterface = reflect.TypeOf((*zeroshotclassifier.Interface)(nil)).Elem()
+)
+
 // Load loads a model from file.
 func Load[T any](conf Config) (T, error) {
-	if err := checkInterface[T](); err != nil {
-		var obj T
-		return obj, err
-	}
-	l := &loader[T]{conf: conf}
-	return l.load()
-}
-
-func checkInterface[T any]() error {
-	var obj T
-	switch i := resolveNullInterface(obj).(type) {
-	case *text2text.Interface, text2text.Interface, *zeroshotclassifier.Interface, zeroshotclassifier.Interface:
-		return nil
-	default:
-		return fmt.Errorf("loader: invalid type %T", i)
-	}
-}
-
-func resolveNullInterface[T any](obj T) any {
-	if any(obj) == nil {
-		return reflect.ValueOf(&obj).Interface()
-	}
-	return obj
+	return loader[T]{conf: conf}.load()
 }
 
 type loader[T any] struct {
 	conf Config
 }
 
-func (l *loader[T]) load() (T, error) {
-	var obj T
+func (l loader[T]) load() (obj T, _ error) {
+	loadingFunc, err := l.resolveLoadingFunc()
+	if err != nil {
+		return obj, err
+	}
 
 	if l.conf.ModelName == "" {
 		return obj, errors.New("model name not specified")
@@ -62,17 +48,32 @@ func (l *loader[T]) load() (T, error) {
 		return obj, err
 	}
 
-	switch resolveNullInterface(obj).(type) {
-	case *text2text.Interface, text2text.Interface:
-		return l.resolveModelForText2Text()
-	case *zeroshotclassifier.Interface, zeroshotclassifier.Interface:
-		return l.resolveModelForZeroShotClassification()
+	return loadingFunc()
+}
+
+func (l loader[T]) resolveLoadingFunc() (func() (T, error), error) {
+	var (
+		obj T
+		t   reflect.Type
+	)
+
+	if any(obj) == nil {
+		t = reflect.ValueOf(&obj).Type().Elem()
+	} else {
+		t = reflect.ValueOf(obj).Type()
+	}
+
+	switch {
+	case t.Implements(text2textInterface):
+		return l.resolveModelForText2Text, nil
+	case t.Implements(zeroshotclassifierInterface):
+		return l.resolveModelForZeroShotClassification, nil
 	default:
-		return obj, fmt.Errorf("unknown task for: %T", obj)
+		return nil, fmt.Errorf("loader: invalid type %T", obj)
 	}
 }
 
-func (l *loader[T]) download() error {
+func (l loader[T]) download() error {
 	var overwriteIfExists bool
 	switch l.conf.DownloadPolicy {
 	case DownloadNever:
@@ -87,7 +88,7 @@ func (l *loader[T]) download() error {
 	return downloader.Download(l.conf.ModelsDir, l.conf.ModelName, overwriteIfExists)
 }
 
-func (l *loader[T]) convert() error {
+func (l loader[T]) convert() error {
 	var overwriteIfExists bool
 	switch l.conf.ConversionPolicy {
 	case ConvertNever:
@@ -117,9 +118,7 @@ func (l *loader[T]) convert() error {
 	return nil
 }
 
-func (l *loader[T]) resolveModelForText2Text() (T, error) {
-	var obj T
-
+func (l loader[T]) resolveModelForText2Text() (obj T, _ error) {
 	modelDir := l.conf.FullModelPath()
 	modelConfig, err := models.ReadCommonModelConfig(modelDir, "")
 	if err != nil {
@@ -134,9 +133,7 @@ func (l *loader[T]) resolveModelForText2Text() (T, error) {
 	}
 }
 
-func (l *loader[T]) resolveModelForZeroShotClassification() (T, error) {
-	var obj T
-
+func (l loader[T]) resolveModelForZeroShotClassification() (obj T, _ error) {
 	modelDir := l.conf.FullModelPath()
 	modelConfig, err := models.ReadCommonModelConfig(modelDir, "")
 	if err != nil {

@@ -52,7 +52,7 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 		return nil
 	}
 
-	config, err := bert.ConfigFromFile(configFilename)
+	config, err := bert.ConfigFromFile[bert.Config](configFilename)
 	if err != nil {
 		return err
 	}
@@ -98,6 +98,7 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 
 	m := bert.New[T](config, repo)
 	bertForQuestionAnswering := bert.NewModelForQuestionAnswering[T](m)
+	bertForSequenceClassification := bert.NewModelForSequenceClassification[T](m)
 
 	{
 		source := pyParams.Pop("bert.embeddings.word_embeddings.weight")
@@ -133,8 +134,10 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 	}
 
 	params := make(paramsMap)
+	mapPooler(m.Pooler, params)
 	mapEmbeddingsLayerNorm(m.Embeddings.Norm, params)
 	mapEncoderParams(m.Encoder, params)
+	mapSeqClassifier(bertForSequenceClassification.Classifier, params)
 	mapQAClassifier(bertForQuestionAnswering.Classifier, params)
 
 	mapping := make(map[string]*mappingParam)
@@ -190,6 +193,11 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 			}
 		case "BertForQuestionAnswering":
 			err := nn.DumpToFile(bertForQuestionAnswering, goModelFilename)
+			if err != nil {
+				return err
+			}
+		case "BertForSequenceClassification":
+			err := nn.DumpToFile(bertForSequenceClassification, goModelFilename)
 			if err != nil {
 				return err
 			}

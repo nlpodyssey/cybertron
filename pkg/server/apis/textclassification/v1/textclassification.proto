@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package textclassification.v1;
+
+option go_package = "github.com/nlpodyssey/cybertron/pkg/server/apis/textclassification/v1;textclassificationv1";
+
+import "google/api/annotations.proto";
+
+service TextClassificationService {
+  rpc Classify(ClassifyRequest) returns (ClassifyResponse) {
+    option (google.api.http) = {
+      post: "/v1/classify"
+      body: "*"
+    };
+  }
+}
+
+message ClassifyRequest {
+  string input = 1;
+}
+
+message ClassifyResponse {
+  repeated string labels = 1;
+  repeated double scores = 2;
+}

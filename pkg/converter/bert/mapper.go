@@ -52,6 +52,17 @@ func mapEmbeddingsLayerNorm(embeddingsNorm *layernorm.Model, params paramsMap) {
 	params["bert.embeddings.LayerNorm.bias"] = embeddingsNorm.B.Value()
 }
 
+func mapPooler(pooler *bert.Pooler, params paramsMap) {
+	params["bert.pooler.dense.weight"] = pooler.Model[0].(*linear.Model).W.Value()
+	params["bert.pooler.dense.bias"] = pooler.Model[0].(*linear.Model).B.Value()
+	return
+}
+
+func mapSeqClassifier(model *linear.Model, params paramsMap) {
+	params["classifier.weight"] = model.W.Value()
+	params["classifier.bias"] = model.B.Value()
+}
+
 // mapProjectionLayer maps the projection layer parameters.
 func mapQAClassifier(model *linear.Model, params paramsMap) {
 	params["qa_outputs.weight"] = model.W.Value()

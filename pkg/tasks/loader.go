@@ -16,6 +16,8 @@ import (
 	bert_for_question_answering "github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering/bert"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
 	bart_for_text_to_text "github.com/nlpodyssey/cybertron/pkg/tasks/text2text/bart"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/textclassification"
+	bert_for_text_classification "github.com/nlpodyssey/cybertron/pkg/tasks/textclassification/bert"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier"
 	bart_for_zero_shot_classification "github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier/bart"
 )
@@ -24,6 +26,7 @@ var (
 	text2textInterface          = reflect.TypeOf((*text2text.Interface)(nil)).Elem()
 	zeroshotclassifierInterface = reflect.TypeOf((*zeroshotclassifier.Interface)(nil)).Elem()
 	questionansweringInterface  = reflect.TypeOf((*questionanswering.Interface)(nil)).Elem()
+	textclassificationInterface = reflect.TypeOf((*textclassification.Interface)(nil)).Elem()
 )
 
 // Load loads a model from file.
@@ -73,6 +76,8 @@ func (l loader[T]) resolveLoadingFunc() (func() (T, error), error) {
 		return l.resolveModelForZeroShotClassification, nil
 	case t.Implements(questionansweringInterface):
 		return l.resolveModelForQuestionAnswering, nil
+	case t.Implements(textclassificationInterface):
+		return l.resolveModelForTextClassification, nil
 	default:
 		return nil, fmt.Errorf("loader: invalid type %T", obj)
 	}
@@ -120,6 +125,21 @@ func (l loader[T]) resolveModelForQuestionAnswering() (obj T, _ error) {
 		return typeCheck[T](bert_for_question_answering.LoadQuestionAnswering(modelDir))
 	default:
 		return obj, fmt.Errorf("model type %#v doesn't support the question-answering task", modelConfig.ModelType)
+	}
+}
+
+func (l loader[T]) resolveModelForTextClassification() (obj T, _ error) {
+	modelDir := l.conf.FullModelPath()
+	modelConfig, err := models.ReadCommonModelConfig(modelDir, "")
+	if err != nil {
+		return obj, err
+	}
+
+	switch modelConfig.ModelType {
+	case "bert":
+		return typeCheck[T](bert_for_text_classification.LoadTextClassification(modelDir))
+	default:
+		return obj, fmt.Errorf("model type %#v doesn't support the text classification task", modelConfig.ModelType)
 	}
 }
 

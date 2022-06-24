@@ -29,8 +29,8 @@ var supportedModelsFiles = map[string][]string{
 	"bart":    {"pytorch_model.bin", "vocab.json", "merges.txt"},
 	"pegasus": {"pytorch_model.bin", "spiece.model"},
 	"marian":  {"pytorch_model.bin", "vocab.json", "source.spm", "target.spm"},
-	"bert":    {"pytorch_model.bin", "vocab.txt"},
-	"electra": {"pytorch_model.bin", "vocab.txt"},
+	"bert":    {"pytorch_model.bin", "vocab.txt", "tokenizer_config.json"},
+	"electra": {"pytorch_model.bin", "vocab.txt", "tokenizer_config.json"},
 }
 
 // Download downloads a supported pre-trained model from huggingface.co

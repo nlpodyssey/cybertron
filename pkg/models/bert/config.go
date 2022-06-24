@@ -41,17 +41,35 @@ type Config struct {
 	}
 }
 
+// TokenizerConfig contains the configuration of the tokenizer.
+// The configuration coincides with that of Hugging Face to facilitate compatibility between the two architectures.
+type TokenizerConfig struct {
+	DoLowerCase          bool        `json:"do_lower_case"`
+	UnkToken             string      `json:"unk_token"`
+	SepToken             string      `json:"sep_token"`
+	PadToken             string      `json:"pad_token"`
+	ClsToken             string      `json:"cls_token"`
+	MaskToken            string      `json:"mask_token"`
+	TokenizeChineseChars bool        `json:"tokenize_chinese_chars"`
+	StripAccents         interface{} `json:"strip_accents"`
+	ModelMaxLength       int         `json:"model_max_length"`
+}
+
+// ConfigFile is the union of the configuration structures.
+type ConfigFile interface {
+	Config | TokenizerConfig
+}
+
 // ConfigFromFile loads a Bart model Config from file.
-func ConfigFromFile(file string) (Config, error) {
-	var config Config
+func ConfigFromFile[T ConfigFile](file string) (config T, _ error) {
 	configFile, err := os.Open(file)
 	if err != nil {
-		return Config{}, err
+		return config, err
 	}
 	defer configFile.Close()
 	err = json.NewDecoder(configFile).Decode(&config)
 	if err != nil {
-		return Config{}, err
+		return config, err
 	}
 	return config, nil
 }

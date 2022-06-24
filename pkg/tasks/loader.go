@@ -13,6 +13,7 @@ import (
 	"github.com/nlpodyssey/cybertron/pkg/downloader"
 	"github.com/nlpodyssey/cybertron/pkg/models"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering"
+	bert_for_question_answering "github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering/bert"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
 	bart_for_text_to_text "github.com/nlpodyssey/cybertron/pkg/tasks/text2text/bart"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier"
@@ -115,6 +116,8 @@ func (l loader[T]) resolveModelForQuestionAnswering() (obj T, _ error) {
 	}
 
 	switch modelConfig.ModelType {
+	case "bert":
+		return typeCheck[T](bert_for_question_answering.LoadQuestionAnswering(modelDir))
 	default:
 		return obj, fmt.Errorf("model type %#v doesn't support the question-answering task", modelConfig.ModelType)
 	}

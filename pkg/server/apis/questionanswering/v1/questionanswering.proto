@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package questionanswering.v1;
+
+option go_package = "github.com/nlpodyssey/cybertron/pkg/server/apis/questionanswering/v1;questionansweringv1";
+
+import "google/api/annotations.proto";
+
+service QuestionAnsweringService {
+  rpc Answer(AnswerRequest) returns (AnswerResponse) {
+    option (google.api.http) = {
+      post: "/v1/answer"
+      body: "*"
+    };
+  }
+}
+
+message AnswerRequest {
+  string question = 1;
+  string passage = 2;
+  optional QuestionAnsweringOptions options = 3;
+}
+
+message QuestionAnsweringOptions {
+  optional int64 max_answers = 1;
+  optional int64 max_answers_len = 2;
+  optional int64 max_candidates = 3;
+  optional double min_score = 4;
+}
+
+message AnswerResponse {
+  repeated Answer answers = 1;
+}
+
+message Answer {
+  string text = 1;
+  int64 start = 2;
+  int64 end = 3;
+  double score = 4;
+}

@@ -1,0 +1,147 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "questionanswering/v1/questionanswering.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "QuestionAnsweringService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/answer": {
+      "post": {
+        "operationId": "QuestionAnsweringService_Answer",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AnswerResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1AnswerRequest"
+            }
+          }
+        ],
+        "tags": [
+          "QuestionAnsweringService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1Answer": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "start": {
+          "type": "string",
+          "format": "int64"
+        },
+        "end": {
+          "type": "string",
+          "format": "int64"
+        },
+        "score": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "v1AnswerRequest": {
+      "type": "object",
+      "properties": {
+        "question": {
+          "type": "string"
+        },
+        "passage": {
+          "type": "string"
+        },
+        "options": {
+          "$ref": "#/definitions/v1QuestionAnsweringOptions"
+        }
+      }
+    },
+    "v1AnswerResponse": {
+      "type": "object",
+      "properties": {
+        "answers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Answer"
+          }
+        }
+      }
+    },
+    "v1QuestionAnsweringOptions": {
+      "type": "object",
+      "properties": {
+        "maxAnswers": {
+          "type": "string",
+          "format": "int64"
+        },
+        "maxAnswersLen": {
+          "type": "string",
+          "format": "int64"
+        },
+        "maxCandidates": {
+          "type": "string",
+          "format": "int64"
+        },
+        "minScore": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    }
+  }
+}

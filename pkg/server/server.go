@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier"
 	"github.com/rs/cors"
@@ -75,6 +76,8 @@ func resolveRegisterFuncs(model any) (*RegisterFuncs, error) {
 		return registerText2TextFunc(m)
 	case zeroshotclassifier.Interface:
 		return registerZeroShotClassifierFunc(m)
+	case questionanswering.Interface:
+		return registerQuestionAnsweringFunc(m)
 	default:
 		return nil, fmt.Errorf("cannot create a server for model/task type %T", m)
 	}

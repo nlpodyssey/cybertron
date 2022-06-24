@@ -6,6 +6,7 @@ package converter
 
 import (
 	"fmt"
+	"github.com/nlpodyssey/cybertron/pkg/converter/bert"
 
 	"github.com/nlpodyssey/cybertron/pkg/converter/bart"
 	"github.com/nlpodyssey/cybertron/pkg/models"
@@ -23,8 +24,8 @@ func Convert[T float.DType](modelPath string, overwriteIfExists bool) error {
 		return err
 	}
 	switch config.ModelType {
-	//case "bert", "electra":
-	//	return bert.Convert[T](modelPath, overwriteIfExists)
+	case "bert", "electra":
+		return bert.Convert[T](modelPath, overwriteIfExists)
 	case "bart", "marian", "pegasus":
 		return bart.Convert[T](modelPath, overwriteIfExists)
 	default:

@@ -12,8 +12,10 @@ A unique feature of Cybertron is its compatibility with [HuggingFace Transformer
 
 ## Supported tasks
 
-- Zero-Shot Text Classification
 - Machine Translation
+- Question-Answering
+- Zero-Shot Text Classification
+
 
 # Usage
 

@@ -6,7 +6,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	textclassificationv1 "github.com/nlpodyssey/cybertron/pkg/server/gen/proto/go/textclassification/v1"
@@ -40,14 +39,8 @@ func (s *serverForTextClassification) Classify(_ context.Context, req *textclass
 	if err != nil {
 		return nil, err
 	}
-
-	labels := make([]string, len(result.Labels))
-	for i := range result.Labels {
-		labels[i] = fmt.Sprintf("%d", result.Labels[i]) // TODO: use label names
-	}
-
 	resp := &textclassificationv1.ClassifyResponse{
-		Labels: labels,
+		Labels: result.Labels,
 		Scores: result.Scores,
 	}
 	return resp, nil

@@ -14,7 +14,7 @@ type Interface interface {
 type Response struct {
 	// The list of labels sent in the request, sorted in descending order
 	// by probability that the input corresponds to the label.
-	Labels []int // string
+	Labels []string
 	// a list of floats that correspond the probability of label, in the same order as labels.
 	Scores []float64
 }

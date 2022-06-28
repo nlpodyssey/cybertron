@@ -107,7 +107,7 @@ func (conf *config) bindFlagSet(fs *flag.FlagSet) {
 		return nil
 	})
 
-	mm := conf.loaderConfig
+	mm := &conf.loaderConfig
 	fs.Func("models-dir", "models's base directory", flagAssignFunc(&mm.ModelsDir))
 	fs.Func("model", "model name (and sub-path of models-dir)", flagAssignFunc(&mm.ModelName))
 	fs.Func("model-download", `model downloading policy ("always"|"missing"|"never")`,
@@ -119,7 +119,7 @@ func (conf *config) bindFlagSet(fs *flag.FlagSet) {
 	fs.Func("task", `type of inference/computation that the model can fulfill ("text2text"|"zeroshotclassification")`,
 		flagParseFunc(ParseTaskType, &conf.task))
 
-	s := conf.serverConfig
+	s := &conf.serverConfig
 	fs.Func("network", "network type for server listening", flagAssignFunc(&s.Network))
 	fs.Func("address", "server listening address", flagAssignFunc(&s.Address))
 	fs.Func("allowed-origins", `allowed origins (comma separated)`,

@@ -49,11 +49,12 @@ var supportedModelsFiles = map[string][]string{
 // exists is kept and considered as already successfully downloaded. If
 // the flag is otherwise set to true, existing files will be forcefully
 // downloaded and overwritten.
-func Download(modelsDir, modelName string, overwriteIfExists bool) error {
+func Download(modelsDir, modelName string, overwriteIfExists bool, useAccessToken string) error {
 	return downloader{
 		modelPath:        filepath.Join(modelsDir, modelName),
 		modelName:        modelName,
 		overwriteIfExist: overwriteIfExists,
+		accessToken:      useAccessToken,
 	}.download()
 }
 
@@ -61,6 +62,7 @@ func Download(modelsDir, modelName string, overwriteIfExists bool) error {
 type downloader struct {
 	modelPath        string
 	modelName        string
+	accessToken      string
 	overwriteIfExist bool
 }
 
@@ -123,7 +125,7 @@ func (d downloader) downloadFile(name string) (err error) {
 		}
 	}()
 
-	resp, err := http.Get(url)
+	resp, err := d.httpGet(url)
 	if err != nil {
 		return fmt.Errorf("error getting %#v: %w", url, err)
 	}
@@ -146,6 +148,17 @@ func (d downloader) downloadFile(name string) (err error) {
 		return fmt.Errorf("error downloading %#v to %#v: %w", url, fPath, err)
 	}
 	return nil
+}
+
+func (d downloader) httpGet(url string) (*http.Response, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	if d.accessToken != "" {
+		req.Header.Set("Authorization", "Bearer "+d.accessToken)
+	}
+	return http.DefaultClient.Do(req)
 }
 
 func (d downloader) bucketURL(fileName string) string {

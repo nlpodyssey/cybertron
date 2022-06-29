@@ -166,7 +166,7 @@ func (l loader[T]) download() error {
 	default:
 		return fmt.Errorf("invalid model download policy: %#v", l.conf.DownloadPolicy)
 	}
-	return downloader.Download(l.conf.ModelsDir, l.conf.ModelName, overwriteIfExists)
+	return downloader.Download(l.conf.ModelsDir, l.conf.ModelName, overwriteIfExists, l.conf.HubAccessToken)
 }
 
 func (l loader[T]) convert() error {

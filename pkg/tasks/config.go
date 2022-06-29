@@ -41,9 +41,9 @@ const (
 
 // Config is the configuration for the loader.
 type Config struct {
-	ModelsDir string
-	ModelName string
-
+	ModelsDir           string
+	ModelName           string
+	HubAccessToken      string
 	DownloadPolicy      DownloadPolicy
 	ConversionPolicy    ConversionPolicy
 	ConversionPrecision FloatPrecision
@@ -54,10 +54,17 @@ func DefaultConfig(modelsDir, modelName string) Config {
 	return Config{
 		ModelsDir:           modelsDir,
 		ModelName:           modelName,
+		HubAccessToken:      "",
 		DownloadPolicy:      DownloadMissing,
 		ConversionPolicy:    ConvertMissing,
 		ConversionPrecision: F32,
 	}
+}
+
+// WithHubAccessToken sets the HubAccessToken.
+func (c Config) WithHubAccessToken(token string) Config {
+	c.HubAccessToken = token
+	return c
 }
 
 // FullModelPath returns the full model path.

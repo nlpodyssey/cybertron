@@ -64,6 +64,7 @@ func (conf *config) loadEnv() error {
 	mm := &conf.loaderConfig
 	lookupEnv("MODELS_DIR", &mm.ModelsDir)
 	lookupEnv("MODEL", &mm.ModelName)
+	lookupEnv("HUB_ACCESS_TOKEN", &mm.HubAccessToken)
 	if err := lookupEnvAndParse("MODEL_DOWNLOAD", tasks.ParseDownloadPolicy, &mm.DownloadPolicy); err != nil {
 		return err
 	}
@@ -110,6 +111,7 @@ func (conf *config) bindFlagSet(fs *flag.FlagSet) {
 	mm := &conf.loaderConfig
 	fs.Func("models-dir", "models's base directory", flagAssignFunc(&mm.ModelsDir))
 	fs.Func("model", "model name (and sub-path of models-dir)", flagAssignFunc(&mm.ModelName))
+	fs.Func("hub-auth-token", `access token to access the Hugging Face Hub (optional)`, flagAssignFunc(&mm.HubAccessToken))
 	fs.Func("model-download", `model downloading policy ("always"|"missing"|"never")`,
 		flagParseFunc(tasks.ParseDownloadPolicy, &mm.DownloadPolicy))
 	fs.Func("model-conversion", `model conversion policy ("always"|"missing"|"never")`,

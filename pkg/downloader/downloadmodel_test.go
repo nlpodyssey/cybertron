@@ -21,7 +21,7 @@ func TestDownloadModel(t *testing.T) {
 	dir := t.TempDir()
 	modelName := "hf-internal-testing/tiny-random-bart"
 
-	err := Download(dir, modelName, false)
+	err := Download(dir, modelName, false, "")
 
 	require.NoError(t, err)
 

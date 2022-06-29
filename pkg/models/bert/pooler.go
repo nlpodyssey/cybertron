@@ -35,5 +35,16 @@ func NewPooler[T float.DType](c Config) *Pooler {
 
 // Forward applies a linear transformation followed by a Tanh activation to the first `[CLS]` encoded token.
 func (m *Pooler) Forward(encoded []ag.Node) ag.Node {
-	return nn.Forward(m.Model)(encoded[0])[0]
+	return nn.Forward(m.Model)(first(encoded))[0]
+}
+
+// first returns only the first node, but waits for the values of all the other nodes.
+// This is important to avoid data race on ag.ReleaseGraph(): it is possible that you would
+// like to free nodes that depend on other nodes in goroutines still in execution and for
+// which no one has ever asked for the Value().
+func first(xs []ag.Node) ag.Node {
+	for _, x := range xs {
+		x.Value()
+	}
+	return xs[0]
 }

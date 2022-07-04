@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"fmt"
 	"io"
 	"os"
 	"os/signal"
@@ -18,6 +19,7 @@ import (
 	"github.com/nlpodyssey/cybertron/pkg/tasks"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/textclassification"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -60,15 +62,7 @@ func run() error {
 		return err
 	}
 
-	var m any
-	switch conf.task {
-	case ZeroShotClassificationTask:
-		m, err = tasks.Load[zeroshotclassifier.Interface](conf.loaderConfig)
-	case Text2TextTask:
-		m, err = tasks.Load[text2text.Interface](conf.loaderConfig)
-	case QuestionAnsweringTask:
-		m, err = tasks.Load[questionanswering.Interface](conf.loaderConfig)
-	}
+	m, err := loadModelForTask(conf)
 	if err != nil {
 		return err
 	}
@@ -76,7 +70,12 @@ func run() error {
 		defer i.Close()
 	}
 
-	s, err := server.New(conf.serverConfig, m)
+	r, err := resolveRegisterFuncs(m)
+	if err != nil {
+		return err
+	}
+
+	s, err := server.New(conf.serverConfig, r)
 	if err != nil {
 		return err
 	}
@@ -85,6 +84,37 @@ func run() error {
 	defer stop()
 
 	return s.Run(ctx)
+}
+
+func loadModelForTask(conf *config) (m any, err error) {
+	switch conf.task {
+	case ZeroShotClassificationTask:
+		return tasks.Load[zeroshotclassifier.Interface](conf.loaderConfig)
+	case Text2TextTask:
+		return tasks.Load[text2text.Interface](conf.loaderConfig)
+	case QuestionAnsweringTask:
+		return tasks.Load[questionanswering.Interface](conf.loaderConfig)
+	case TextClassificationTask:
+		return tasks.Load[textclassification.Interface](conf.loaderConfig)
+	default:
+		return nil, fmt.Errorf("failed to load model/task type %s", conf.task)
+	}
+}
+
+// ResolveRegisterFuncs resolves the register funcs for the server based on the model.
+func resolveRegisterFuncs(model any) (*server.RegisterFuncs, error) {
+	switch m := model.(type) {
+	case text2text.Interface:
+		return server.RegisterText2TextFunc(m)
+	case zeroshotclassifier.Interface:
+		return server.RegisterZeroShotClassifierFunc(m)
+	case questionanswering.Interface:
+		return server.RegisterQuestionAnsweringFunc(m)
+	case textclassification.Interface:
+		return server.RegisterTextClassificationFunc(m)
+	default:
+		return nil, fmt.Errorf("failed to resolve register funcs for model/task type %T", m)
+	}
 }
 
 // initLogger initializes the logger.

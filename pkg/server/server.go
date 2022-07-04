@@ -13,10 +13,6 @@ import (
 	"strings"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering"
-	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
-	"github.com/nlpodyssey/cybertron/pkg/tasks/textclassification"
-	"github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/net/http2"
@@ -27,7 +23,7 @@ import (
 // Server is a server that provides gRPC and HTTP/2 APIs.
 type Server struct {
 	Config        Config
-	RegisterFuncs RegisterFuncs
+	RegisterFuncs *RegisterFuncs
 }
 
 // Config is the configuration for the server.
@@ -59,35 +55,18 @@ type RegisterFuncs struct {
 }
 
 // New creates a new server.
-func New(conf Config, model any) (*Server, error) {
-	regFuncs, err := resolveRegisterFuncs(model)
-	if err != nil {
-		return nil, fmt.Errorf("failed to resolve register funcs: %w", err)
-	}
+func New(conf Config, r *RegisterFuncs) (*Server, error) {
 	return &Server{
 		Config:        conf,
-		RegisterFuncs: *regFuncs,
+		RegisterFuncs: r,
 	}, nil
-}
-
-// resolveRegisterFuncs resolves the register funcs for the server based on the model.
-func resolveRegisterFuncs(model any) (*RegisterFuncs, error) {
-	switch m := model.(type) {
-	case text2text.Interface:
-		return registerText2TextFunc(m)
-	case zeroshotclassifier.Interface:
-		return registerZeroShotClassifierFunc(m)
-	case questionanswering.Interface:
-		return registerQuestionAnsweringFunc(m)
-	case textclassification.Interface:
-		return registerTextClassificationFunc(m)
-	default:
-		return nil, fmt.Errorf("cannot create a server for model/task type %T", m)
-	}
 }
 
 // Run starts the server.
 func (s *Server) Run(ctx context.Context) error {
+	if s.RegisterFuncs == nil {
+		return fmt.Errorf("register funcs are not set")
+	}
 	conf := s.Config
 
 	grpcServer := grpc.NewServer()

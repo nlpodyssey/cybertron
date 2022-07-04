@@ -19,8 +19,8 @@ type serverForZeroShotClassification struct {
 	classifier zeroshotclassifier.Interface
 }
 
-// registerZeroShotClassifierFunc registers the ZeroShotClassification functions.
-func registerZeroShotClassifierFunc(classifier zeroshotclassifier.Interface) (*RegisterFuncs, error) {
+// RegisterZeroShotClassifierFunc registers the ZeroShotClassification functions.
+func RegisterZeroShotClassifierFunc(classifier zeroshotclassifier.Interface) (*RegisterFuncs, error) {
 	s := &serverForZeroShotClassification{classifier: classifier}
 	return &RegisterFuncs{
 		RegisterServer: func(r grpc.ServiceRegistrar) error {

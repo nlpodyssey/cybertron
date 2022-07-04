@@ -19,8 +19,8 @@ type serverForQuestionAnswering struct {
 	engine questionanswering.Interface
 }
 
-// registerQuestionAnsweringFunc registers the Interface function.
-func registerQuestionAnsweringFunc(engine questionanswering.Interface) (*RegisterFuncs, error) {
+// RegisterQuestionAnsweringFunc registers the Interface function.
+func RegisterQuestionAnsweringFunc(engine questionanswering.Interface) (*RegisterFuncs, error) {
 	s := &serverForQuestionAnswering{engine: engine}
 	return &RegisterFuncs{
 		RegisterServer: func(r grpc.ServiceRegistrar) error {

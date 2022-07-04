@@ -20,8 +20,8 @@ type serverForTextGeneration struct {
 	generator text2text.Interface
 }
 
-// registerText2TextFunc registers the Interface function.
-func registerText2TextFunc(generator text2text.Interface) (*RegisterFuncs, error) {
+// RegisterText2TextFunc registers the Interface function.
+func RegisterText2TextFunc(generator text2text.Interface) (*RegisterFuncs, error) {
 	s := &serverForTextGeneration{generator: generator}
 	return &RegisterFuncs{
 		RegisterServer: func(r grpc.ServiceRegistrar) error {

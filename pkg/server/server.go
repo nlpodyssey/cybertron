@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/rs/cors"
@@ -62,37 +63,38 @@ func New(conf Config, r *RegisterFuncs) (*Server, error) {
 	}, nil
 }
 
-// Run starts the server.
-func (s *Server) Run(ctx context.Context) error {
+// Start up the server, this will block.
+// Start via a Go routine if needed.
+func (s *Server) Start(ctx context.Context) {
 	if s.RegisterFuncs == nil {
-		return fmt.Errorf("register funcs are not set")
+		log.Fatal().Err(fmt.Errorf("register funcs are not set")).Send()
 	}
 	conf := s.Config
 
 	grpcServer := grpc.NewServer()
 	if err := s.RegisterFuncs.RegisterServer(grpcServer); err != nil {
-		return fmt.Errorf("failed to register gRPC server: %w", err)
+		log.Fatal().Err(fmt.Errorf("failed to register gRPC server: %w", err)).Send()
 	}
 
 	gwMux := runtime.NewServeMux()
 	if err := s.RegisterFuncs.RegisterHandlerServer(ctx, gwMux); err != nil {
-		return fmt.Errorf("failed to register gRPC handler server: %w", err)
+		log.Fatal().Err(fmt.Errorf("failed to register gRPC handler server: %w", err)).Send()
 	}
 
 	mux := gwMux
 
 	lis, err := net.Listen(conf.Network, conf.Address)
 	if err != nil {
-		return fmt.Errorf("failed to listen on %s (%s): %w", conf.Address, conf.Network, err)
+		log.Fatal().Err(fmt.Errorf("failed to listen on %s (%s): %w", conf.Address, conf.Network, err)).Send()
 	}
 
 	handler := cors.New(s.corsOptions()).Handler(mux)
 	handler = s.handlerFunc(grpcServer, handler)
 
 	if conf.TLSEnabled {
-		return s.serveTLS(ctx, lis, handler)
+		s.serveTLS(ctx, lis, handler)
 	}
-	return s.serveInsecure(ctx, lis, handler)
+	s.serveInsecure(ctx, lis, handler)
 }
 
 // corsOptions returns the CORS options for the server.
@@ -120,12 +122,12 @@ func isGRPCRequest(r *http.Request) bool {
 }
 
 // serveTLS starts the server with TLS.
-func (s *Server) serveTLS(ctx context.Context, lis net.Listener, handler http.Handler) error {
+func (s *Server) serveTLS(ctx context.Context, lis net.Listener, handler http.Handler) {
 	conf := s.Config
 
 	tlsCert, err := tls.LoadX509KeyPair(conf.TLSCert, conf.TLSKey)
 	if err != nil {
-		return fmt.Errorf("failed to load TLS public/private key pair: %w", err)
+		log.Fatal().Err(fmt.Errorf("failed to load TLS public/private key pair: %w", err)).Send()
 	}
 
 	hs := &http.Server{
@@ -142,13 +144,12 @@ func (s *Server) serveTLS(ctx context.Context, lis net.Listener, handler http.Ha
 
 	err = hs.Serve(tls.NewListener(lis, hs.TLSConfig))
 	if err != nil {
-		return fmt.Errorf("server error: %w", err)
+		log.Fatal().Err(fmt.Errorf("server error: %w", err)).Send()
 	}
-	return nil
 }
 
 // serveInsecure starts the server without TLS.
-func (s *Server) serveInsecure(ctx context.Context, lis net.Listener, handler http.Handler) error {
+func (s *Server) serveInsecure(ctx context.Context, lis net.Listener, handler http.Handler) {
 	conf := s.Config
 
 	h2s := &http2.Server{}
@@ -162,9 +163,8 @@ func (s *Server) serveInsecure(ctx context.Context, lis net.Listener, handler ht
 
 	err := h1s.Serve(lis)
 	if err != nil {
-		return fmt.Errorf("server error: %w", err)
+		log.Fatal().Err(fmt.Errorf("server error: %w", err)).Send()
 	}
-	return nil
 }
 
 // shutDownServerWhenContextIsDone shuts down the server when the context is done.
@@ -175,4 +175,33 @@ func shutDownServerWhenContextIsDone(ctx context.Context, hs *http.Server) {
 	if err != nil {
 		log.Err(err).Msg("server shutdown error")
 	}
+}
+
+// ReadyForConnections returns `true` if the server is ready to accept requests.
+// If after the duration `dur` the server is still not ready, returns `false`.
+func (s *Server) ReadyForConnections(dur time.Duration) bool {
+	return s.readyForConnections(dur) == nil
+}
+
+func (s *Server) readyForConnections(d time.Duration) error {
+	end := time.Now().Add(d)
+	for time.Now().Before(end) {
+		if err := s.check(); err == nil {
+			return nil
+		}
+		if d > 25*time.Millisecond {
+			time.Sleep(25 * time.Millisecond)
+		}
+	}
+	return fmt.Errorf("failed to be ready for connections after %s", d)
+}
+
+// check checks if the server is ready for connections.
+func (s *Server) check() error {
+	conn, err := net.Dial(s.Config.Network, s.Config.Address)
+	if err != nil {
+		return fmt.Errorf("failed to connect to %s (%s): %w", s.Config.Address, s.Config.Network, err)
+	}
+	conn.Close()
+	return nil
 }

@@ -2,8 +2,6 @@ module github.com/nlpodyssey/cybertron
 
 go 1.18
 
-replace github.com/nlpodyssey/spago => ../spago
-
 require (
 	github.com/bufbuild/buf v1.4.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.1

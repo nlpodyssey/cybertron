@@ -140,6 +140,8 @@ github.com/nlpodyssey/gopickle v0.1.0 h1:9wjwRqXsOSYWZl4c4ko472b6RW+VB1I441ZcfFg
 github.com/nlpodyssey/gopickle v0.1.0/go.mod h1:YIUwjJ2O7+vnBsxUN+MHAAI3N+adqEGiw+nDpwW95bY=
 github.com/nlpodyssey/gotokenizers v0.2.0 h1:CWx/sp9s35XMO5lT1kNXCshFGDCfPuuWdx/9JiQBsVc=
 github.com/nlpodyssey/gotokenizers v0.2.0/go.mod h1:SBLbuSQhpni9M7U+Ie6O46TXYN73T2Cuw/4eeYHYJ+s=
+github.com/nlpodyssey/spago v1.0.0-alpha.0.20220703124656-f37cda4daf98 h1:O2XgKYv3LcIl9jB4ExNZhA+XIFwQGtYYUASI5oZIQoc=
+github.com/nlpodyssey/spago v1.0.0-alpha.0.20220703124656-f37cda4daf98/go.mod h1:myGGtjwdlurAzacv7iXHY7KVfWii6MaHZo/eCDd6iE4=
 github.com/nlpodyssey/spago/embeddings/store/diskstore v0.0.0-20220614221304-c7a28dec1f92 h1:TISvRmCDAotoT5RoSdpjKTHJQK6dBlSAzwcZJWM+aCc=
 github.com/nlpodyssey/spago/embeddings/store/diskstore v0.0.0-20220614221304-c7a28dec1f92/go.mod h1:ElJ8F8dMxzuInbNMapI7m625LjE8OdIfGfmU/KwxPzM=
 github.com/pelletier/go-toml v1.2.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=

@@ -2,13 +2,15 @@ module github.com/nlpodyssey/cybertron
 
 go 1.18
 
+replace github.com/nlpodyssey/spago => ../spago
+
 require (
 	github.com/bufbuild/buf v1.4.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.1
 	github.com/joho/godotenv v1.4.0
 	github.com/nlpodyssey/gopickle v0.1.0
 	github.com/nlpodyssey/gotokenizers v0.2.0
-	github.com/nlpodyssey/spago v1.0.0-alpha.0.20220623211950-6039d165a9c4
+	github.com/nlpodyssey/spago v1.0.0-alpha.0.20220703124656-f37cda4daf98
 	github.com/nlpodyssey/spago/embeddings/store/diskstore v0.0.0-20220614221304-c7a28dec1f92
 	github.com/rs/cors v1.8.2
 	github.com/rs/zerolog v1.26.1

@@ -19,6 +19,9 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	healthgrpc "google.golang.org/grpc/health/grpc_health_v1"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 const (
@@ -77,6 +80,10 @@ func (s *Server) Start(ctx context.Context) {
 	conf := s.Config
 
 	grpcServer := grpc.NewServer()
+
+	healthCheck := health.NewServer()
+	healthgrpc.RegisterHealthServer(grpcServer, healthCheck)
+
 	if err := s.RegisterFuncs.RegisterServer(grpcServer); err != nil {
 		log.Fatal().Err(fmt.Errorf("failed to register gRPC server: %w", err)).Send()
 	}
@@ -100,10 +107,32 @@ func (s *Server) Start(ctx context.Context) {
 	handler := cors.New(s.corsOptions()).Handler(mux)
 	handler = s.handlerFunc(grpcServer, handler)
 
+	go runHealthCheckLoop(healthCheck)
+
 	if conf.TLSEnabled {
 		s.serveTLS(ctx, lis, handler)
 	}
 	s.serveInsecure(ctx, lis, handler)
+}
+
+const (
+	healthCheckSleep         = 5 * time.Second
+	healthCheckSystemService = "" // empty string represents the system, rather than a specific service
+)
+
+func runHealthCheckLoop(healthCheck *health.Server) {
+	next := healthpb.HealthCheckResponse_SERVING
+	for {
+		healthCheck.SetServingStatus(healthCheckSystemService, next)
+
+		if next == healthpb.HealthCheckResponse_SERVING {
+			next = healthpb.HealthCheckResponse_NOT_SERVING
+		} else {
+			next = healthpb.HealthCheckResponse_SERVING
+		}
+
+		time.Sleep(healthCheckSleep)
+	}
 }
 
 // corsOptions returns the CORS options for the server.

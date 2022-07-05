@@ -9,7 +9,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"os/signal"
 	"time"
@@ -67,9 +66,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	if i, ok := m.(io.Closer); ok {
-		defer i.Close()
-	}
+	defer tasks.Finalize(m)
 
 	r, err := resolveRegisterFuncs(m)
 	if err != nil {

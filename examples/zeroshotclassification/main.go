@@ -6,7 +6,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"strings"
 	"time"
@@ -29,9 +28,7 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
-	if m, ok := m.(io.Closer); ok {
-		defer m.Close()
-	}
+	defer tasks.Finalize(m)
 
 	params := zeroshotclassifier.Parameters{
 		CandidateLabels:    strings.Split(possibleClasses, ","),

@@ -6,7 +6,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"time"
 
@@ -28,9 +27,7 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
-	if m, ok := m.(io.Closer); ok {
-		defer m.Close()
-	}
+	defer tasks.Finalize(m)
 
 	opts := questionanswering.Options{
 		MaxAnswerLength: 0,

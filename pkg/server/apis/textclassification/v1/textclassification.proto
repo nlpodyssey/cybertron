@@ -2,9 +2,9 @@ syntax = "proto3";
 
 package textclassification.v1;
 
-option go_package = "github.com/nlpodyssey/cybertron/pkg/server/apis/textclassification/v1;textclassificationv1";
-
 import "google/api/annotations.proto";
+
+option go_package = "github.com/nlpodyssey/cybertron/pkg/server/apis/textclassification/v1;textclassificationv1";
 
 service TextClassificationService {
   rpc Classify(ClassifyRequest) returns (ClassifyResponse) {

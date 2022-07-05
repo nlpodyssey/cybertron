@@ -2,9 +2,9 @@ syntax = "proto3";
 
 package zeroshot.v1;
 
-option go_package = "github.com/nlpodyssey/cybertron/pkg/server/apis/zeroshot/v1;zeroshotv1";
-
 import "google/api/annotations.proto";
+
+option go_package = "github.com/nlpodyssey/cybertron/pkg/server/apis/zeroshot/v1;zeroshotv1";
 
 service ZeroShotService {
   rpc Classify(ClassifyRequest) returns (ClassifyResponse) {

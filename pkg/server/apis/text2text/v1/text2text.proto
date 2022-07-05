@@ -2,9 +2,9 @@ syntax = "proto3";
 
 package text2text.v1;
 
-option go_package = "github.com/nlpodyssey/cybertron/pkg/server/apis/text2text/v1;text2textv1";
-
 import "google/api/annotations.proto";
+
+option go_package = "github.com/nlpodyssey/cybertron/pkg/server/apis/text2text/v1;text2textv1";
 
 service Text2TextService {
   rpc Generate(GenerateRequest) returns (GenerateResponse) {

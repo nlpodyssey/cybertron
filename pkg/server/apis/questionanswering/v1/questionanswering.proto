@@ -2,9 +2,9 @@ syntax = "proto3";
 
 package questionanswering.v1;
 
-option go_package = "github.com/nlpodyssey/cybertron/pkg/server/apis/questionanswering/v1;questionansweringv1";
-
 import "google/api/annotations.proto";
+
+option go_package = "github.com/nlpodyssey/cybertron/pkg/server/apis/questionanswering/v1;questionansweringv1";
 
 service QuestionAnsweringService {
   rpc Answer(AnswerRequest) returns (AnswerResponse) {

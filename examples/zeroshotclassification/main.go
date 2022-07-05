@@ -25,7 +25,7 @@ func main() {
 	modelName := HasEnvVar("CYBERTRON_MODEL")
 	possibleClasses := HasEnvVar("CYBERTRON_ZERO_SHOT_POSSIBLE_CLASSES")
 
-	m, err := tasks.Load[zeroshotclassifier.Interface](tasks.DefaultConfig(modelsDir, modelName))
+	m, err := tasks.Load[zeroshotclassifier.Interface](&tasks.Config{ModelsDir: modelsDir, ModelName: modelName})
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}

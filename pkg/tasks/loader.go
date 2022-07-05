@@ -30,8 +30,8 @@ var (
 )
 
 // Load loads a model from file.
-func Load[T any](conf Config) (T, error) {
-	return loader[T]{conf: conf}.load()
+func Load[T any](conf *Config) (T, error) {
+	return loader[T]{conf: *conf}.load()
 }
 
 type loader[T any] struct {

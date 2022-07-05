@@ -26,6 +26,7 @@ import (
 )
 
 const defaultModelsDir = "models"
+const addrRandomPort = ":0"
 
 // main is the entry point of the application.
 func main() {
@@ -41,8 +42,8 @@ func run() error {
 	loadDotenv()
 
 	conf := &config{
-		loaderConfig: tasks.DefaultConfig(defaultModelsDir, ""),
-		serverConfig: server.DefaultServerConfig(),
+		loaderConfig: &tasks.Config{ModelsDir: defaultModelsDir},
+		serverConfig: &server.Config{Address: addrRandomPort},
 	}
 
 	// load env vars values *before* parsing command line flags:

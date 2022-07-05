@@ -10,103 +10,103 @@ import (
 )
 
 // DownloadPolicy is a policy for downloading a model.
-type DownloadPolicy string
+type DownloadPolicy int
 
 // ConversionPolicy is a policy for converting a pre-trained model.
-type ConversionPolicy string
+type ConversionPolicy int
 
 // FloatPrecision is the floating-point precision of the converted model.
-type FloatPrecision string
+type FloatPrecision int
 
 const (
-	// DownloadAlways means that the model will be downloaded even if it already exists.
-	DownloadAlways DownloadPolicy = "always"
 	// DownloadMissing means that the model will be downloaded only if it doesn't exist.
-	DownloadMissing DownloadPolicy = "missing"
+	DownloadMissing DownloadPolicy = iota
+	// DownloadAlways means that the model will be downloaded even if it already exists.
+	DownloadAlways
 	// DownloadNever means that the model will not be downloaded.
-	DownloadNever DownloadPolicy = "never"
+	DownloadNever
+)
 
-	// ConvertAlways converts the model even if it already exists.
-	ConvertAlways ConversionPolicy = "always"
+const (
 	// ConvertMissing converts the model only if it does not exist.
-	ConvertMissing ConversionPolicy = "missing"
+	ConvertMissing ConversionPolicy = iota
+	// ConvertAlways converts the model even if it already exists.
+	ConvertAlways
 	// ConvertNever does not convert the model.
-	ConvertNever ConversionPolicy = "never"
+	ConvertNever
+)
 
+const (
 	// F32 is the 32 floating-point precision.
-	F32 FloatPrecision = "32"
+	F32 FloatPrecision = iota
 	// F64 is the 64 floating-point precision.
-	F64 FloatPrecision = "64"
+	F64
 )
 
 // Config is the configuration for the loader.
 type Config struct {
-	ModelsDir           string
-	ModelName           string
-	HubAccessToken      string
-	DownloadPolicy      DownloadPolicy
-	ConversionPolicy    ConversionPolicy
+	// ModelsDir is the directory where the models are stored.
+	ModelsDir string
+	// ModelName is the name of the model (format: <org>/<model>).
+	ModelName string
+	// HubAccessToken is the access token for the Hugging Face Hub.
+	HubAccessToken string
+	// DownloadPolicy is the policy for downloading the model (default missing)
+	DownloadPolicy DownloadPolicy
+	// ConversionPolicy is the policy for converting the model (default missing)
+	ConversionPolicy ConversionPolicy
+	// ConversionPrecision is the floating-point precision of the converted model (default 32)
 	ConversionPrecision FloatPrecision
 }
 
-// DefaultConfig returns the default configuration.
-func DefaultConfig(modelsDir, modelName string) Config {
-	return Config{
-		ModelsDir:           modelsDir,
-		ModelName:           modelName,
-		HubAccessToken:      "",
-		DownloadPolicy:      DownloadMissing,
-		ConversionPolicy:    ConvertMissing,
-		ConversionPrecision: F32,
-	}
-}
-
-// WithHubAccessToken sets the HubAccessToken.
-func (c Config) WithHubAccessToken(token string) Config {
-	c.HubAccessToken = token
-	return c
-}
-
 // FullModelPath returns the full model path.
-func (c Config) FullModelPath() string {
+func (c *Config) FullModelPath() string {
 	return filepath.Join(c.ModelsDir, c.ModelName)
 }
 
-// DownloadPolicyValues is a list of supported download policies.
-var DownloadPolicyValues = []DownloadPolicy{DownloadAlways, DownloadMissing, DownloadNever}
+// downloadPolicyValues is a list of supported download policies.
+var downloadPolicyValues = map[string]DownloadPolicy{
+	"missing": DownloadMissing,
+	"always":  DownloadAlways,
+	"never":   DownloadNever,
+}
 
-// ConversionPolicyValues is a list of supported conversion policies.
-var ConversionPolicyValues = []ConversionPolicy{ConvertAlways, ConvertMissing, ConvertNever}
+// conversionPolicyValues is a list of supported conversion policies.
+var conversionPolicyValues = map[string]ConversionPolicy{
+	"missing": ConvertMissing,
+	"always":  ConvertAlways,
+	"never":   ConvertNever,
+}
 
 // floatPrecisionValues is a list of supported floating-point precisions.
-var floatPrecisionValues = []FloatPrecision{F32, F64}
+var floatPrecisionValues = map[string]FloatPrecision{
+	"32": F32,
+	"64": F64,
+}
 
 // ParseDownloadPolicy parses a string into a download policy.
 func ParseDownloadPolicy(s string) (DownloadPolicy, error) {
-	for _, v := range DownloadPolicyValues {
-		if s == string(v) {
-			return v, nil
-		}
+	result, ok := downloadPolicyValues[s]
+	if !ok {
+		return 0, fmt.Errorf("invalid model download policy value %#v", s)
 	}
-	return "", fmt.Errorf("invalid download policy value %#v", s)
+	return result, nil
 }
 
 // ParseConversionPolicy parses a string into a conversion policy.
 func ParseConversionPolicy(s string) (ConversionPolicy, error) {
-	for _, v := range ConversionPolicyValues {
-		if s == string(v) {
-			return v, nil
-		}
+	result, ok := conversionPolicyValues[s]
+	if !ok {
+		return 0, fmt.Errorf("invalid model conversion policy value %#v", s)
 	}
-	return "", fmt.Errorf("invalid model pre-load policy value %#v", s)
+	return result, nil
 }
 
 // ParseFloatPrecision parses a string into a FloatPrecision precision type.
 func ParseFloatPrecision(s string) (FloatPrecision, error) {
-	for _, v := range floatPrecisionValues {
-		if s == string(v) {
-			return v, nil
-		}
+	result, ok := floatPrecisionValues[s]
+	if !ok {
+		return 0, fmt.Errorf("invalid model floating-point precision value %#v", s)
 	}
-	return "", fmt.Errorf("invalid model floating-point precision value %#v", s)
+	return result, nil
 }

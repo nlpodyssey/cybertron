@@ -21,9 +21,16 @@ import (
 	"google.golang.org/grpc"
 )
 
+const (
+	// DefaultNetwork is the default network.
+	DefaultNetwork = "tcp4"
+	// DefaultAddress is the default address.
+	DefaultAddress = ":8080"
+)
+
 // Server is a server that provides gRPC and HTTP/2 APIs.
 type Server struct {
-	Config        Config
+	Config        *Config
 	RegisterFuncs *RegisterFuncs
 }
 
@@ -37,18 +44,6 @@ type Config struct {
 	TLSKey         string
 }
 
-// DefaultServerConfig returns the default server config.
-func DefaultServerConfig() Config {
-	return Config{
-		Network:        "tcp4",
-		Address:        ":8080",
-		AllowedOrigins: make([]string, 0),
-		TLSEnabled:     false,
-		TLSCert:        "",
-		TLSKey:         "",
-	}
-}
-
 // RegisterFuncs contains the gRPC and HTTP/2 handlers.
 type RegisterFuncs struct {
 	RegisterServer        func(grpc.ServiceRegistrar) error
@@ -56,11 +51,21 @@ type RegisterFuncs struct {
 }
 
 // New creates a new server.
-func New(conf Config, r *RegisterFuncs) (*Server, error) {
+func New(conf *Config, r *RegisterFuncs) (*Server, error) {
+	setBaselineConfig(conf)
 	return &Server{
 		Config:        conf,
 		RegisterFuncs: r,
 	}, nil
+}
+
+func setBaselineConfig(c *Config) {
+	if c.Network == "" {
+		c.Network = DefaultNetwork
+	}
+	if c.Address == "" {
+		c.Address = DefaultAddress
+	}
 }
 
 // Start up the server, this will block.
@@ -86,6 +91,10 @@ func (s *Server) Start(ctx context.Context) {
 	lis, err := net.Listen(conf.Network, conf.Address)
 	if err != nil {
 		log.Fatal().Err(fmt.Errorf("failed to listen on %s (%s): %w", conf.Address, conf.Network, err)).Send()
+	}
+
+	if strings.HasSuffix(conf.Address, ":0") {
+		conf.Address = lis.Addr().String()
 	}
 
 	handler := cors.New(s.corsOptions()).Handler(mux)
@@ -204,4 +213,10 @@ func (s *Server) check() error {
 	}
 	conn.Close()
 	return nil
+}
+
+// ClientAddr returns the Address used to connect clients (without the network).
+// Helpful in testing when we designate a random port (0).
+func (s *Server) ClientAddr() string {
+	return s.Config.Address
 }

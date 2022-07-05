@@ -24,7 +24,7 @@ func main() {
 	modelName := HasEnvVar("CYBERTRON_MODEL")
 	paragraph := HasEnvVar("CYBERTRON_QA_PARAGRAPH")
 
-	m, err := tasks.Load[questionanswering.Interface](tasks.DefaultConfig(modelsDir, modelName))
+	m, err := tasks.Load[questionanswering.Interface](&tasks.Config{ModelsDir: modelsDir, ModelName: modelName})
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}

@@ -47,8 +47,8 @@ func ParseTaskType(s string) (TaskType, error) {
 // config represents the configuration of the server.
 type config struct {
 	task         TaskType
-	loaderConfig tasks.Config
-	serverConfig server.Config
+	loaderConfig *tasks.Config
+	serverConfig *server.Config
 }
 
 // loadEnv loads config values from environment variables.
@@ -61,7 +61,7 @@ func (conf *config) loadEnv() error {
 		zerolog.SetGlobalLevel(l)
 	}
 
-	mm := &conf.loaderConfig
+	mm := conf.loaderConfig
 	lookupEnv("MODELS_DIR", &mm.ModelsDir)
 	lookupEnv("MODEL", &mm.ModelName)
 	lookupEnv("HUB_ACCESS_TOKEN", &mm.HubAccessToken)
@@ -78,7 +78,7 @@ func (conf *config) loadEnv() error {
 		return err
 	}
 
-	s := &conf.serverConfig
+	s := conf.serverConfig
 	lookupEnv("NETWORK", &s.Network)
 	lookupEnv("ADDRESS", &s.Address)
 	if err := lookupEnvAndParse("ALLOWED_ORIGINS", parseCommaSplit, &s.AllowedOrigins); err != nil {
@@ -108,10 +108,10 @@ func (conf *config) bindFlagSet(fs *flag.FlagSet) {
 		return nil
 	})
 
-	mm := &conf.loaderConfig
+	mm := conf.loaderConfig
 	fs.Func("models-dir", "models's base directory", flagAssignFunc(&mm.ModelsDir))
 	fs.Func("model", "model name (and sub-path of models-dir)", flagAssignFunc(&mm.ModelName))
-	fs.Func("hub-auth-token", `access token to access the Hugging Face Hub (optional)`, flagAssignFunc(&mm.HubAccessToken))
+	fs.Func("hub-access-token", `access token to download private models from the Hugging Face Hub (optional)`, flagAssignFunc(&mm.HubAccessToken))
 	fs.Func("model-download", `model downloading policy ("always"|"missing"|"never")`,
 		flagParseFunc(tasks.ParseDownloadPolicy, &mm.DownloadPolicy))
 	fs.Func("model-conversion", `model conversion policy ("always"|"missing"|"never")`,
@@ -121,7 +121,7 @@ func (conf *config) bindFlagSet(fs *flag.FlagSet) {
 	fs.Func("task", `type of inference/computation that the model can fulfill ("text2text"|"zeroshotclassification")`,
 		flagParseFunc(ParseTaskType, &conf.task))
 
-	s := &conf.serverConfig
+	s := conf.serverConfig
 	fs.Func("network", "network type for server listening", flagAssignFunc(&s.Network))
 	fs.Func("address", "server listening address", flagAssignFunc(&s.Address))
 	fs.Func("allowed-origins", `allowed origins (comma separated)`,

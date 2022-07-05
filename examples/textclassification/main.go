@@ -23,7 +23,7 @@ func main() {
 	modelsDir := HasEnvVar("CYBERTRON_MODELS_DIR")
 	modelName := HasEnvVar("CYBERTRON_MODEL")
 
-	m, err := tasks.Load[textclassification.Interface](tasks.DefaultConfig(modelsDir, modelName))
+	m, err := tasks.Load[textclassification.Interface](&tasks.Config{ModelsDir: modelsDir, ModelName: modelName})
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}

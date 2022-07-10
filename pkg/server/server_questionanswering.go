@@ -19,18 +19,17 @@ type serverForQuestionAnswering struct {
 	engine questionanswering.Interface
 }
 
-// RegisterQuestionAnsweringFunc registers the Interface function.
-func RegisterQuestionAnsweringFunc(engine questionanswering.Interface) (*RegisterFuncs, error) {
-	s := &serverForQuestionAnswering{engine: engine}
-	return &RegisterFuncs{
-		RegisterServer: func(r grpc.ServiceRegistrar) error {
-			questionansweringv1.RegisterQuestionAnsweringServiceServer(r, s)
-			return nil
-		},
-		RegisterHandlerServer: func(ctx context.Context, mux *runtime.ServeMux) error {
-			return questionansweringv1.RegisterQuestionAnsweringServiceHandlerServer(ctx, mux, s)
-		},
-	}, nil
+func NewServerForQuestionAnswering(engine questionanswering.Interface) TaskServer {
+	return &serverForQuestionAnswering{engine: engine}
+}
+
+func (s *serverForQuestionAnswering) RegisterServer(r grpc.ServiceRegistrar) error {
+	questionansweringv1.RegisterQuestionAnsweringServiceServer(r, s)
+	return nil
+}
+
+func (s *serverForQuestionAnswering) RegisterHandlerServer(ctx context.Context, mux *runtime.ServeMux) error {
+	return questionansweringv1.RegisterQuestionAnsweringServiceHandlerServer(ctx, mux, s)
 }
 
 // Answer handles the Answer request.

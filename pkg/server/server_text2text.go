@@ -20,18 +20,17 @@ type serverForTextGeneration struct {
 	generator text2text.Interface
 }
 
-// RegisterText2TextFunc registers the Interface function.
-func RegisterText2TextFunc(generator text2text.Interface) (*RegisterFuncs, error) {
-	s := &serverForTextGeneration{generator: generator}
-	return &RegisterFuncs{
-		RegisterServer: func(r grpc.ServiceRegistrar) error {
-			text2textv1.RegisterText2TextServiceServer(r, s)
-			return nil
-		},
-		RegisterHandlerServer: func(ctx context.Context, mux *runtime.ServeMux) error {
-			return text2textv1.RegisterText2TextServiceHandlerServer(ctx, mux, s)
-		},
-	}, nil
+func NewServerForTextGeneration(generator text2text.Interface) TaskServer {
+	return &serverForTextGeneration{generator: generator}
+}
+
+func (s *serverForTextGeneration) RegisterServer(r grpc.ServiceRegistrar) error {
+	text2textv1.RegisterText2TextServiceServer(r, s)
+	return nil
+}
+
+func (s *serverForTextGeneration) RegisterHandlerServer(ctx context.Context, mux *runtime.ServeMux) error {
+	return text2textv1.RegisterText2TextServiceHandlerServer(ctx, mux, s)
 }
 
 // Generate handles the Generate request.

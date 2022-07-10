@@ -32,8 +32,8 @@ const (
 
 // Server is a server that provides gRPC and HTTP/2 APIs.
 type Server struct {
-	conf          *Config
-	registerFuncs *RegisterFuncs
+	conf       *Config
+	taskServer TaskServer
 }
 
 // Config is the configuration for the server.
@@ -46,19 +46,20 @@ type Config struct {
 	TLSKey         string
 }
 
-// RegisterFuncs contains the gRPC and HTTP/2 handlers.
-type RegisterFuncs struct {
-	RegisterServer        func(grpc.ServiceRegistrar) error
-	RegisterHandlerServer func(ctx context.Context, mux *runtime.ServeMux) error
+// TaskServer is implemented by any task-specific service that can be
+// registered in the main Server.
+type TaskServer interface {
+	RegisterServer(grpc.ServiceRegistrar) error
+	RegisterHandlerServer(context.Context, *runtime.ServeMux) error
 }
 
 // New creates a new server.
-func New(conf *Config, r *RegisterFuncs) (*Server, error) {
+func New(conf *Config, taskServer TaskServer) *Server {
 	setBaselineConfig(conf)
 	return &Server{
-		conf:          conf,
-		registerFuncs: r,
-	}, nil
+		conf:       conf,
+		taskServer: taskServer,
+	}
 }
 
 func setBaselineConfig(c *Config) {
@@ -73,9 +74,6 @@ func setBaselineConfig(c *Config) {
 // Start up the server, this will block.
 // Start via a Go routine if needed.
 func (s *Server) Start(ctx context.Context) {
-	if s.registerFuncs == nil {
-		log.Fatal().Err(fmt.Errorf("register funcs are not set")).Send()
-	}
 	conf := s.conf
 
 	grpcServer := grpc.NewServer()
@@ -83,12 +81,12 @@ func (s *Server) Start(ctx context.Context) {
 	healthCheck := health.NewServer()
 	grpc_health_v1.RegisterHealthServer(grpcServer, healthCheck)
 
-	if err := s.registerFuncs.RegisterServer(grpcServer); err != nil {
+	if err := s.taskServer.RegisterServer(grpcServer); err != nil {
 		log.Fatal().Err(fmt.Errorf("failed to register gRPC server: %w", err)).Send()
 	}
 
 	gwMux := runtime.NewServeMux()
-	if err := s.registerFuncs.RegisterHandlerServer(ctx, gwMux); err != nil {
+	if err := s.taskServer.RegisterHandlerServer(ctx, gwMux); err != nil {
 		log.Fatal().Err(fmt.Errorf("failed to register gRPC handler server: %w", err)).Send()
 	}
 

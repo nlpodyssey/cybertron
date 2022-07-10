@@ -19,18 +19,17 @@ type serverForTextClassification struct {
 	classifier textclassification.Interface
 }
 
-// RegisterTextClassificationFunc registers the Text Classification functions.
-func RegisterTextClassificationFunc(classifier textclassification.Interface) (*RegisterFuncs, error) {
-	s := &serverForTextClassification{classifier: classifier}
-	return &RegisterFuncs{
-		RegisterServer: func(r grpc.ServiceRegistrar) error {
-			textclassificationv1.RegisterTextClassificationServiceServer(r, s)
-			return nil
-		},
-		RegisterHandlerServer: func(ctx context.Context, mux *runtime.ServeMux) error {
-			return textclassificationv1.RegisterTextClassificationServiceHandlerServer(ctx, mux, s)
-		},
-	}, nil
+func NewServerForTextClassification(classifier textclassification.Interface) TaskServer {
+	return &serverForTextClassification{classifier: classifier}
+}
+
+func (s *serverForTextClassification) RegisterServer(r grpc.ServiceRegistrar) error {
+	textclassificationv1.RegisterTextClassificationServiceServer(r, s)
+	return nil
+}
+
+func (s *serverForTextClassification) RegisterHandlerServer(ctx context.Context, mux *runtime.ServeMux) error {
+	return textclassificationv1.RegisterTextClassificationServiceHandlerServer(ctx, mux, s)
 }
 
 // Classify handles the Classify request.

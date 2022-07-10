@@ -68,15 +68,12 @@ func run() error {
 	}
 	defer tasks.Finalize(m)
 
-	r, err := resolveRegisterFuncs(m)
+	taskServer, err := makeTaskServer(m)
 	if err != nil {
 		return err
 	}
 
-	s, err := server.New(conf.serverConfig, r)
-	if err != nil {
-		return err
-	}
+	s := server.New(conf.serverConfig, taskServer)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
 	defer stop()
@@ -100,17 +97,17 @@ func loadModelForTask(conf *config) (m any, err error) {
 	}
 }
 
-// ResolveRegisterFuncs resolves the register funcs for the server based on the model.
-func resolveRegisterFuncs(model any) (*server.RegisterFuncs, error) {
+// makeTaskServer instantiates a new task-server based on the model.
+func makeTaskServer(model any) (server.TaskServer, error) {
 	switch m := model.(type) {
 	case text2text.Interface:
-		return server.RegisterText2TextFunc(m)
+		return server.NewServerForTextGeneration(m), nil
 	case zeroshotclassifier.Interface:
-		return server.RegisterZeroShotClassifierFunc(m)
+		return server.NewServerForZeroShotClassification(m), nil
 	case questionanswering.Interface:
-		return server.RegisterQuestionAnsweringFunc(m)
+		return server.NewServerForQuestionAnswering(m), nil
 	case textclassification.Interface:
-		return server.RegisterTextClassificationFunc(m)
+		return server.NewServerForTextClassification(m), nil
 	default:
 		return nil, fmt.Errorf("failed to resolve register funcs for model/task type %T", m)
 	}

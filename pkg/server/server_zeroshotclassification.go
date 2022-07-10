@@ -19,18 +19,17 @@ type serverForZeroShotClassification struct {
 	classifier zeroshotclassifier.Interface
 }
 
-// RegisterZeroShotClassifierFunc registers the ZeroShotClassification functions.
-func RegisterZeroShotClassifierFunc(classifier zeroshotclassifier.Interface) (*RegisterFuncs, error) {
-	s := &serverForZeroShotClassification{classifier: classifier}
-	return &RegisterFuncs{
-		RegisterServer: func(r grpc.ServiceRegistrar) error {
-			zeroshotv1.RegisterZeroShotServiceServer(r, s)
-			return nil
-		},
-		RegisterHandlerServer: func(ctx context.Context, mux *runtime.ServeMux) error {
-			return zeroshotv1.RegisterZeroShotServiceHandlerServer(ctx, mux, s)
-		},
-	}, nil
+func NewServerForZeroShotClassification(classifier zeroshotclassifier.Interface) TaskServer {
+	return &serverForZeroShotClassification{classifier: classifier}
+}
+
+func (s *serverForZeroShotClassification) RegisterServer(r grpc.ServiceRegistrar) error {
+	zeroshotv1.RegisterZeroShotServiceServer(r, s)
+	return nil
+}
+
+func (s *serverForZeroShotClassification) RegisterHandlerServer(ctx context.Context, mux *runtime.ServeMux) error {
+	return zeroshotv1.RegisterZeroShotServiceHandlerServer(ctx, mux, s)
 }
 
 // Classify handles the Classify request.

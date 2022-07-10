@@ -161,10 +161,16 @@ func (s *Server) serveTLS(ctx context.Context, lis net.Listener, handler http.Ha
 
 	log.Info().Str("network", conf.Network).Str("address", conf.Address).Bool("TLS", conf.TLSEnabled).Msg("server listening")
 
-	go s.shutDownServerWhenContextIsDone(ctx, hs)
+	idleConnsClosed := make(chan struct{})
+	go func() {
+		s.shutDownServerWhenContextIsDone(ctx, hs)
+		close(idleConnsClosed)
+	}()
 
 	s.health.Resume()
-	return hs.Serve(tls.NewListener(lis, hs.TLSConfig))
+	err = hs.Serve(tls.NewListener(lis, hs.TLSConfig))
+	<-idleConnsClosed
+	return err
 }
 
 // serveInsecure starts the server without TLS.
@@ -178,10 +184,16 @@ func (s *Server) serveInsecure(ctx context.Context, lis net.Listener, handler ht
 
 	log.Info().Str("network", conf.Network).Str("address", conf.Address).Bool("TLS", conf.TLSEnabled).Msg("server listening")
 
-	go s.shutDownServerWhenContextIsDone(ctx, h1s)
+	idleConnsClosed := make(chan struct{})
+	go func() {
+		s.shutDownServerWhenContextIsDone(ctx, h1s)
+		close(idleConnsClosed)
+	}()
 
 	s.health.Resume()
-	return h1s.Serve(lis)
+	err := h1s.Serve(lis)
+	<-idleConnsClosed
+	return err
 }
 
 // shutDownServerWhenContextIsDone shuts down the server when the context is done.
@@ -191,7 +203,7 @@ func (s *Server) shutDownServerWhenContextIsDone(ctx context.Context, hs *http.S
 	s.health.Shutdown()
 	err := hs.Shutdown(context.Background())
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed to shut down server")
+		log.Err(err).Msg("failed to shut down server")
 	}
 	log.Info().Msg("server shut down successfully")
 }

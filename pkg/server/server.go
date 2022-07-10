@@ -7,6 +7,7 @@ package server
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -34,6 +35,7 @@ const (
 type Server struct {
 	conf       *Config
 	taskServer TaskServer
+	health     *health.Server
 }
 
 // Config is the configuration for the server.
@@ -59,6 +61,7 @@ func New(conf *Config, taskServer TaskServer) *Server {
 	return &Server{
 		conf:       conf,
 		taskServer: taskServer,
+		health:     health.NewServer(),
 	}
 }
 
@@ -71,30 +74,26 @@ func setBaselineConfig(c *Config) {
 	}
 }
 
-// Start up the server, this will block.
-// Start via a Go routine if needed.
-func (s *Server) Start(ctx context.Context) {
+// Start up the server and block until the context is done.
+func (s *Server) Start(ctx context.Context) error {
 	conf := s.conf
 
 	grpcServer := grpc.NewServer()
 
-	healthCheck := health.NewServer()
-	grpc_health_v1.RegisterHealthServer(grpcServer, healthCheck)
+	grpc_health_v1.RegisterHealthServer(grpcServer, s.health)
 
 	if err := s.taskServer.RegisterServer(grpcServer); err != nil {
-		log.Fatal().Err(fmt.Errorf("failed to register gRPC server: %w", err)).Send()
+		return fmt.Errorf("failed to register gRPC server: %w", err)
 	}
 
-	gwMux := runtime.NewServeMux()
-	if err := s.taskServer.RegisterHandlerServer(ctx, gwMux); err != nil {
-		log.Fatal().Err(fmt.Errorf("failed to register gRPC handler server: %w", err)).Send()
+	mux := runtime.NewServeMux()
+	if err := s.taskServer.RegisterHandlerServer(ctx, mux); err != nil {
+		return fmt.Errorf("failed to register gRPC handler server: %w", err)
 	}
-
-	mux := gwMux
 
 	lis, err := net.Listen(conf.Network, conf.Address)
 	if err != nil {
-		log.Fatal().Err(fmt.Errorf("failed to listen on %s (%s): %w", conf.Address, conf.Network, err)).Send()
+		return fmt.Errorf("failed to listen on %s (%s): %w", conf.Address, conf.Network, err)
 	}
 
 	if strings.HasSuffix(conf.Address, ":0") {
@@ -104,32 +103,12 @@ func (s *Server) Start(ctx context.Context) {
 	handler := cors.New(s.corsOptions()).Handler(mux)
 	handler = s.handlerFunc(grpcServer, handler)
 
-	go runHealthCheckLoop(healthCheck)
-
-	if conf.TLSEnabled {
-		s.serveTLS(ctx, lis, handler)
+	err = s.serve(ctx, lis, handler)
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return fmt.Errorf("failed to serve: %w", err)
 	}
-	s.serveInsecure(ctx, lis, handler)
-}
-
-const (
-	healthCheckSleep         = 5 * time.Second
-	healthCheckSystemService = "" // empty string represents the system, rather than a specific service
-)
-
-func runHealthCheckLoop(healthCheck *health.Server) {
-	next := grpc_health_v1.HealthCheckResponse_SERVING
-	for {
-		healthCheck.SetServingStatus(healthCheckSystemService, next)
-
-		if next == grpc_health_v1.HealthCheckResponse_SERVING {
-			next = grpc_health_v1.HealthCheckResponse_NOT_SERVING
-		} else {
-			next = grpc_health_v1.HealthCheckResponse_SERVING
-		}
-
-		time.Sleep(healthCheckSleep)
-	}
+	log.Info().Msg("server stopped serving successfully")
+	return nil
 }
 
 // corsOptions returns the CORS options for the server.
@@ -156,13 +135,20 @@ func isGRPCRequest(r *http.Request) bool {
 		strings.Contains(r.Header.Get("Content-Type"), "application/grpc")
 }
 
+func (s *Server) serve(ctx context.Context, lis net.Listener, handler http.Handler) error {
+	if s.conf.TLSEnabled {
+		return s.serveTLS(ctx, lis, handler)
+	}
+	return s.serveInsecure(ctx, lis, handler)
+}
+
 // serveTLS starts the server with TLS.
-func (s *Server) serveTLS(ctx context.Context, lis net.Listener, handler http.Handler) {
+func (s *Server) serveTLS(ctx context.Context, lis net.Listener, handler http.Handler) error {
 	conf := s.conf
 
 	tlsCert, err := tls.LoadX509KeyPair(conf.TLSCert, conf.TLSKey)
 	if err != nil {
-		log.Fatal().Err(fmt.Errorf("failed to load TLS public/private key pair: %w", err)).Send()
+		return fmt.Errorf("failed to load TLS public/private key pair: %w", err)
 	}
 
 	hs := &http.Server{
@@ -175,16 +161,14 @@ func (s *Server) serveTLS(ctx context.Context, lis net.Listener, handler http.Ha
 
 	log.Info().Str("network", conf.Network).Str("address", conf.Address).Bool("TLS", conf.TLSEnabled).Msg("server listening")
 
-	go shutDownServerWhenContextIsDone(ctx, hs)
+	go s.shutDownServerWhenContextIsDone(ctx, hs)
 
-	err = hs.Serve(tls.NewListener(lis, hs.TLSConfig))
-	if err != nil {
-		log.Fatal().Err(fmt.Errorf("server error: %w", err)).Send()
-	}
+	s.health.Resume()
+	return hs.Serve(tls.NewListener(lis, hs.TLSConfig))
 }
 
 // serveInsecure starts the server without TLS.
-func (s *Server) serveInsecure(ctx context.Context, lis net.Listener, handler http.Handler) {
+func (s *Server) serveInsecure(ctx context.Context, lis net.Listener, handler http.Handler) error {
 	conf := s.conf
 
 	h2s := &http2.Server{}
@@ -194,22 +178,22 @@ func (s *Server) serveInsecure(ctx context.Context, lis net.Listener, handler ht
 
 	log.Info().Str("network", conf.Network).Str("address", conf.Address).Bool("TLS", conf.TLSEnabled).Msg("server listening")
 
-	go shutDownServerWhenContextIsDone(ctx, h1s)
+	go s.shutDownServerWhenContextIsDone(ctx, h1s)
 
-	err := h1s.Serve(lis)
-	if err != nil {
-		log.Fatal().Err(fmt.Errorf("server error: %w", err)).Send()
-	}
+	s.health.Resume()
+	return h1s.Serve(lis)
 }
 
 // shutDownServerWhenContextIsDone shuts down the server when the context is done.
-func shutDownServerWhenContextIsDone(ctx context.Context, hs *http.Server) {
+func (s *Server) shutDownServerWhenContextIsDone(ctx context.Context, hs *http.Server) {
 	<-ctx.Done()
 	log.Info().Msg("context done, shutting down server")
+	s.health.Shutdown()
 	err := hs.Shutdown(context.Background())
 	if err != nil {
-		log.Err(err).Msg("server shutdown error")
+		log.Fatal().Err(err).Msg("failed to shut down server")
 	}
+	log.Info().Msg("server shut down successfully")
 }
 
 // ReadyForConnections returns `true` if the server is ready to accept requests.

@@ -78,8 +78,7 @@ func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
 	defer stop()
 
-	s.Start(ctx)
-	return nil
+	return s.Start(ctx)
 }
 
 func loadModelForTask(conf *config) (m any, err error) {

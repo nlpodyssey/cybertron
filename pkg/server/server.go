@@ -32,8 +32,8 @@ const (
 
 // Server is a server that provides gRPC and HTTP/2 APIs.
 type Server struct {
-	Config        *Config
-	RegisterFuncs *RegisterFuncs
+	conf          *Config
+	registerFuncs *RegisterFuncs
 }
 
 // Config is the configuration for the server.
@@ -56,8 +56,8 @@ type RegisterFuncs struct {
 func New(conf *Config, r *RegisterFuncs) (*Server, error) {
 	setBaselineConfig(conf)
 	return &Server{
-		Config:        conf,
-		RegisterFuncs: r,
+		conf:          conf,
+		registerFuncs: r,
 	}, nil
 }
 
@@ -73,22 +73,22 @@ func setBaselineConfig(c *Config) {
 // Start up the server, this will block.
 // Start via a Go routine if needed.
 func (s *Server) Start(ctx context.Context) {
-	if s.RegisterFuncs == nil {
+	if s.registerFuncs == nil {
 		log.Fatal().Err(fmt.Errorf("register funcs are not set")).Send()
 	}
-	conf := s.Config
+	conf := s.conf
 
 	grpcServer := grpc.NewServer()
 
 	healthCheck := health.NewServer()
 	grpc_health_v1.RegisterHealthServer(grpcServer, healthCheck)
 
-	if err := s.RegisterFuncs.RegisterServer(grpcServer); err != nil {
+	if err := s.registerFuncs.RegisterServer(grpcServer); err != nil {
 		log.Fatal().Err(fmt.Errorf("failed to register gRPC server: %w", err)).Send()
 	}
 
 	gwMux := runtime.NewServeMux()
-	if err := s.RegisterFuncs.RegisterHandlerServer(ctx, gwMux); err != nil {
+	if err := s.registerFuncs.RegisterHandlerServer(ctx, gwMux); err != nil {
 		log.Fatal().Err(fmt.Errorf("failed to register gRPC handler server: %w", err)).Send()
 	}
 
@@ -137,7 +137,7 @@ func runHealthCheckLoop(healthCheck *health.Server) {
 // corsOptions returns the CORS options for the server.
 func (s *Server) corsOptions() cors.Options {
 	return cors.Options{
-		AllowedOrigins: s.Config.AllowedOrigins,
+		AllowedOrigins: s.conf.AllowedOrigins,
 	}
 }
 
@@ -160,7 +160,7 @@ func isGRPCRequest(r *http.Request) bool {
 
 // serveTLS starts the server with TLS.
 func (s *Server) serveTLS(ctx context.Context, lis net.Listener, handler http.Handler) {
-	conf := s.Config
+	conf := s.conf
 
 	tlsCert, err := tls.LoadX509KeyPair(conf.TLSCert, conf.TLSKey)
 	if err != nil {
@@ -187,7 +187,7 @@ func (s *Server) serveTLS(ctx context.Context, lis net.Listener, handler http.Ha
 
 // serveInsecure starts the server without TLS.
 func (s *Server) serveInsecure(ctx context.Context, lis net.Listener, handler http.Handler) {
-	conf := s.Config
+	conf := s.conf
 
 	h2s := &http2.Server{}
 	h1s := &http.Server{
@@ -235,9 +235,9 @@ func (s *Server) readyForConnections(d time.Duration) error {
 
 // check checks if the server is ready for connections.
 func (s *Server) check() error {
-	conn, err := net.Dial(s.Config.Network, s.Config.Address)
+	conn, err := net.Dial(s.conf.Network, s.conf.Address)
 	if err != nil {
-		return fmt.Errorf("failed to connect to %s (%s): %w", s.Config.Address, s.Config.Network, err)
+		return fmt.Errorf("failed to connect to %s (%s): %w", s.conf.Address, s.conf.Network, err)
 	}
 	conn.Close()
 	return nil
@@ -246,5 +246,5 @@ func (s *Server) check() error {
 // ClientAddr returns the Address used to connect clients (without the network).
 // Helpful in testing when we designate a random port (0).
 func (s *Server) ClientAddr() string {
-	return s.Config.Address
+	return s.conf.Address
 }

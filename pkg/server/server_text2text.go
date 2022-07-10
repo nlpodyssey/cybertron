@@ -37,6 +37,9 @@ func RegisterText2TextFunc(generator text2text.Interface) (*RegisterFuncs, error
 // Generate handles the Generate request.
 func (s *serverForTextGeneration) Generate(_ context.Context, req *text2textv1.GenerateRequest) (*text2textv1.GenerateResponse, error) {
 	params := req.GetParameters()
+	if params == nil {
+		params = &text2textv1.Text2TextParameters{}
+	}
 	opts := text2text.Options{
 		Temperature: nullable.Any(params.Temperature),
 		Sample:      nullable.Any(params.DoSample),

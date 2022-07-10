@@ -8,15 +8,15 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/nlpodyssey/gopickle v0.1.0
 	github.com/nlpodyssey/gotokenizers v0.2.0
-	github.com/nlpodyssey/spago v1.0.0-alpha.0.20220703124656-f37cda4daf98
-	github.com/nlpodyssey/spago/embeddings/store/diskstore v0.0.0-20220703124656-f37cda4daf98
+	github.com/nlpodyssey/spago v1.0.0-alpha.0.20220707155853-4248122dc329
+	github.com/nlpodyssey/spago/embeddings/store/diskstore v0.0.0-20220707155853-4248122dc329
 	github.com/rs/cors v1.8.2
 	github.com/rs/zerolog v1.27.0
 	github.com/stretchr/testify v1.7.1
-	golang.org/x/net v0.0.0-20220630215102-69896b714898
+	golang.org/x/net v0.0.0-20220708220712-1185a9018129
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
 	golang.org/x/text v0.3.7
-	google.golang.org/genproto v0.0.0-20220630174209-ad1d48641aa7
+	google.golang.org/genproto v0.0.0-20220708155623-50e5f4832e73
 	google.golang.org/grpc v1.47.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0
 	google.golang.org/protobuf v1.28.0
@@ -60,7 +60,7 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
-	golang.org/x/sys v0.0.0-20220704084225-05e143d24a9e // indirect
+	golang.org/x/sys v0.0.0-20220708085239-5a0f0661e09d // indirect
 	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

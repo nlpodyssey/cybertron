@@ -20,8 +20,7 @@ import (
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
-	healthgrpc "google.golang.org/grpc/health/grpc_health_v1"
-	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 const (
@@ -82,7 +81,7 @@ func (s *Server) Start(ctx context.Context) {
 	grpcServer := grpc.NewServer()
 
 	healthCheck := health.NewServer()
-	healthgrpc.RegisterHealthServer(grpcServer, healthCheck)
+	grpc_health_v1.RegisterHealthServer(grpcServer, healthCheck)
 
 	if err := s.RegisterFuncs.RegisterServer(grpcServer); err != nil {
 		log.Fatal().Err(fmt.Errorf("failed to register gRPC server: %w", err)).Send()
@@ -121,14 +120,14 @@ const (
 )
 
 func runHealthCheckLoop(healthCheck *health.Server) {
-	next := healthpb.HealthCheckResponse_SERVING
+	next := grpc_health_v1.HealthCheckResponse_SERVING
 	for {
 		healthCheck.SetServingStatus(healthCheckSystemService, next)
 
-		if next == healthpb.HealthCheckResponse_SERVING {
-			next = healthpb.HealthCheckResponse_NOT_SERVING
+		if next == grpc_health_v1.HealthCheckResponse_SERVING {
+			next = grpc_health_v1.HealthCheckResponse_NOT_SERVING
 		} else {
-			next = healthpb.HealthCheckResponse_SERVING
+			next = grpc_health_v1.HealthCheckResponse_SERVING
 		}
 
 		time.Sleep(healthCheckSleep)

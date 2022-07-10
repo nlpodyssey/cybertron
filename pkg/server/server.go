@@ -196,12 +196,17 @@ func (s *Server) serveInsecure(ctx context.Context, lis net.Listener, handler ht
 	return err
 }
 
+const shutdownTimeout = 10 * time.Second
+
 // shutDownServerWhenContextIsDone shuts down the server when the context is done.
 func (s *Server) shutDownServerWhenContextIsDone(ctx context.Context, hs *http.Server) {
 	<-ctx.Done()
 	log.Info().Msg("context done, shutting down server")
 	s.health.Shutdown()
-	err := hs.Shutdown(context.Background())
+
+	sdCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	defer cancel()
+	err := hs.Shutdown(sdCtx)
 	if err != nil {
 		log.Err(err).Msg("failed to shut down server")
 	}

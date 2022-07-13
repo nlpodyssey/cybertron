@@ -5,6 +5,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
@@ -32,7 +33,7 @@ func main() {
 
 	fn := func(text string) error {
 		start := time.Now()
-		result, err := m.Generate(text, opts)
+		result, err := m.Generate(context.Background(), text, opts)
 		if err != nil {
 			return err
 		}

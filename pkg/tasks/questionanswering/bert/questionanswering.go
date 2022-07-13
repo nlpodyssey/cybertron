@@ -5,6 +5,7 @@
 package bert
 
 import (
+	"context"
 	"fmt"
 	"path"
 	"path/filepath"
@@ -71,8 +72,9 @@ func LoadQuestionAnswering(modelPath string) (*QuestionAnswering, error) {
 }
 
 // Answer returns the answers for the given question and passage.
-func (qa *QuestionAnswering) Answer(question string, passage string, opts questionanswering.Options) (questionanswering.Response, error) {
-	checkOptions(&opts)
+// The options may assume default values if those are not set.
+func (qa *QuestionAnswering) Answer(_ context.Context, question string, passage string, opts *questionanswering.Options) (questionanswering.Response, error) {
+	checkOptions(opts)
 
 	qt, pt := qa.tokenize(question, passage)
 	starts, ends := qa.Model.Answer(concat(qt, pt))

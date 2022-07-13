@@ -12,6 +12,14 @@ type Type[T any] struct {
 	Valid bool
 }
 
+// ValuePtr returns a pointer to the value.
+func (t *Type[T]) ValuePtr() *T {
+	if t.Valid {
+		return &t.Value
+	}
+	return nil
+}
+
 // Any creates a new Type with the given value.
 func Any[T any](v *T) Type[T] {
 	if v == nil {

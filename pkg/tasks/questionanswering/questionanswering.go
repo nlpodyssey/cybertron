@@ -4,9 +4,11 @@
 
 package questionanswering
 
+import "context"
+
 // Interface defines the main functions for question-answering task.
 type Interface interface {
-	Answer(question string, passage string, opts Options) (Response, error)
+	Answer(ctx context.Context, question string, passage string, opts *Options) (Response, error)
 }
 
 // Options defines the options for question-answering task.

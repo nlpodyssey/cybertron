@@ -5,6 +5,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
@@ -30,7 +31,7 @@ func main() {
 
 	fn := func(text string) error {
 		start := time.Now()
-		result, err := m.Classify(text)
+		result, err := m.Classify(context.Background(), text)
 		if err != nil {
 			return err
 		}

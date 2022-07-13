@@ -5,6 +5,7 @@
 package bart
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"path"
@@ -14,6 +15,7 @@ import (
 	"github.com/nlpodyssey/cybertron/pkg/models/bart"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/sentencepiece"
+	"github.com/nlpodyssey/cybertron/pkg/utils/nullable"
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/embeddings/store/diskstore"
 	"github.com/nlpodyssey/spago/mat"
@@ -70,8 +72,16 @@ func (m *Text2Text) Close() error {
 }
 
 // Generate generates a text from the input.
-func (m *Text2Text) Generate(text string, opts text2text.Options) (text2text.Response, error) {
-	sequences, scores := m.process(m.Tokenize(text), opts)
+func (m *Text2Text) Generate(_ context.Context, text string, opts *text2text.Options) (text2text.Response, error) {
+	if opts == nil {
+		opts = &text2text.Options{
+			Temperature: nullable.Type[float64]{Value: 1.0, Valid: true},
+			Sample:      nullable.Type[bool]{Value: false, Valid: true},
+			TopK:        nullable.Type[int]{Valid: false},
+			TopP:        nullable.Type[float64]{Valid: false},
+		}
+	}
+	sequences, scores := m.process(m.Tokenize(text), *opts)
 	result := text2text.Response{
 		Texts:  make([]string, len(sequences)),
 		Scores: make([]float64, len(scores)),

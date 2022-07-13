@@ -5,6 +5,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
@@ -29,14 +30,11 @@ func main() {
 	}
 	defer tasks.Finalize(m)
 
-	opts := questionanswering.Options{
-		MaxAnswerLength: 0,
-		MinScore:        0,
-	}
+	opts := &questionanswering.Options{}
 
 	fn := func(text string) error {
 		start := time.Now()
-		result, err := m.Answer(text, paragraph, opts)
+		result, err := m.Answer(context.Background(), text, paragraph, opts)
 		if err != nil {
 			return err
 		}

@@ -20,7 +20,7 @@ type serverForTextGeneration struct {
 	generator text2text.Interface
 }
 
-func NewServerForTextGeneration(generator text2text.Interface) TaskServer {
+func NewServerForTextGeneration(generator text2text.Interface) RequestHandler {
 	return &serverForTextGeneration{generator: generator}
 }
 
@@ -34,18 +34,17 @@ func (s *serverForTextGeneration) RegisterHandlerServer(ctx context.Context, mux
 }
 
 // Generate handles the Generate request.
-func (s *serverForTextGeneration) Generate(_ context.Context, req *text2textv1.GenerateRequest) (*text2textv1.GenerateResponse, error) {
-	params := req.GetParameters()
-	if params == nil {
-		params = &text2textv1.Text2TextParameters{}
+func (s *serverForTextGeneration) Generate(ctx context.Context, req *text2textv1.GenerateRequest) (*text2textv1.GenerateResponse, error) {
+	opts := req.GetParameters()
+	if opts == nil {
+		opts = &text2textv1.Text2TextParameters{}
 	}
-	opts := text2text.Options{
-		Temperature: nullable.Any(params.Temperature),
-		Sample:      nullable.Any(params.DoSample),
-		TopK:        nullable.Int(params.TopK),
-		TopP:        nullable.Any(params.TopP),
-	}
-	result, err := s.generator.Generate(req.GetInput(), opts)
+	result, err := s.generator.Generate(ctx, req.GetInput(), &text2text.Options{
+		Temperature: nullable.Any(opts.Temperature),
+		Sample:      nullable.Any(opts.DoSample),
+		TopK:        nullable.Int(opts.TopK),
+		TopP:        nullable.Any(opts.TopP),
+	})
 	if err != nil {
 		return nil, err
 	}

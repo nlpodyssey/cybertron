@@ -4,12 +4,16 @@
 
 package text2text
 
-import "github.com/nlpodyssey/cybertron/pkg/utils/nullable"
+import (
+	"context"
+
+	"github.com/nlpodyssey/cybertron/pkg/utils/nullable"
+)
 
 // Interface defines the main functions for the Text2Text task.
 type Interface interface {
 	// Generate generates text (e.g. translation, summarization, paraphrase) from the given input.
-	Generate(text string, opts Options) (Response, error)
+	Generate(ctx context.Context, text string, opts *Options) (Response, error)
 }
 
 // Options defines the options for generating text.
@@ -33,11 +37,11 @@ type Response struct {
 }
 
 // DefaultOptions returns the default options for generating text.
-func DefaultOptions() Options {
-	return Options{
-		Temperature: nullable.Type[float64]{},
-		Sample:      nullable.Type[bool]{},
-		TopK:        nullable.Type[int]{},
-		TopP:        nullable.Type[float64]{},
+func DefaultOptions() *Options {
+	return &Options{
+		Temperature: nullable.Type[float64]{Value: 1.0, Valid: true},
+		Sample:      nullable.Type[bool]{Value: false, Valid: true},
+		TopK:        nullable.Type[int]{Valid: false},
+		TopP:        nullable.Type[float64]{Valid: false},
 	}
 }

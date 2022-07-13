@@ -19,7 +19,7 @@ type serverForQuestionAnswering struct {
 	engine questionanswering.Interface
 }
 
-func NewServerForQuestionAnswering(engine questionanswering.Interface) TaskServer {
+func NewServerForQuestionAnswering(engine questionanswering.Interface) RequestHandler {
 	return &serverForQuestionAnswering{engine: engine}
 }
 
@@ -33,16 +33,16 @@ func (s *serverForQuestionAnswering) RegisterHandlerServer(ctx context.Context, 
 }
 
 // Answer handles the Answer request.
-func (s *serverForQuestionAnswering) Answer(_ context.Context, req *questionansweringv1.AnswerRequest) (*questionansweringv1.AnswerResponse, error) {
+func (s *serverForQuestionAnswering) Answer(ctx context.Context, req *questionansweringv1.AnswerRequest) (*questionansweringv1.AnswerResponse, error) {
 	params := req.GetOptions()
-	opts := questionanswering.Options{
+	opts := &questionanswering.Options{
 		MaxAnswers:      int(params.GetMaxAnswers()),
 		MaxAnswerLength: int(params.GetMaxAnswersLen()),
 		MinScore:        params.GetMinScore(),
 		MaxCandidates:   int(params.GetMaxCandidates()),
 	}
 
-	result, err := s.engine.Answer(req.GetQuestion(), req.GetPassage(), opts)
+	result, err := s.engine.Answer(ctx, req.GetQuestion(), req.GetPassage(), opts)
 	if err != nil {
 		return nil, err
 	}

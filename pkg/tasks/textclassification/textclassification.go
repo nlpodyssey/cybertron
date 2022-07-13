@@ -4,10 +4,12 @@
 
 package textclassification
 
+import "context"
+
 // Interface defines the main functions for text classification task.
 type Interface interface {
 	// Classify returns the classification of the given example.
-	Classify(text string) (Response, error)
+	Classify(ctx context.Context, text string) (Response, error)
 }
 
 // Response contains the response from text classification.

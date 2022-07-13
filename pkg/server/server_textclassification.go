@@ -19,7 +19,7 @@ type serverForTextClassification struct {
 	classifier textclassification.Interface
 }
 
-func NewServerForTextClassification(classifier textclassification.Interface) TaskServer {
+func NewServerForTextClassification(classifier textclassification.Interface) RequestHandler {
 	return &serverForTextClassification{classifier: classifier}
 }
 
@@ -33,8 +33,8 @@ func (s *serverForTextClassification) RegisterHandlerServer(ctx context.Context,
 }
 
 // Classify handles the Classify request.
-func (s *serverForTextClassification) Classify(_ context.Context, req *textclassificationv1.ClassifyRequest) (*textclassificationv1.ClassifyResponse, error) {
-	result, err := s.classifier.Classify(req.GetInput())
+func (s *serverForTextClassification) Classify(ctx context.Context, req *textclassificationv1.ClassifyRequest) (*textclassificationv1.ClassifyResponse, error) {
+	result, err := s.classifier.Classify(ctx, req.GetInput())
 	if err != nil {
 		return nil, err
 	}

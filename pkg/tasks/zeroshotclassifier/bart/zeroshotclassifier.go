@@ -89,7 +89,7 @@ func (m *ZeroShotClassifier) Close() error {
 }
 
 // Classify classifies the input.
-func (m *ZeroShotClassifier) Classify(text string, parameters zeroshotclassifier.Parameters) (zeroshotclassifier.Response, error) {
+func (m *ZeroShotClassifier) Classify(_ context.Context, text string, parameters zeroshotclassifier.Parameters) (zeroshotclassifier.Response, error) {
 	premise, err := m.tokenize(text, defaultStartTokenID, defaultEndTokenID)
 	if err != nil {
 		return zeroshotclassifier.Response{}, err
@@ -135,8 +135,13 @@ func (m *ZeroShotClassifier) Classify(text string, parameters zeroshotclassifier
 	result := sliceutils.NewIndexedSlice[float64](scores.Data().F64())
 	sort.Stable(sort.Reverse(result))
 
+	labels := make([]string, len(parameters.CandidateLabels))
+	for i, ii := range result.Indices {
+		labels[i] = parameters.CandidateLabels[ii]
+	}
+
 	response := zeroshotclassifier.Response{
-		Labels: result.Indices,
+		Labels: labels,
 		Scores: result.Slice,
 	}
 	return response, nil

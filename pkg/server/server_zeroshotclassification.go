@@ -19,7 +19,7 @@ type serverForZeroShotClassification struct {
 	classifier zeroshotclassifier.Interface
 }
 
-func NewServerForZeroShotClassification(classifier zeroshotclassifier.Interface) TaskServer {
+func NewServerForZeroShotClassification(classifier zeroshotclassifier.Interface) RequestHandler {
 	return &serverForZeroShotClassification{classifier: classifier}
 }
 
@@ -33,10 +33,10 @@ func (s *serverForZeroShotClassification) RegisterHandlerServer(ctx context.Cont
 }
 
 // Classify handles the Classify request.
-func (s *serverForZeroShotClassification) Classify(_ context.Context, req *zeroshotv1.ClassifyRequest) (*zeroshotv1.ClassifyResponse, error) {
+func (s *serverForZeroShotClassification) Classify(ctx context.Context, req *zeroshotv1.ClassifyRequest) (*zeroshotv1.ClassifyResponse, error) {
 	params := req.GetParameters()
 	candidateLabels := params.GetCandidateLabels()
-	result, err := s.classifier.Classify(req.GetInput(), zeroshotclassifier.Parameters{
+	result, err := s.classifier.Classify(ctx, req.GetInput(), zeroshotclassifier.Parameters{
 		CandidateLabels:    candidateLabels,
 		HypothesisTemplate: params.GetHypothesisTemplate(),
 		MultiLabel:         params.GetMultiLabel(),
@@ -45,13 +45,8 @@ func (s *serverForZeroShotClassification) Classify(_ context.Context, req *zeros
 		return nil, err
 	}
 
-	labels := make([]string, len(result.Labels))
-	for i, labelIndex := range result.Labels {
-		labels[i] = candidateLabels[labelIndex]
-	}
-
 	resp := &zeroshotv1.ClassifyResponse{
-		Labels: labels,
+		Labels: result.Labels,
 		Scores: result.Scores,
 	}
 	return resp, nil

@@ -68,12 +68,12 @@ func run() error {
 	}
 	defer tasks.Finalize(m)
 
-	taskServer, err := makeTaskServer(m)
+	requestHandler, err := server.ResolveRequestHandler(m)
 	if err != nil {
 		return err
 	}
 
-	s := server.New(conf.serverConfig, taskServer)
+	s := server.New(conf.serverConfig, requestHandler)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
 	defer stop()
@@ -93,22 +93,6 @@ func loadModelForTask(conf *config) (m any, err error) {
 		return tasks.Load[textclassification.Interface](conf.loaderConfig)
 	default:
 		return nil, fmt.Errorf("failed to load model/task type %s", conf.task)
-	}
-}
-
-// makeTaskServer instantiates a new task-server based on the model.
-func makeTaskServer(model any) (server.TaskServer, error) {
-	switch m := model.(type) {
-	case text2text.Interface:
-		return server.NewServerForTextGeneration(m), nil
-	case zeroshotclassifier.Interface:
-		return server.NewServerForZeroShotClassification(m), nil
-	case questionanswering.Interface:
-		return server.NewServerForQuestionAnswering(m), nil
-	case textclassification.Interface:
-		return server.NewServerForTextClassification(m), nil
-	default:
-		return nil, fmt.Errorf("failed to resolve register funcs for model/task type %T", m)
 	}
 }
 

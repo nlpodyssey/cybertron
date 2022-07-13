@@ -15,6 +15,10 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/textclassification"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/net/http2"
@@ -33,9 +37,9 @@ const (
 
 // Server is a server that provides gRPC and HTTP/2 APIs.
 type Server struct {
-	conf       *Config
-	taskServer TaskServer
-	health     *health.Server
+	conf    *Config
+	handler RequestHandler
+	health  *health.Server
 }
 
 // Config is the configuration for the server.
@@ -48,20 +52,36 @@ type Config struct {
 	TLSKey         string
 }
 
-// TaskServer is implemented by any task-specific service that can be
+// RequestHandler is implemented by any task-specific service that can be
 // registered in the main Server.
-type TaskServer interface {
+type RequestHandler interface {
 	RegisterServer(grpc.ServiceRegistrar) error
 	RegisterHandlerServer(context.Context, *runtime.ServeMux) error
 }
 
+// ResolveRequestHandler instantiates a new task-server based on the model.
+func ResolveRequestHandler(model any) (RequestHandler, error) {
+	switch m := model.(type) {
+	case text2text.Interface:
+		return NewServerForTextGeneration(m), nil
+	case zeroshotclassifier.Interface:
+		return NewServerForZeroShotClassification(m), nil
+	case questionanswering.Interface:
+		return NewServerForQuestionAnswering(m), nil
+	case textclassification.Interface:
+		return NewServerForTextClassification(m), nil
+	default:
+		return nil, fmt.Errorf("failed to resolve register funcs for model/task type %T", m)
+	}
+}
+
 // New creates a new server.
-func New(conf *Config, taskServer TaskServer) *Server {
+func New(conf *Config, handler RequestHandler) *Server {
 	setBaselineConfig(conf)
 	return &Server{
-		conf:       conf,
-		taskServer: taskServer,
-		health:     health.NewServer(),
+		conf:    conf,
+		handler: handler,
+		health:  health.NewServer(),
 	}
 }
 
@@ -82,12 +102,12 @@ func (s *Server) Start(ctx context.Context) error {
 
 	grpc_health_v1.RegisterHealthServer(grpcServer, s.health)
 
-	if err := s.taskServer.RegisterServer(grpcServer); err != nil {
+	if err := s.handler.RegisterServer(grpcServer); err != nil {
 		return fmt.Errorf("failed to register gRPC server: %w", err)
 	}
 
 	mux := runtime.NewServeMux()
-	if err := s.taskServer.RegisterHandlerServer(ctx, mux); err != nil {
+	if err := s.handler.RegisterHandlerServer(ctx, mux); err != nil {
 		return fmt.Errorf("failed to register gRPC handler server: %w", err)
 	}
 

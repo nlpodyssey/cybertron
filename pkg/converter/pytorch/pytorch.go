@@ -48,18 +48,34 @@ func (p *ParamsProvider[T]) Load(filename string) error {
 	if err != nil {
 		return err
 	}
-	for key, entry := range result.(*types.OrderedDict).Map {
-		tensor := entry.Value.(*pytorch.Tensor)
+	fn := func(name string, tensor *pytorch.Tensor) {
 		if _, ok := tensor.Source.(*pytorch.FloatStorage); ok {
-			name := key.(string)
 			if p.nameMapping != nil {
 				name = p.nameMapping(name)
 			}
 			p.paramsData[name] = data[T](tensor)
 		}
 	}
+	switch r := result.(type) {
+	case *types.OrderedDict:
+		p.yieldOrderedDict(r, fn)
+	case *types.Dict:
+		p.yieldDict(r, fn)
+	}
 	err = p.preProcessing(p)
 	return err
+}
+
+func (p *ParamsProvider[T]) yieldOrderedDict(dict *types.OrderedDict, fn func(name string, tensor *pytorch.Tensor)) {
+	for key, entry := range dict.Map {
+		fn(key.(string), entry.Value.(*pytorch.Tensor))
+	}
+}
+
+func (p *ParamsProvider[T]) yieldDict(dict *types.Dict, fn func(name string, tensor *pytorch.Tensor)) {
+	for _, entry := range *dict {
+		fn(entry.Key.(string), entry.Value.(*pytorch.Tensor))
+	}
 }
 
 // Pop returns a parameter with the given name and remove it from the params list.

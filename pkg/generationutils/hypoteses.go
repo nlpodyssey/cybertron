@@ -77,3 +77,16 @@ func (h *hypotheses) isDone(bestSumLogProbs float64, curLen int) bool {
 	worstScore := h.items[len(h.items)-1].score
 	return worstScore >= curScore
 }
+
+func (h *hypotheses) prepareOutput() ([][]int, []float64) {
+	sequences := make([][]int, len(h.items))
+	scores := make([]float64, len(h.items))
+	for i, item := range h.items {
+		sequence := item.sequence
+		if len(sequence) < h.config.maxLength {
+			sequence = append(sequence, h.config.eosTokenID)
+		}
+		sequences[i], scores[i] = sequence, item.score
+	}
+	return sequences, scores
+}

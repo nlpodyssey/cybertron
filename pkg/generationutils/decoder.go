@@ -10,7 +10,9 @@ package generationutils
 import (
 	"math"
 
+	"context"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/rs/zerolog/log"
 )
 
 // BeamSearchDecoder is an implementations of a decoding search algorithm for conditional generation.
@@ -36,27 +38,37 @@ type ScoredToken struct {
 
 // Decode generates sequences for model with a language modeling head, using
 // beam-search decoding.
-func (b *BeamSearchDecoder) Decode() ([][]int, []float64) {
-	h := newHypotheses(b.Config)
+func (b *BeamSearchDecoder) Decode(ctx context.Context) ([][]int, []float64) {
+	var (
+		hs          = newHypotheses(b.Config)
+		beamIndices = make([]int, 1, b.Config.NumBeams)
+		sumLogProbs = make([]float64, 1, b.Config.NumBeams)
+		inputIDs    = make([][]int, 1, b.Config.NumBeams)
+		isDone      = false
+	)
 
-	beamIndices := make([]int, 1, b.Config.NumBeams)
-	sumLogProbs := make([]float64, 1, b.Config.NumBeams)
-	inputIDs := make([][]int, 1, b.Config.NumBeams)
 	inputIDs[0] = []int{b.Config.DecoderStartTokenID}
 
-	isDone := false
+Loop:
 	for curLen := 1; curLen < b.Config.MaxLength; curLen++ {
 		candidates := b.generateCandidates(inputIDs, beamIndices, sumLogProbs)
 		selected := b.SelectNext(candidates, b.Config.NumBeams*2)
 		inputIDs, beamIndices, sumLogProbs = b.process(inputIDs, selected, func(sequence []int, sumLogProb float64) {
 			// add to hypothesis if end of sentence
-			h.insert(&hypothesis{
+			hs.insert(&hypothesis{
 				sequence: sequence,
 				score:    sumLogProb / math.Pow(float64(len(sequence)), b.Config.LengthPenalty),
 			})
 		})
-		if isDone = h.isDone(selected[0].Score, curLen); isDone {
+		if isDone = hs.isDone(selected[0].Score, curLen); isDone {
 			break
+		}
+
+		select {
+		case <-ctx.Done():
+			log.Trace().Msg("context done, returning what has been computed so far.")
+			break Loop
+		default:
 		}
 	}
 
@@ -64,24 +76,14 @@ func (b *BeamSearchDecoder) Decode() ([][]int, []float64) {
 		// add remaining hypotheses
 		for beamID := 0; beamID < b.Config.NumBeams; beamID++ {
 			sequence := inputIDs[beamID]
-			h.insert(&hypothesis{
+			hs.insert(&hypothesis{
 				sequence: sequence,
 				score:    sumLogProbs[beamID] / math.Pow(float64(len(sequence)), b.Config.LengthPenalty),
 			})
 		}
 	}
 
-	// prepare output
-	sequences := make([][]int, len(h.items))
-	scores := make([]float64, len(h.items))
-	for i, item := range h.items {
-		sequence := item.sequence
-		if len(sequence) < b.Config.MaxLength {
-			sequence = append(sequence, b.Config.EOSTokenID)
-		}
-		sequences[i], scores[i] = sequence, item.score
-	}
-	return sequences, scores
+	return hs.prepareOutput()
 }
 
 func (b *BeamSearchDecoder) generateCandidates(inputIDs [][]int, beamIndices []int, beamScores []float64) []mat.Matrix {

@@ -72,7 +72,7 @@ func (m *Text2Text) Close() error {
 }
 
 // Generate generates a text from the input.
-func (m *Text2Text) Generate(_ context.Context, text string, opts *text2text.Options) (text2text.Response, error) {
+func (m *Text2Text) Generate(ctx context.Context, text string, opts *text2text.Options) (text2text.Response, error) {
 	if opts == nil {
 		opts = &text2text.Options{
 			Temperature: nullable.Type[float64]{Value: 1.0, Valid: true},
@@ -81,7 +81,7 @@ func (m *Text2Text) Generate(_ context.Context, text string, opts *text2text.Opt
 			TopP:        nullable.Type[float64]{Valid: false},
 		}
 	}
-	sequences, scores := m.process(m.Tokenize(text), *opts)
+	sequences, scores := m.process(ctx, m.Tokenize(text), *opts)
 	result := text2text.Response{
 		Texts:  make([]string, len(sequences)),
 		Scores: make([]float64, len(scores)),
@@ -92,7 +92,7 @@ func (m *Text2Text) Generate(_ context.Context, text string, opts *text2text.Opt
 	return result, nil
 }
 
-func (m *Text2Text) process(inputIDs []int, opts text2text.Options) ([][]int, []float64) {
+func (m *Text2Text) process(ctx context.Context, inputIDs []int, opts text2text.Options) ([][]int, []float64) {
 	nodesToRelease := make([]ag.Node, 0)
 	defer func() {
 		go ag.ReleaseGraph(nodesToRelease...)
@@ -118,7 +118,7 @@ func (m *Text2Text) process(inputIDs []int, opts text2text.Options) ([][]int, []
 		PredictNext: predictNext,
 		SelectNext:  decodingStrategy(opts),
 	}
-	return decoder.Decode()
+	return decoder.Decode(ctx)
 }
 
 // reorderCache reorders the cache according to the last beam indices.

@@ -99,6 +99,7 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 	m := bert.New[T](config, repo)
 	bertForQuestionAnswering := bert.NewModelForQuestionAnswering[T](m)
 	bertForSequenceClassification := bert.NewModelForSequenceClassification[T](m)
+	bertForSequenceEncoding := bert.NewModelForSequenceEncoding(m)
 
 	{
 		source := pyParams.Pop("bert.embeddings.word_embeddings.weight")
@@ -188,6 +189,11 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 		switch config.Architectures[0] {
 		case "BertBase":
 			err := nn.DumpToFile(m, goModelFilename)
+			if err != nil {
+				return err
+			}
+		case "BertModel":
+			err := nn.DumpToFile(bertForSequenceEncoding, goModelFilename)
 			if err != nil {
 				return err
 			}

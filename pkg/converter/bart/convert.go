@@ -185,7 +185,7 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 			if err != nil {
 				return err
 			}
-		case "MarianMTModel", "PegasusForConditionalGeneration":
+		case "MarianMTModel", "PegasusForConditionalGeneration", "BartForConditionalGeneration":
 			err := nn.DumpToFile(bartForConditionalGenertion, goModelFilename)
 			if err != nil {
 				return err

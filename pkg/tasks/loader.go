@@ -18,6 +18,8 @@ import (
 	bart_for_text_to_text "github.com/nlpodyssey/cybertron/pkg/tasks/text2text/bart"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/textclassification"
 	bert_for_text_classification "github.com/nlpodyssey/cybertron/pkg/tasks/textclassification/bert"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/textencoding"
+	bert_for_text_encoding "github.com/nlpodyssey/cybertron/pkg/tasks/textencoding/bert"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier"
 	bart_for_zero_shot_classification "github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier/bart"
 )
@@ -27,6 +29,7 @@ var (
 	zeroshotclassifierInterface = reflect.TypeOf((*zeroshotclassifier.Interface)(nil)).Elem()
 	questionansweringInterface  = reflect.TypeOf((*questionanswering.Interface)(nil)).Elem()
 	textclassificationInterface = reflect.TypeOf((*textclassification.Interface)(nil)).Elem()
+	textencodingInterface       = reflect.TypeOf((*textencoding.Interface)(nil)).Elem()
 )
 
 // Load loads a model from file.
@@ -78,6 +81,8 @@ func (l loader[T]) resolveLoadingFunc() (func() (T, error), error) {
 		return l.resolveModelForQuestionAnswering, nil
 	case t.Implements(textclassificationInterface):
 		return l.resolveModelForTextClassification, nil
+	case t.Implements(textencodingInterface):
+		return l.resolveModelForTextEncoding, nil
 	default:
 		return nil, fmt.Errorf("loader: invalid type %T", obj)
 	}
@@ -140,6 +145,21 @@ func (l loader[T]) resolveModelForTextClassification() (obj T, _ error) {
 		return typeCheck[T](bert_for_text_classification.LoadTextClassification(modelDir))
 	default:
 		return obj, fmt.Errorf("model type %#v doesn't support the text classification task", modelConfig.ModelType)
+	}
+}
+
+func (l loader[T]) resolveModelForTextEncoding() (obj T, _ error) {
+	modelDir := l.conf.FullModelPath()
+	modelConfig, err := models.ReadCommonModelConfig(modelDir, "")
+	if err != nil {
+		return obj, err
+	}
+
+	switch modelConfig.ModelType {
+	case "bert":
+		return typeCheck[T](bert_for_text_encoding.LoadTextEncoding(modelDir))
+	default:
+		return obj, fmt.Errorf("model type %#v doesn't support the text encoding task", modelConfig.ModelType)
 	}
 }
 

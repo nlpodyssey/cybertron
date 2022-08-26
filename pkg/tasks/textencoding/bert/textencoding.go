@@ -39,23 +39,23 @@ type TextEncoding struct {
 func LoadTextEncoding(modelPath string) (*TextEncoding, error) {
 	vocab, err := vocabulary.NewFromFile(filepath.Join(modelPath, "vocab.txt"))
 	if err != nil {
-		return nil, fmt.Errorf("failed to load vocabulary for text classification: %w", err)
+		return nil, fmt.Errorf("failed to load vocabulary for text encoding: %w", err)
 	}
 	tokenizer := wordpiecetokenizer.New(vocab)
 
 	tokenizerConfig, err := bert.ConfigFromFile[bert.TokenizerConfig](path.Join(modelPath, "tokenizer_config.json"))
 	if err != nil {
-		return nil, fmt.Errorf("failed to load tokenizer config for text classification: %w", err)
+		return nil, fmt.Errorf("failed to load tokenizer config for text encoding: %w", err)
 	}
 
 	embeddingsRepo, err := diskstore.NewRepository(filepath.Join(modelPath, "repo"), diskstore.ReadOnlyMode)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load embeddings repository for text classification: %w", err)
+		return nil, fmt.Errorf("failed to load embeddings repository for text encoding: %w", err)
 	}
 
 	m, err := nn.LoadFromFile[*bert.ModelForSequenceEncoding](path.Join(modelPath, "spago_model.bin"))
 	if err != nil {
-		return nil, fmt.Errorf("failed to load bart model: %w", err)
+		return nil, fmt.Errorf("failed to load bert model: %w", err)
 	}
 
 	err = m.Bert.SetEmbeddings(embeddingsRepo)

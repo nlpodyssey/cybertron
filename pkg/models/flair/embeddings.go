@@ -19,3 +19,7 @@ type Embeddings struct {
 type TokensEncoder interface {
 	Encode(keys []string) []ag.Node
 }
+
+func (m *Embeddings) Encode(tokens []string) []ag.Node {
+	return nil // TODO: implement encode
+}

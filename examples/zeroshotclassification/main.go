@@ -20,6 +20,7 @@ import (
 
 func main() {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	LoadDotenv()
 
 	modelsDir := HasEnvVar("CYBERTRON_MODELS_DIR")
 	modelName := HasEnvVar("CYBERTRON_MODEL")

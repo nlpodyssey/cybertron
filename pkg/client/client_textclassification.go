@@ -35,7 +35,7 @@ func (c *clientForTextClassification) Classify(ctx context.Context, text string)
 	conn, err := Dial(ctx, c.target, c.opts)
 	cc := textclassificationv1.NewTextClassificationServiceClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	response, err := cc.Classify(ctx, &textclassificationv1.ClassifyRequest{

@@ -44,7 +44,7 @@ func (c *clientForTextGeneration) Generate(ctx context.Context, text string, opt
 	conn, err := Dial(ctx, c.target, c.opts)
 	cc := text2textv1.NewText2TextServiceClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	response, err := cc.Generate(ctx, &text2textv1.GenerateRequest{

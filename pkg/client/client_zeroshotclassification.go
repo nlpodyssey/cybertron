@@ -35,7 +35,7 @@ func (c *clientForZeroShotClassification) Classify(ctx context.Context, text str
 	conn, err := Dial(ctx, c.target, c.opts)
 	cc := zeroshottextclassificationv1.NewZeroShotServiceClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	response, err := cc.Classify(ctx, &zeroshottextclassificationv1.ClassifyRequest{

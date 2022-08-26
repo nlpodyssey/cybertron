@@ -40,7 +40,7 @@ func (c *clientForQuestionAnswering) Answer(ctx context.Context, question, passa
 	conn, err := Dial(ctx, c.target, c.opts)
 	cc := questionansweringnv1.NewQuestionAnsweringServiceClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	response, err := cc.Answer(ctx, &questionansweringnv1.AnswerRequest{

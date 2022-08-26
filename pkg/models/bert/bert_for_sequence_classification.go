@@ -13,7 +13,7 @@ import (
 	"github.com/nlpodyssey/spago/nn/linear"
 )
 
-var _ nn.Model = &ModelForQuestionAnswering{}
+var _ nn.Model = &ModelForSequenceClassification{}
 
 // ModelForSequenceClassification implements a Bert model for sequence classification.
 type ModelForSequenceClassification struct {
@@ -25,7 +25,7 @@ type ModelForSequenceClassification struct {
 }
 
 func init() {
-	gob.Register(&ModelForQuestionAnswering{})
+	gob.Register(&ModelForSequenceClassification{})
 }
 
 // NewModelForSequenceClassification returns a new model for sequence classification.

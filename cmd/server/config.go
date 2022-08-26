@@ -24,6 +24,7 @@ const (
 	ZeroShotClassificationTask TaskType = "zero-shot-classification"
 	QuestionAnsweringTask      TaskType = "question-answering"
 	TextClassificationTask     TaskType = "text-classification"
+	TextEncodingTask           TaskType = "text-encoding"
 )
 
 // TaskTypeValues is the list of supported task types.
@@ -32,6 +33,7 @@ var TaskTypeValues = []TaskType{
 	ZeroShotClassificationTask,
 	QuestionAnsweringTask,
 	TextClassificationTask,
+	TextEncodingTask,
 }
 
 // ParseTaskType parses a task type.

@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package textencoding.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/nlpodyssey/cybertron/pkg/server/apis/textencoding/v1;textencodingv1";
+
+service TextEncodingService {
+  rpc Encode(EncodingRequest) returns (EncodingResponse) {
+    option (google.api.http) = {
+      post: "/v1/encode"
+      body: "*"
+    };
+  }
+}
+
+message EncodingRequest {
+  string input = 1;
+  int32  pooling_strategy = 2;
+}
+
+message EncodingResponse {
+  repeated float vector = 1;
+}

@@ -101,6 +101,7 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 	bertForSequenceClassification := bert.NewModelForSequenceClassification[T](m)
 	bertForTokenClassification := bert.NewModelForTokenClassification[T](m)
 	bertForSequenceEncoding := bert.NewModelForSequenceEncoding(m)
+	colBert := bert.NewColbertModel[T](m)
 
 	{
 		source := pyParams.Pop("bert.embeddings.word_embeddings.weight")
@@ -150,7 +151,7 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 			mapTokenClassifier(bertForTokenClassification.Classifier, params)
 		}
 	}
-
+	mapLinear(colBert.Linear, params)
 	mapping := make(map[string]*mappingParam)
 	for k, v := range params {
 		mapping[k] = &mappingParam{value: v, matched: false}
@@ -219,6 +220,11 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 			}
 		case "BertForTokenClassification":
 			err := nn.DumpToFile(bertForTokenClassification, goModelFilename)
+			if err != nil {
+				return err
+			}
+		case "HF_ColBERT":
+			err := nn.DumpToFile(colBert, goModelFilename)
 			if err != nil {
 				return err
 			}

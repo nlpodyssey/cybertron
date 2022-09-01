@@ -21,5 +21,20 @@ type TokensEncoder interface {
 }
 
 func (m *Embeddings) Encode(tokens []string) []ag.Node {
-	return nil // TODO: implement encode
+	encoded := make([][]ag.Node, len(tokens))
+	for _, encoder := range m.TokensEncoder {
+		for i, encoding := range encoder.Encode(tokens) {
+			encoded[i] = append(encoded[i], encoding)
+		}
+	}
+
+	buf := make([]ag.Node, len(tokens))
+	for i, encoding := range encoded {
+		if len(encoding) == 1 {
+			buf[i] = encoding[0]
+			continue
+		}
+		buf[i] = ag.Concat(encoding...)
+	}
+	return m.Projection.Forward(buf...)
 }

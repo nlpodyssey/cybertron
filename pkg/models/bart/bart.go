@@ -47,8 +47,8 @@ func New[T float.DType](c Config, repo store.Repository) *Model {
 		}, repo,
 	)
 	return &Model{
-		Encoder:    NewEncoder[T](c, repo, embeddings.Shared[int]{emb}),
-		Decoder:    NewDecoder[T](c, repo, embeddings.Shared[int]{emb}),
+		Encoder:    NewEncoder[T](c, repo, embeddings.Shared[int]{Model: emb}),
+		Decoder:    NewDecoder[T](c, repo, embeddings.Shared[int]{Model: emb}),
 		Embeddings: emb,
 		Config:     c,
 	}
@@ -72,8 +72,8 @@ func (m *Model) SetEmbeddings(repo *diskstore.Repository) (err error) {
 	if err != nil {
 		return err
 	}
-	m.Encoder.Embeddings.SharedEmbeddings = embeddings.Shared[int]{m.Embeddings}
-	m.Decoder.Embeddings.SharedEmbeddings = embeddings.Shared[int]{m.Embeddings}
+	m.Encoder.Embeddings.SharedEmbeddings = embeddings.Shared[int]{Model: m.Embeddings}
+	m.Decoder.Embeddings.SharedEmbeddings = embeddings.Shared[int]{Model: m.Embeddings}
 	return nil
 }
 

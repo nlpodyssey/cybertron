@@ -50,9 +50,9 @@ func NewCharLM[T float.DType](c Config, repo store.Repository) *CharLM {
 	}
 	return &CharLM{
 		Config:     c,
-		Decoder:    linear.New(c.OutputSize, c.VocabularySize),
-		Projection: linear.New(c.HiddenSize, c.OutputSize),
-		RNN:        lstm.New(c.EmbeddingSize, c.HiddenSize),
+		Decoder:    linear.New[T](c.OutputSize, c.VocabularySize),
+		Projection: linear.New[T](c.HiddenSize, c.OutputSize),
+		RNN:        lstm.New[T](c.EmbeddingSize, c.HiddenSize),
 		Embeddings: emb.New[T, string](emb.Config{
 			Size:      c.EmbeddingSize,
 			StoreName: c.Name,

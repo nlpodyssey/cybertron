@@ -2,7 +2,7 @@
 
 Cybertron is a pure Go package that provides a simple and easy-to-use interface for cutting-edge Natural Language Processing (NLP) technologies.
 
-In essence, it enables Go developers to use state-of-the-art neural technologies i.e. Transformers, without having to learn other languages or worry about heavy deep learning frameworks (thus, the deployment is just a single executable for your server!).
+It enables Go developers to use state-of-the-art neural technologies i.e. Transformers, without having to learn other languages or worry about heavy deep learning frameworks (thus, the deployment is just a single executable for your server!).
 
 Luckily, pre-trained /fine-tuned Transformer models exist for several languages and are publicly hosted on the [HuggingFace models repository](https://huggingface.co/models).
 
@@ -12,10 +12,11 @@ A unique feature of Cybertron is its compatibility with [HuggingFace Transformer
 
 ## Supported tasks
 
-- Machine Translation
-- Question-Answering
-- Text Classification
-- Zero-Shot Text Classification
+- Question-Answering (Extractive)
+- Text Classification (Supervised, Zero-Shot)
+- Text Encoding (Text Similarity)
+- Text Generation (Translation, Paraphrasing)
+- Token Classification (NER, POS-Tagging)
 
 # Usage
 
@@ -64,7 +65,7 @@ Usage of server:
   -network value
         network type for server listening
   -task value
-        type of inference/computation that the model can fulfill ("text2text"|"zeroshotclassification")
+        type of inference/computation that the model can fulfill ("text2text"|"zero-shot-classification"|"question-answering"|"text-classification"|"token-classification"|"text-encoding")
   -tls value
         whether to enable TLS ("true"|"false")
   -tls-cert value
@@ -74,7 +75,7 @@ Usage of server:
 
 ```
 
-To run Cybertron in server mode for Machine Translation (e.g. `en` to `it`) with default settings, simply create a `.env` file in the current directory:
+For example, to run Cybertron in server mode for Machine Translation (e.g. `en` to `it`) with default settings, simply create a `.env` file in the current directory:
 
 ```console
 echo "CYBERTRON_MODEL=Helsinki-NLP/opus-mt-en-it" > .env
@@ -129,12 +130,17 @@ The rest are mainly for gRPC and HTTP API developments.
 
 # Dev Tools
 
-To get started, install the following tools:
+> This section is intended for developers who want to change or enrich the Cybertron gRPC and HTTP APIs.
+
+To get started, you need [buf](https://github.com/bufbuild/buf) installed in your machine. 
+
+Then install the following tools:
+
 ```
-go install \       
-    github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \                                                                                                                                                github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
-    google.golang.org/protobuf/cmd/protoc-gen-go \
-    google.golang.org/grpc/cmd/protoc-gen-go-grpc
+go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
+  github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
+  google.golang.org/protobuf/cmd/protoc-gen-go \
+  google.golang.org/grpc/cmd/protoc-gen-go-grpc
 ```
 
 Then run the following command to generate the gRPC and HTTP APIs:

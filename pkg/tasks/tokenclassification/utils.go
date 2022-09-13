@@ -9,7 +9,7 @@ import "fmt"
 func FilterNotEntities(tokens []Token) []Token {
 	ret := make([]Token, 0)
 	for _, token := range tokens {
-		if token.Label[0] == 'O' { // outside
+		if len(token.Label) == 0 || token.Label == "0" { // outside
 			continue
 		}
 		ret = append(ret, token)
@@ -62,6 +62,8 @@ func (a *aggregator) append(t Token) {
 
 func stripPrefix(label string) string {
 	switch {
+	case label == "O": // outside
+		return ""
 	case len(label) > 2:
 		return label[2:]
 	default:

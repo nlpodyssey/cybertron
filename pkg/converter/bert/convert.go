@@ -99,6 +99,7 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 	m := bert.New[T](config, repo)
 	bertForQuestionAnswering := bert.NewModelForQuestionAnswering[T](m)
 	bertForSequenceClassification := bert.NewModelForSequenceClassification[T](m)
+	bertForTokenClassification := bert.NewModelForTokenClassification[T](m)
 	bertForSequenceEncoding := bert.NewModelForSequenceEncoding(m)
 
 	{
@@ -140,6 +141,7 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 	mapEncoderParams(m.Encoder, params)
 	mapSeqClassifier(bertForSequenceClassification.Classifier, params)
 	mapQAClassifier(bertForQuestionAnswering.Classifier, params)
+	mapTokenClassifier(bertForTokenClassification.Classifier, params)
 
 	mapping := make(map[string]*mappingParam)
 	for k, v := range params {
@@ -204,6 +206,11 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 			}
 		case "BertForSequenceClassification":
 			err := nn.DumpToFile(bertForSequenceClassification, goModelFilename)
+			if err != nil {
+				return err
+			}
+		case "BertForTokenClassification":
+			err := nn.DumpToFile(bertForTokenClassification, goModelFilename)
 			if err != nil {
 				return err
 			}

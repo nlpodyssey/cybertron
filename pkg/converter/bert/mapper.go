@@ -63,6 +63,11 @@ func mapSeqClassifier(model *linear.Model, params paramsMap) {
 	params["classifier.bias"] = model.B.Value()
 }
 
+func mapTokenClassifier(model *linear.Model, params paramsMap) {
+	params["classifier.weight"] = model.W.Value()
+	params["classifier.bias"] = model.B.Value()
+}
+
 // mapProjectionLayer maps the projection layer parameters.
 func mapQAClassifier(model *linear.Model, params paramsMap) {
 	params["qa_outputs.weight"] = model.W.Value()

@@ -1,0 +1,135 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "tokenclassification/v1/tokenclassification.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "TokenClassificationService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/classify": {
+      "post": {
+        "operationId": "TokenClassificationService_Classify",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ClassifyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ClassifyRequest"
+            }
+          }
+        ],
+        "tags": [
+          "TokenClassificationService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ClassifyRequestAggregationStrategy": {
+      "type": "string",
+      "enum": [
+        "NONE",
+        "SIMPLE"
+      ],
+      "default": "NONE",
+      "title": "- NONE: Every token gets classified without further aggregation (default)\n - SIMPLE: Entities are grouped according to the IOB annotation schema"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1ClassifyRequest": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "string"
+        },
+        "aggregationStrategy": {
+          "$ref": "#/definitions/ClassifyRequestAggregationStrategy"
+        }
+      }
+    },
+    "v1ClassifyResponse": {
+      "type": "object",
+      "properties": {
+        "tokens": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Token"
+          }
+        }
+      }
+    },
+    "v1Token": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "start": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "end": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "label": {
+          "type": "string"
+        },
+        "score": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    }
+  }
+}

@@ -20,6 +20,7 @@ import (
 	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/textclassification"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/textencoding"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/tokenclassification"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -92,6 +93,8 @@ func loadModelForTask(conf *config) (m any, err error) {
 		return tasks.Load[questionanswering.Interface](conf.loaderConfig)
 	case TextClassificationTask:
 		return tasks.Load[textclassification.Interface](conf.loaderConfig)
+	case TokenClassificationTask:
+		return tasks.Load[tokenclassification.Interface](conf.loaderConfig)
 	case TextEncodingTask:
 		return tasks.Load[textencoding.Interface](conf.loaderConfig)
 	default:

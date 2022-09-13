@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package tokenclassification.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/nlpodyssey/cybertron/pkg/server/apis/tokenclassification/v1;tokenclassificationv1";
+
+service TokenClassificationService {
+  rpc Classify(ClassifyRequest) returns (ClassifyResponse) {
+    option (google.api.http) = {
+      post: "/v1/classify"
+      body: "*"
+    };
+  }
+}
+
+message ClassifyRequest {
+  enum AggregationStrategy {
+    // Every token gets classified without further aggregation (default)
+    NONE = 0;
+    // Entities are grouped according to the IOB annotation schema
+    SIMPLE = 1;
+  }
+
+  string input = 1;
+  AggregationStrategy aggregation_strategy = 2;
+}
+
+message Token {
+  string text  = 1;
+  int32  start = 2;
+  int32  end   = 3;
+  string label = 4;
+  double score = 5;
+}
+
+message ClassifyResponse {
+  repeated Token tokens = 1;
+}

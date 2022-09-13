@@ -20,21 +20,48 @@ import (
 	bert_for_text_classification "github.com/nlpodyssey/cybertron/pkg/tasks/textclassification/bert"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/textencoding"
 	bert_for_text_encoding "github.com/nlpodyssey/cybertron/pkg/tasks/textencoding/bert"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/tokenclassification"
+	bert_for_token_classification "github.com/nlpodyssey/cybertron/pkg/tasks/tokenclassification/bert"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier"
 	bart_for_zero_shot_classification "github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier/bart"
 )
 
 var (
-	text2textInterface          = reflect.TypeOf((*text2text.Interface)(nil)).Elem()
-	zeroshotclassifierInterface = reflect.TypeOf((*zeroshotclassifier.Interface)(nil)).Elem()
-	questionansweringInterface  = reflect.TypeOf((*questionanswering.Interface)(nil)).Elem()
-	textclassificationInterface = reflect.TypeOf((*textclassification.Interface)(nil)).Elem()
-	textencodingInterface       = reflect.TypeOf((*textencoding.Interface)(nil)).Elem()
+	text2textInterface           = reflect.TypeOf((*text2text.Interface)(nil)).Elem()
+	zeroshotclassifierInterface  = reflect.TypeOf((*zeroshotclassifier.Interface)(nil)).Elem()
+	questionansweringInterface   = reflect.TypeOf((*questionanswering.Interface)(nil)).Elem()
+	textclassificationInterface  = reflect.TypeOf((*textclassification.Interface)(nil)).Elem()
+	tokenclassificationInterface = reflect.TypeOf((*tokenclassification.Interface)(nil)).Elem()
+	textencodingInterface        = reflect.TypeOf((*textencoding.Interface)(nil)).Elem()
 )
 
 // Load loads a model from file.
 func Load[T any](conf *Config) (T, error) {
 	return loader[T]{conf: *conf}.load()
+}
+
+func LoadModelForTextGeneration(conf *Config) (text2text.Interface, error) {
+	return Load[text2text.Interface](conf)
+}
+
+func LoadModelForQuestionAnswering(conf *Config) (questionanswering.Interface, error) {
+	return Load[questionanswering.Interface](conf)
+}
+
+func LoadModelForTextClassification(conf *Config) (textclassification.Interface, error) {
+	return Load[textclassification.Interface](conf)
+}
+
+func LoadModelForZeroShotTextClassification(conf *Config) (zeroshotclassifier.Interface, error) {
+	return Load[zeroshotclassifier.Interface](conf)
+}
+
+func LoadModelForTextEncoding(conf *Config) (textencoding.Interface, error) {
+	return Load[textencoding.Interface](conf)
+}
+
+func LoadModelForTokenClassification(conf *Config) (tokenclassification.Interface, error) {
+	return Load[tokenclassification.Interface](conf)
 }
 
 type loader[T any] struct {
@@ -81,6 +108,8 @@ func (l loader[T]) resolveLoadingFunc() (func() (T, error), error) {
 		return l.resolveModelForQuestionAnswering, nil
 	case t.Implements(textclassificationInterface):
 		return l.resolveModelForTextClassification, nil
+	case t.Implements(tokenclassificationInterface):
+		return l.resolveModelForTokenClassification, nil
 	case t.Implements(textencodingInterface):
 		return l.resolveModelForTextEncoding, nil
 	default:
@@ -145,6 +174,21 @@ func (l loader[T]) resolveModelForTextClassification() (obj T, _ error) {
 		return typeCheck[T](bert_for_text_classification.LoadTextClassification(modelDir))
 	default:
 		return obj, fmt.Errorf("model type %#v doesn't support the text classification task", modelConfig.ModelType)
+	}
+}
+
+func (l loader[T]) resolveModelForTokenClassification() (obj T, _ error) {
+	modelDir := l.conf.FullModelPath()
+	modelConfig, err := models.ReadCommonModelConfig(modelDir, "")
+	if err != nil {
+		return obj, err
+	}
+
+	switch modelConfig.ModelType {
+	case "bert":
+		return typeCheck[T](bert_for_token_classification.LoadTokenClassification(modelDir))
+	default:
+		return obj, fmt.Errorf("model type %#v doesn't support the token classification task", modelConfig.ModelType)
 	}
 }
 

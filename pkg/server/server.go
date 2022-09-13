@@ -18,6 +18,8 @@ import (
 	"github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/textclassification"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/textencoding"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/tokenclassification"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog/log"
@@ -70,6 +72,10 @@ func ResolveRequestHandler(model any) (RequestHandler, error) {
 		return NewServerForQuestionAnswering(m), nil
 	case textclassification.Interface:
 		return NewServerForTextClassification(m), nil
+	case textencoding.Interface:
+		return NewServerForTextEncoding(m), nil
+	case tokenclassification.Interface:
+		return NewServerForTokenClassification(m), nil
 	default:
 		return nil, fmt.Errorf("failed to resolve register funcs for model/task type %T", m)
 	}

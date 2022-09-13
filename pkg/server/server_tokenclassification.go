@@ -6,6 +6,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	tokenclassificationv1 "github.com/nlpodyssey/cybertron/pkg/server/gen/proto/go/tokenclassification/v1"
@@ -35,7 +36,7 @@ func (s *serverForTokenClassification) RegisterHandlerServer(ctx context.Context
 // Classify handles the Classify request.
 func (s *serverForTokenClassification) Classify(ctx context.Context, req *tokenclassificationv1.ClassifyRequest) (*tokenclassificationv1.ClassifyResponse, error) {
 	result, err := s.classifier.Classify(ctx, req.GetInput(), tokenclassification.Parameters{
-		AggregationStrategy: tokenclassification.AggregationStrategy(req.AggregationStrategy),
+		AggregationStrategy: convAggregationStrategy(req.AggregationStrategy),
 	})
 	if err != nil {
 		return nil, err
@@ -55,4 +56,15 @@ func (s *serverForTokenClassification) Classify(ctx context.Context, req *tokenc
 		Tokens: tokens,
 	}
 	return resp, nil
+}
+
+func convAggregationStrategy(strategy tokenclassificationv1.ClassifyRequest_AggregationStrategy) tokenclassification.AggregationStrategy {
+	switch strategy {
+	case tokenclassificationv1.ClassifyRequest_NONE:
+		return tokenclassification.AggregationStrategyNone
+	case tokenclassificationv1.ClassifyRequest_SIMPLE:
+		return tokenclassification.AggregationStrategySimple
+	default:
+		panic(fmt.Sprintf("server: invalid aggregation strategy [%s] for token classification", strategy))
+	}
 }

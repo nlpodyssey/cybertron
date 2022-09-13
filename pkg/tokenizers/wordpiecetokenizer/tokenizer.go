@@ -147,46 +147,21 @@ func IsDefaultSpecial(word string) bool {
 	}
 }
 
-// TokensRange represents an index offsets pair of a token.
-type TokensRange struct {
-	Start int
-	End   int
-}
-
-// GroupPieces returns a list of tokens range each of which represents
+// GroupSubWords returns a list of tokens range each of which represents
 // the start and the end index of the tokens that form a complete word.
-func GroupPieces(tokens []tokenizers.StringOffsetsPair) []TokensRange {
-	groups := make([]TokensRange, 0)
-	for i, token := range tokens {
+func GroupSubWords(tokens []tokenizers.StringOffsetsPair) []tokenizers.StringOffsetsPair {
+	result := make([]tokenizers.StringOffsetsPair, 0)
+	for _, token := range tokens {
 		if strings.HasPrefix(token.String, DefaultSplitPrefix) {
-			groups[len(groups)-1].End = i
+			last := &result[len(result)-1]
+			last.String += strings.TrimLeft(token.String, DefaultSplitPrefix)
+			last.Offsets.End = token.Offsets.End
 		} else {
-			groups = append(groups, TokensRange{
-				Start: i,
-				End:   i,
+			result = append(result, tokenizers.StringOffsetsPair{
+				String:  token.String,
+				Offsets: token.Offsets,
 			})
 		}
 	}
-	return groups
-}
-
-// MakeOffsetPairsFromGroups creates a sequence tokenizers.StringOffsetsPair
-// elements from the given groups.
-func MakeOffsetPairsFromGroups(
-	text string,
-	tokens []tokenizers.StringOffsetsPair,
-	groups []TokensRange,
-) []tokenizers.StringOffsetsPair {
-	outputTokens := make([]tokenizers.StringOffsetsPair, len(groups))
-	for i, group := range groups {
-		startToken, endToken := tokens[group.Start], tokens[group.End]
-		outputTokens[i] = tokenizers.StringOffsetsPair{
-			String: string([]rune(text)[startToken.Offsets.Start:endToken.Offsets.End]),
-			Offsets: tokenizers.OffsetsType{
-				Start: startToken.Offsets.Start,
-				End:   endToken.Offsets.End,
-			},
-		}
-	}
-	return outputTokens
+	return result
 }

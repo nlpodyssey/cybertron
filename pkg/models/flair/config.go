@@ -1,17 +1,31 @@
-// Copyright 2020 spaGO Authors. All rights reserved.
+// Copyright 2022 The NLP Odyssey Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
 package flair
 
-// Config provides configuration settings for a Character-level Language Model.
+import (
+	"encoding/json"
+	"os"
+)
+
+// Config is the configuration for the Flair architecture.
 type Config struct {
-	Name              string
-	VocabularySize    int
-	EmbeddingSize     int
-	HiddenSize        int
-	OutputSize        int // use the projection layer when the output size is > 0
-	SequenceSeparator string
-	UnknownToken      string
-	Trainable         bool
+	ModelType string            `json:"model_type"`
+	ID2Label  map[string]string `json:"id2label"`
+}
+
+// ConfigFromFile loads a Flair model Config from file.
+func ConfigFromFile(file string) (Config, error) {
+	var config Config
+	configFile, err := os.Open(file)
+	if err != nil {
+		return Config{}, err
+	}
+	defer configFile.Close()
+	err = json.NewDecoder(configFile).Decode(&config)
+	if err != nil {
+		return Config{}, err
+	}
+	return config, nil
 }

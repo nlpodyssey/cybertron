@@ -6,9 +6,11 @@ package converter
 
 import (
 	"fmt"
-	"github.com/nlpodyssey/cybertron/pkg/converter/bert"
+	"strings"
 
 	"github.com/nlpodyssey/cybertron/pkg/converter/bart"
+	"github.com/nlpodyssey/cybertron/pkg/converter/bert"
+	"github.com/nlpodyssey/cybertron/pkg/converter/flair"
 	"github.com/nlpodyssey/cybertron/pkg/models"
 	"github.com/nlpodyssey/spago/mat/float"
 )
@@ -19,16 +21,32 @@ import (
 // It accepts the path to the model's directory and creates the converted
 // files in the same place.
 func Convert[T float.DType](modelPath string, overwriteIfExists bool) error {
-	config, err := models.ReadCommonModelConfig(modelPath, "")
+	modelType, err := resolveModelType(modelPath)
 	if err != nil {
 		return err
 	}
-	switch config.ModelType {
+
+	switch modelType {
 	case "bert", "electra":
 		return bert.Convert[T](modelPath, overwriteIfExists)
 	case "bart", "marian", "pegasus":
 		return bart.Convert[T](modelPath, overwriteIfExists)
+	case "flair":
+		return flair.Convert[T](modelPath, overwriteIfExists)
 	default:
-		return fmt.Errorf("unsupported model type: %#v", config.ModelType)
+		return fmt.Errorf("unsupported model type: %#v", modelType)
 	}
+}
+
+func resolveModelType(modelPath string) (string, error) {
+	if strings.Contains(modelPath, "flair") {
+		// Handling the case where there is no configuration file
+		return "flair", nil
+	}
+
+	config, err := models.ReadCommonModelConfig(modelPath, "")
+	if err != nil {
+		return "", err
+	}
+	return config.ModelType, nil
 }

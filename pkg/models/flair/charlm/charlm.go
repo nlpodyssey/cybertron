@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package flair
+package charlm
 
 import (
 	"encoding/gob"
@@ -17,15 +17,15 @@ import (
 	"github.com/nlpodyssey/spago/nn/recurrent/lstm"
 )
 
-var _ nn.Model = &CharLM{}
+var _ nn.Model = &Model{}
 
 const (
 	defaultSequenceSeparator = "\n"
 	defaultUnknownToken      = "<unk>"
 )
 
-// CharLM implements a Character-level Language Model.
-type CharLM struct {
+// Model implements a Character-level Language Model.
+type Model struct {
 	nn.Module
 	Config
 	Decoder    *linear.Model
@@ -36,19 +36,19 @@ type CharLM struct {
 }
 
 func init() {
-	gob.Register(&CharLM{})
+	gob.Register(&Model{})
 }
 
 // NewCharLM returns a new character-level language Model, initialized according to
 // the given configuration.
-func NewCharLM[T float.DType](c Config, repo store.Repository) *CharLM {
+func NewCharLM[T float.DType](c Config, repo store.Repository) *Model {
 	if c.SequenceSeparator == "" {
 		c.SequenceSeparator = defaultSequenceSeparator
 	}
 	if c.UnknownToken == "" {
 		c.UnknownToken = defaultUnknownToken
 	}
-	return &CharLM{
+	return &Model{
 		Config:     c,
 		Decoder:    linear.New[T](c.OutputSize, c.VocabularySize),
 		Projection: linear.New[T](c.HiddenSize, c.OutputSize),
@@ -61,12 +61,12 @@ func NewCharLM[T float.DType](c Config, repo store.Repository) *CharLM {
 	}
 }
 
-func (m *CharLM) Encode(xs []string) []ag.Node {
+func (m *Model) Encode(xs []string) []ag.Node {
 	return m.UseProjection(m.RNN.Forward(m.Embeddings.Encode(xs)...))
 }
 
-func (m *CharLM) UseProjection(xs []ag.Node) []ag.Node {
-	if m.Config.OutputSize > 0 {
+func (m *Model) UseProjection(xs []ag.Node) []ag.Node {
+	if m.Projection != nil {
 		return m.Projection.Forward(xs...)
 	}
 	return xs

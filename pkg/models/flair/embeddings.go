@@ -17,7 +17,8 @@ type Embeddings struct {
 }
 
 type TokensEncoder interface {
-	Encode(keys []string) []ag.Node
+	nn.Model
+	Encode(tokens []string) []ag.Node
 }
 
 func (m *Embeddings) Encode(tokens []string) []ag.Node {
@@ -27,14 +28,20 @@ func (m *Embeddings) Encode(tokens []string) []ag.Node {
 			encoded[i] = append(encoded[i], encoding)
 		}
 	}
+	return m.Projection.Forward(concat(encoded)...)
+}
 
-	buf := make([]ag.Node, len(tokens))
-	for i, encoding := range encoded {
-		if len(encoding) == 1 {
-			buf[i] = encoding[0]
-			continue
+func concat(xs [][]ag.Node) []ag.Node {
+	fn := func(vectors []ag.Node) ag.Node {
+		if len(vectors) == 1 {
+			return vectors[0]
 		}
-		buf[i] = ag.Concat(encoding...)
+		return ag.Concat(vectors...)
 	}
-	return m.Projection.Forward(buf...)
+
+	result := make([]ag.Node, len(xs))
+	for i, encoding := range xs {
+		result[i] = fn(encoding)
+	}
+	return result
 }

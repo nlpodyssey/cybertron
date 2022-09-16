@@ -58,6 +58,10 @@ func (c *Vocabulary) Items() []string {
 	return c.inverse
 }
 
+func (c *Vocabulary) Map() map[string]int {
+	return c.terms
+}
+
 // ID returns the ID of a term and whether or not it was found in the vocabulary.
 func (c *Vocabulary) ID(term string) (int, bool) {
 	id, ok := c.terms[term]

@@ -1,4 +1,4 @@
-// Copyright 2020 spaGO Authors. All rights reserved.
+// Copyright 2022 The NLP Odyssey Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/nlpodyssey/cybertron/pkg/models/flair/charlm"
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/nn"
 )
@@ -31,8 +32,8 @@ const (
 
 type ContextualStringEmbeddings struct {
 	nn.Module
-	LeftToRight *CharLM
-	RightToLeft *CharLM
+	LeftToRight *charlm.Model
+	RightToLeft *charlm.Model
 	MergeMode   MergeType
 	StartMarker rune
 	EndMarker   rune
@@ -42,7 +43,7 @@ func init() {
 	gob.Register(&ContextualStringEmbeddings{})
 }
 
-func NewContextualStringEmbeddings(leftToRight, rightToLeft *CharLM, merge MergeType, startMarker, endMarker rune) *ContextualStringEmbeddings {
+func NewContextualStringEmbeddings(leftToRight, rightToLeft *charlm.Model, merge MergeType, startMarker, endMarker rune) *ContextualStringEmbeddings {
 	return &ContextualStringEmbeddings{
 		LeftToRight: leftToRight,
 		RightToLeft: rightToLeft,
@@ -63,16 +64,24 @@ func (m *ContextualStringEmbeddings) Encode(tokens []string) []ag.Node {
 		string: strings.Join(tokens, " "),
 		tokens: tokens,
 	}
-	return m.merge(t)(m.hiddenStates(chars(t.string)))
+
+	h, rh := m.computeHiddenStates(chars(t.string))
+
+	result := make([]ag.Node, len(t.tokens))
+	for i, boundary := range t.boundaries() {
+		result[i] = m.merge(rh[boundary[1]], h[boundary[0]])
+	}
+	return result
 }
 
-func (m *ContextualStringEmbeddings) hiddenStates(sequence []string) (hiddenStates, rHiddenStates []ag.Node) {
+func (m *ContextualStringEmbeddings) computeHiddenStates(sequence []string) (hiddenStates, rHiddenStates []ag.Node) {
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
 		hiddenStates = m.LeftToRight.Encode(pad(sequence, m.StartMarker, m.EndMarker))
 		wg.Done()
 	}()
+
 	go func() {
 		rHiddenStates = m.RightToLeft.Encode(pad(reversed(sequence), m.StartMarker, m.EndMarker))
 		wg.Done()
@@ -81,28 +90,18 @@ func (m *ContextualStringEmbeddings) hiddenStates(sequence []string) (hiddenStat
 	return
 }
 
-func (m *ContextualStringEmbeddings) merge(t text) func(hiddenStates, rHiddenStates []ag.Node) []ag.Node {
-	fn := func(a, b ag.Node) ag.Node {
-		switch m.MergeMode {
-		case Concat:
-			return ag.Concat(a, b)
-		case Sum:
-			return ag.Add(a, b)
-		case Prod:
-			return ag.Prod(a, b)
-		case Avg:
-			return ag.ProdScalar(ag.Add(a, b), ag.Scalar(0.5))
-		default:
-			panic("flair: invalid merge mode for the ContextualStringEmbeddings")
-		}
-	}
-
-	return func(hiddenStates, rHiddenStates []ag.Node) []ag.Node {
-		result := make([]ag.Node, len(t.tokens))
-		for i, boundary := range t.boundaries() {
-			result[i] = fn(hiddenStates[boundary[1]], rHiddenStates[boundary[0]])
-		}
-		return result
+func (m *ContextualStringEmbeddings) merge(a, b ag.Node) ag.Node {
+	switch m.MergeMode {
+	case Concat:
+		return ag.Concat(a, b)
+	case Sum:
+		return ag.Add(a, b)
+	case Prod:
+		return ag.Prod(a, b)
+	case Avg:
+		return ag.ProdScalar(ag.Add(a, b), ag.Scalar(0.5))
+	default:
+		panic("flair: invalid merge mode for the ContextualStringEmbeddings")
 	}
 }
 

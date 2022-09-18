@@ -193,8 +193,6 @@ func (conv *converter[T]) encoderEmbeddingsTokensEncoder() ([]flair.TokensEncode
 	}
 
 	switch {
-	case flairWe == nil:
-		return nil, fmt.Errorf("WordEmbeddings not found in StackedEmbeddings")
 	case flairEmbForward == nil:
 		return nil, fmt.Errorf("FlairEmbeddings-forward not found in StackedEmbeddings")
 	case flairEmbBackward == nil:

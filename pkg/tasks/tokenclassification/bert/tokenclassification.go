@@ -109,7 +109,7 @@ func (m *TokenClassification) Classify(_ context.Context, text string, parameter
 		label, score := m.getBestClass(logits[i])
 
 		tokens = append(tokens, Token{
-			Text:  token.String,
+			Text:  text[token.Offsets.Start:token.Offsets.End],
 			Start: token.Offsets.Start,
 			End:   token.Offsets.End,
 			Label: label,

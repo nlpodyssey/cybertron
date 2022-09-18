@@ -87,7 +87,7 @@ func (m *TokenClassification) Classify(_ context.Context, text string, parameter
 	tokens := make([]Token, 0, len(tokenized))
 	for i, token := range tokenized {
 		tokens = append(tokens, Token{
-			Text:  token.String,
+			Text:  text[token.Offsets.Start:token.Offsets.End],
 			Start: token.Offsets.Start,
 			End:   token.Offsets.End,
 			Label: m.Labels[classes[i]],

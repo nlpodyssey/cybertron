@@ -24,6 +24,9 @@ type FlairEmbeddings struct {
 	CharsPerChunk             int
 	embeddingLength           int
 	PretrainedModelArchiveMap map[string]string
+	InstanceParameters        *types.Dict
+	WithWhitespace            bool // Default: true
+	TokenizedLM               bool // Default: true
 	LM                        *LanguageModel
 }
 
@@ -66,6 +69,12 @@ func (f *FlairEmbeddings) PyDictSet(k, v any) (err error) {
 		if err == nil {
 			err = conversion.AssignDictToMap(d, &f.PretrainedModelArchiveMap)
 		}
+	case "instance_parameters":
+		err = conversion.AssignAssertedType(v, &f.InstanceParameters)
+	case "with_whitespace":
+		err = conversion.AssignAssertedType(v, &f.WithWhitespace)
+	case "tokenized_lm":
+		err = conversion.AssignAssertedType(v, &f.TokenizedLM)
 	case "detach", "cache": // TODO
 	default:
 		err = fmt.Errorf("unexpected key with value %#v", v)

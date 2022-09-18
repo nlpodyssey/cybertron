@@ -8,15 +8,17 @@ import (
 	"fmt"
 
 	"github.com/nlpodyssey/cybertron/pkg/converter/flair/conversion"
+	"github.com/nlpodyssey/cybertron/pkg/converter/flair/conversion/collections"
 	"github.com/nlpodyssey/gopickle/types"
 )
 
 type DictionaryClass struct{}
 
 type Dictionary struct {
-	Item2Idx   map[string]int
-	Idx2Item   []string
-	MultiLabel bool
+	Item2Idx           map[string]int
+	Idx2Item           []string
+	Item2IdxNotEncoded *collections.DefaultDict
+	MultiLabel         bool
 }
 
 func (DictionaryClass) PyNew(args ...any) (any, error) {
@@ -40,6 +42,8 @@ func (d *Dictionary) PyDictSet(k, v any) (err error) {
 		if err == nil {
 			err = d.setIdx2Item(l)
 		}
+	case "item2idx_not_encoded":
+		err = conversion.AssignAssertedType(v, &d.Item2IdxNotEncoded)
 	case "multi_label":
 		err = conversion.AssignAssertedType(v, &d.MultiLabel)
 	default:

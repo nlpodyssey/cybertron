@@ -13,15 +13,16 @@ import (
 )
 
 type Module struct {
-	Training              bool
-	Parameters            *types.OrderedDict
-	Buffers               *types.OrderedDict
-	BackwardHooks         *types.OrderedDict
-	ForwardHooks          *types.OrderedDict
-	ForwardPreHooks       *types.OrderedDict
-	StateDictHooks        *types.OrderedDict
-	LoadStateDictPreHooks *types.OrderedDict
-	Modules               *types.OrderedDict
+	Training                bool
+	Parameters              *types.OrderedDict
+	Buffers                 *types.OrderedDict
+	BackwardHooks           *types.OrderedDict
+	ForwardHooks            *types.OrderedDict
+	ForwardPreHooks         *types.OrderedDict
+	StateDictHooks          *types.OrderedDict
+	LoadStateDictPreHooks   *types.OrderedDict
+	Modules                 *types.OrderedDict
+	NonPersistentBuffersSet *types.Set
 }
 
 func GetSubModule[T any](mod Module, name string) (v T, err error) {
@@ -70,6 +71,8 @@ func (m *Module) PyDictSet(k, v any) (err error) {
 		err = conversion.AssignAssertedType(v, &m.ForwardPreHooks)
 	case "_state_dict_hooks":
 		err = conversion.AssignAssertedType(v, &m.StateDictHooks)
+	case "_non_persistent_buffers_set":
+		err = conversion.AssignAssertedType(v, &m.NonPersistentBuffersSet)
 	case "_load_state_dict_pre_hooks":
 		err = conversion.AssignAssertedType(v, &m.LoadStateDictPreHooks)
 	case "_modules":

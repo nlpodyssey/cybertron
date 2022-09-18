@@ -271,7 +271,7 @@ func (conv *converter[T]) encoderEmbeddingsTokensEncoderWordEmbeddings(st store.
 func (conv *converter[T]) encoderEmbeddingsTokensEncoderCharLMVocabulary(forward, backward *convflair.FlairEmbeddings) (*vocabulary.Vocabulary, error) {
 	d1 := forward.LM.Dictionary
 	d2 := backward.LM.Dictionary
-	if !reflect.DeepEqual(d1, d2) {
+	if !reflect.DeepEqual(d1.Idx2Item, d2.Idx2Item) {
 		return nil, fmt.Errorf("FlairEmbeddings LM forward/backward dictionaries differ")
 	}
 	return vocabulary.New(d1.Idx2Item), nil

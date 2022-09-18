@@ -42,6 +42,7 @@ type RNNBase struct {
 	Bidirectional    bool
 	ProjSize         int
 	FlatWeightsNames []string
+	FlatWeights      []*Parameter
 	AllWeights       [][]string
 	Parameters       map[string]*Parameter
 }
@@ -202,6 +203,18 @@ func (r *RNNBase) PyDictSet(k, v any) (err error) {
 		err = conversion.AssignAssertedType(v, &r.Bidirectional)
 	case "_all_weights":
 		err = r.convertAndSetAllWeights(v)
+	case "_flat_weights":
+		var l *types.List
+		err = conversion.AssignAssertedType(v, &l)
+		if err == nil {
+			err = conversion.AssignListToSlice(l, &r.FlatWeights)
+		}
+	case "_flat_weights_names":
+		var l *types.List
+		err = conversion.AssignAssertedType(v, &l)
+		if err == nil {
+			err = conversion.AssignListToSlice(l, &r.FlatWeightsNames)
+		}
 	case "_data_ptrs", "_param_buf_size":
 	default:
 		err = fmt.Errorf("unexpected key with value %#v", v)

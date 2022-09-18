@@ -12,6 +12,10 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
+type PyAttributeGettable interface {
+	PyGetAttribute(name string) (value any, exists bool, err error)
+}
+
 func AssertType[T any](v any) (vt T, err error) {
 	var ok bool
 	vt, ok = v.(T)

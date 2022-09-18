@@ -16,13 +16,14 @@ type LanguageModelClass struct{}
 
 type LanguageModel struct {
 	torch.Module
-	Dictionary    *Dictionary
-	IsForwardLm   bool
-	Dropout       float64
-	HiddenSize    int
-	EmbeddingSize int
-	NLayers       int
-	NOut          int
+	Dictionary        *Dictionary
+	IsForwardLm       bool
+	Dropout           float64
+	HiddenSize        int
+	EmbeddingSize     int
+	NLayers           int
+	NOut              int
+	DocumentDelimiter string
 
 	Encoder *torch.SparseEmbedding
 	Decoder *torch.Linear
@@ -69,6 +70,8 @@ func (l *LanguageModel) PyDictSet(k, v any) (err error) {
 		if v != nil {
 			err = fmt.Errorf("only nil is supported, got %T: %#v", v, v)
 		}
+	case "document_delimiter":
+		err = conversion.AssignAssertedType(v, &l.DocumentDelimiter)
 	default:
 		err = fmt.Errorf("unexpected key with value %#v", v)
 	}

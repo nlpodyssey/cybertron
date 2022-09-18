@@ -10,6 +10,7 @@ import (
 	"github.com/nlpodyssey/cybertron/pkg/converter/flair/conversion"
 	"github.com/nlpodyssey/cybertron/pkg/converter/flair/conversion/gensim"
 	"github.com/nlpodyssey/cybertron/pkg/converter/flair/conversion/torch"
+	"github.com/nlpodyssey/gopickle/types"
 	"github.com/nlpodyssey/spago/mat"
 )
 
@@ -17,12 +18,13 @@ type WordEmbeddingsClass struct{}
 
 type WordEmbeddings struct {
 	TokenEmbeddingsModule
-	Embeddings       string
-	Name             string
-	StaticEmbeddings bool
-	Embedding        *torch.Embedding
-	Vocab            map[string]int
-	embeddingLength  int
+	Embeddings         string
+	Name               string
+	StaticEmbeddings   bool
+	Embedding          *torch.Embedding
+	Vocab              map[string]int
+	InstanceParameters *types.Dict
+	embeddingLength    int
 }
 
 var _ TokenEmbeddings = &WordEmbeddings{}
@@ -48,6 +50,10 @@ func (w *WordEmbeddings) PyDictSet(k, v any) (err error) {
 	switch k {
 	case "embeddings":
 		err = conversion.AssignAssertedType(v, &w.Embeddings)
+	case "get_cached_vec":
+		// present on older models, can be ignored
+	case "instance_parameters":
+		err = conversion.AssignAssertedType(v, &w.InstanceParameters)
 	case "name":
 		err = conversion.AssignAssertedType(v, &w.Name)
 	case "static_embeddings":
@@ -91,6 +97,17 @@ func (w *WordEmbeddings) setPrecomputedWordEmbeddings(kv *gensim.KeyedVectors) e
 	}
 
 	return nil
+}
+
+func (w *WordEmbeddings) PyGetAttribute(name string) (value any, exists bool, err error) {
+	switch name {
+	case "get_cached_vec":
+		// this ignores the get_cached_vec method when loading older versions
+		// it is needed for compatibility reasons
+		return nil, true, nil
+	default:
+		return nil, false, fmt.Errorf("WordEmbeddings: unexpected __getattribute__(%q)", name)
+	}
 }
 
 func (w *WordEmbeddings) LoadStateDictEntry(string, any) error {

@@ -139,9 +139,17 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 	mapPooler(m.Pooler, params)
 	mapEmbeddingsLayerNorm(m.Embeddings.Norm, params)
 	mapEncoderParams(m.Encoder, params)
-	mapSeqClassifier(bertForSequenceClassification.Classifier, params)
 	mapQAClassifier(bertForQuestionAnswering.Classifier, params)
-	mapTokenClassifier(bertForTokenClassification.Classifier, params)
+
+	{
+		// both architectures map `classifier` params
+		switch config.Architectures[0] {
+		case "BertForSequenceClassification":
+			mapSeqClassifier(bertForSequenceClassification.Classifier, params)
+		case "BertForTokenClassification":
+			mapTokenClassifier(bertForTokenClassification.Classifier, params)
+		}
+	}
 
 	mapping := make(map[string]*mappingParam)
 	for k, v := range params {

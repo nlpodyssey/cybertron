@@ -45,3 +45,13 @@ func DefaultOptions() *Options {
 		TopP:        nullable.Type[float64]{Valid: false},
 	}
 }
+
+// DefaultOptionsForTextParaphrasing returns the default options for generating text with sampling.
+func DefaultOptionsForTextParaphrasing() *Options {
+	return &Options{
+		Temperature: nullable.Type[float64]{Value: 1.5, Valid: true},
+		Sample:      nullable.Type[bool]{Value: true, Valid: true},
+		TopK:        nullable.Type[int]{Value: 120, Valid: true},
+		TopP:        nullable.Type[float64]{Value: 0.98, Valid: false},
+	}
+}

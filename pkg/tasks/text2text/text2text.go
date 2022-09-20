@@ -6,9 +6,31 @@ package text2text
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/nlpodyssey/cybertron/pkg/utils/nullable"
 )
+
+const (
+	// DefaultModelTemplateForMachineTranslation is the template for machine translations models.
+	// You can use it as the basis for constructing the default model name for the desired source
+	// and target languages pair (iso-a2), or you can use the convenient function DefaultModelForMachineTranslation.
+	// Model card: https://huggingface.co/Helsinki-NLP
+	DefaultModelTemplateForMachineTranslation = "Helsinki-NLP/opus-mt-%s-%s"
+
+	// DefaultModelForTextParaphrasing is a summarization model fine-tuned for text paraphrasing.
+	// Model card: https://huggingface.co/tuner007/pegasus_paraphrase
+	DefaultModelForTextParaphrasing = "tuner007/pegasus_paraphrase"
+
+	// DefaultModelForTextSummarization is a summarization model.
+	// Model card: https://huggingface.co/google/pegasus-multi_news
+	DefaultModelForTextSummarization = "google/pegasus-multi_news"
+)
+
+// DefaultModelForMachineTranslation specializes the model template for the source and target languages (iso-a2).
+func DefaultModelForMachineTranslation(source, target string) string {
+	return fmt.Sprintf(DefaultModelTemplateForMachineTranslation, source, target)
+}
 
 // Interface defines the main functions for the Text2Text task.
 type Interface interface {

@@ -6,6 +6,16 @@ package questionanswering
 
 import "context"
 
+const (
+	// DefaultEnglishModel is a model for extractive question-answering for the English language.
+	// Model card: https://huggingface.co/deepset/bert-base-cased-squad2
+	DefaultEnglishModel = "deepset/bert-base-cased-squad2"
+
+	// DefaultItalianModel is a model for extractive question-answering for the Italian language.
+	// Model card: https://huggingface.co/mrm8488/bert-italian-finedtuned-squadv1-it-alfa
+	DefaultItalianModel = "mrm8488/bert-italian-finedtuned-squadv1-it-alfa"
+)
+
 // Interface defines the main functions for question-answering task.
 type Interface interface {
 	Answer(ctx context.Context, question string, passage string, opts *Options) (Response, error)

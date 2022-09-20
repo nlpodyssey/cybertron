@@ -6,7 +6,16 @@ package zeroshotclassifier
 
 import "context"
 
-const DefaultHypothesisTemplate = "This example is {}."
+const (
+	// DefaultModel is a model for Natural Language Inference (NLI) that can be used for zero-shot classification.
+	// Model card: https://huggingface.co/valhalla/distilbart-mnli-12-3
+	DefaultModel = "valhalla/distilbart-mnli-12-3"
+)
+
+const (
+	// DefaultHypothesisTemplate is the string template that is interpolated with each class to predict.
+	DefaultHypothesisTemplate = "This example is {}."
+)
 
 // Interface defines the main functions for zero-shot classification task.
 type Interface interface {

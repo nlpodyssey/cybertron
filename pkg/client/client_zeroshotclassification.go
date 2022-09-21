@@ -6,6 +6,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	zeroshottextclassificationv1 "github.com/nlpodyssey/cybertron/pkg/server/gen/proto/go/zeroshot/v1"
@@ -33,6 +34,9 @@ func NewClientForZeroShotClassification(target string, opts Options) zeroshotcla
 // Classify classifies the given text.
 func (c *clientForZeroShotClassification) Classify(ctx context.Context, text string, parameters zeroshotclassifier.Parameters) (zeroshotclassifier.Response, error) {
 	conn, err := Dial(ctx, c.target, c.opts)
+	if err != nil {
+		return zeroshotclassifier.Response{}, fmt.Errorf("failed to dial %q: %w", c.target, err)
+	}
 	cc := zeroshottextclassificationv1.NewZeroShotServiceClient(conn)
 
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)

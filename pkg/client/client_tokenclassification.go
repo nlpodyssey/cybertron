@@ -34,6 +34,9 @@ func NewClientForTokenClassification(target string, opts Options) tokenclassific
 // Classify classifies the given text.
 func (c *clientForTokenClassification) Classify(ctx context.Context, text string, parameters tokenclassification.Parameters) (tokenclassification.Response, error) {
 	conn, err := Dial(ctx, c.target, c.opts)
+	if err != nil {
+		return tokenclassification.Response{}, fmt.Errorf("failed to dial %q: %w", c.target, err)
+	}
 	cc := tokenclassificationv1.NewTokenClassificationServiceClient(conn)
 
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)

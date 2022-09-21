@@ -154,7 +154,7 @@ func GroupSubWords(tokens []tokenizers.StringOffsetsPair) []tokenizers.StringOff
 	for _, token := range tokens {
 		if strings.HasPrefix(token.String, DefaultSplitPrefix) {
 			last := &result[len(result)-1]
-			last.String += strings.TrimLeft(token.String, DefaultSplitPrefix)
+			last.String += token.String[len(DefaultSplitPrefix):]
 			last.Offsets.End = token.Offsets.End
 		} else {
 			result = append(result, tokenizers.StringOffsetsPair{

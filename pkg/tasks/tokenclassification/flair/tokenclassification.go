@@ -12,7 +12,7 @@ import (
 	"strconv"
 
 	"github.com/nlpodyssey/cybertron/pkg/models/flair"
-	. "github.com/nlpodyssey/cybertron/pkg/tasks/tokenclassification"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/tokenclassification"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/basetokenizer"
 	"github.com/nlpodyssey/spago/embeddings/store/diskstore"
@@ -79,14 +79,14 @@ func ID2Label(value map[string]string) []string {
 }
 
 // Classify returns the classification of the given text.
-func (m *TokenClassification) Classify(_ context.Context, text string, parameters Parameters) (Response, error) {
+func (m *TokenClassification) Classify(_ context.Context, text string, parameters tokenclassification.Parameters) (tokenclassification.Response, error) {
 	tokenized := m.tokenize(text)
 
 	classes, scores := m.Model.Forward(tokenizers.GetStrings(tokenized))
 
-	tokens := make([]Token, 0, len(tokenized))
+	tokens := make([]tokenclassification.Token, 0, len(tokenized))
 	for i, token := range tokenized {
-		tokens = append(tokens, Token{
+		tokens = append(tokens, tokenclassification.Token{
 			Text:  text[token.Offsets.Start:token.Offsets.End],
 			Start: token.Offsets.Start,
 			End:   token.Offsets.End,
@@ -95,11 +95,11 @@ func (m *TokenClassification) Classify(_ context.Context, text string, parameter
 		})
 	}
 
-	if parameters.AggregationStrategy == AggregationStrategySimple {
-		tokens = FilterNotEntities(Aggregate(tokens))
+	if parameters.AggregationStrategy == tokenclassification.AggregationStrategySimple {
+		tokens = tokenclassification.FilterNotEntities(tokenclassification.Aggregate(tokens))
 	}
 
-	response := Response{
+	response := tokenclassification.Response{
 		Tokens: tokens,
 	}
 	return response, nil

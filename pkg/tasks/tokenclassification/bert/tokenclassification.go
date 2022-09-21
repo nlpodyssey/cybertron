@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"github.com/nlpodyssey/cybertron/pkg/models/bert"
-	. "github.com/nlpodyssey/cybertron/pkg/tasks/tokenclassification"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/tokenclassification"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/wordpiecetokenizer"
 	"github.com/nlpodyssey/cybertron/pkg/vocabulary"
@@ -96,7 +96,7 @@ func ID2Label(value map[string]string) []string {
 }
 
 // Classify returns the classification of the given text.
-func (m *TokenClassification) Classify(_ context.Context, text string, parameters Parameters) (Response, error) {
+func (m *TokenClassification) Classify(_ context.Context, text string, parameters tokenclassification.Parameters) (tokenclassification.Response, error) {
 	tokenized := m.tokenize(text)
 
 	logits := m.Model.Classify(pad(tokenizers.GetStrings(tokenized)))
@@ -104,11 +104,11 @@ func (m *TokenClassification) Classify(_ context.Context, text string, parameter
 		go ag.ReleaseGraph(logits...)
 	}()
 
-	tokens := make([]Token, 0, len(tokenized))
+	tokens := make([]tokenclassification.Token, 0, len(tokenized))
 	for i, token := range wordpiecetokenizer.GroupSubWords(tokenized) {
 		label, score := m.getBestClass(logits[i])
 
-		tokens = append(tokens, Token{
+		tokens = append(tokens, tokenclassification.Token{
 			Text:  text[token.Offsets.Start:token.Offsets.End],
 			Start: token.Offsets.Start,
 			End:   token.Offsets.End,
@@ -117,11 +117,11 @@ func (m *TokenClassification) Classify(_ context.Context, text string, parameter
 		})
 	}
 
-	if parameters.AggregationStrategy == AggregationStrategySimple {
-		tokens = FilterNotEntities(Aggregate(tokens))
+	if parameters.AggregationStrategy == tokenclassification.AggregationStrategySimple {
+		tokens = tokenclassification.FilterNotEntities(tokenclassification.Aggregate(tokens))
 	}
 
-	response := Response{
+	response := tokenclassification.Response{
 		Tokens: tokens,
 	}
 	return response, nil

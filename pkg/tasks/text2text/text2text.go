@@ -85,6 +85,5 @@ func DefaultOptionsForTextParaphrasing() *Options {
 
 // PrepareInputForAbstractiveQuestionAnswering returns text to be input to the DefaultModelForAbstractiveQuestionAnswering.
 func PrepareInputForAbstractiveQuestionAnswering(question string, passages []string) string {
-	context := "<P> " + strings.Join(passages, " <P> ")
-	return fmt.Sprintf("question: {%s} context: {%s}", question, context)
+	return fmt.Sprintf("question: %s context: %s", question, "<P> "+strings.Join(passages, " <P> "))
 }

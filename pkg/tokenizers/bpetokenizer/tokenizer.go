@@ -7,6 +7,7 @@ package bpetokenizer
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers"
 	"github.com/nlpodyssey/gotokenizers/encodings"
@@ -25,16 +26,19 @@ import (
 type BPETokenizer struct {
 	preTokenizer *bytelevelpretokenizer.ByteLevelPreTokenizer
 	model        *bpemodel.BPEModel
+	vocab        *vocabulary.Vocabulary
 }
 
 // New returns a new BPETokenizer.
 func New(
 	preTokenizer *bytelevelpretokenizer.ByteLevelPreTokenizer,
 	model *bpemodel.BPEModel,
+	vocab *vocabulary.Vocabulary,
 ) *BPETokenizer {
 	return &BPETokenizer{
 		preTokenizer: preTokenizer,
 		model:        model,
+		vocab:        vocab,
 	}
 }
 
@@ -86,7 +90,7 @@ func NewFromModelFolder(path string) (*BPETokenizer, error) {
 		defaultUnknownFusionEnabled,
 	)
 
-	return New(preTokenizer, model), nil
+	return New(preTokenizer, model, vocab), nil
 }
 
 // Tokenize performs byte-level pre-tokenization and BPE tokenization.
@@ -169,4 +173,16 @@ func (t *BPETokenizer) Encode(text string) (*encodings.Encoding, error) {
 		return nil, fmt.Errorf("BPETokenizer Encoding for %s: %w", text, err)
 	}
 	return encoding, nil
+}
+
+// Detokenize flatten and merges a list of ids into a single string.
+func (t *BPETokenizer) Detokenize(ids []int) string {
+	var sb strings.Builder
+	for _, id := range ids {
+		if s, ok := t.vocab.GetString(id); ok {
+			sb.WriteString(s)
+		}
+	}
+	ret := sb.String()
+	return strings.Replace(ret, "Ġ", " ", -1) // TODO
 }

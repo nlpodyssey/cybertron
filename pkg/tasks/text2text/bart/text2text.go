@@ -8,12 +8,14 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"os"
 	"path"
 	"path/filepath"
 
 	"github.com/nlpodyssey/cybertron/pkg/generationutils"
 	"github.com/nlpodyssey/cybertron/pkg/models/bart"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
+	"github.com/nlpodyssey/cybertron/pkg/tokenizers/bpetokenizer"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/sentencepiece"
 	"github.com/nlpodyssey/cybertron/pkg/utils/nullable"
 	"github.com/nlpodyssey/spago/ag"
@@ -31,18 +33,18 @@ type Text2Text struct {
 	// Model is the model used for conditional generation.
 	Model *bart.ModelForConditionalGeneration
 	// Tokenizer is the tokenizer used for conditional generation.
-	Tokenizer *sentencepiece.Tokenizer
+	Tokenizer Tokenizer
 	// embeddingsRepo is the repository used for loading embeddings.
 	embeddingsRepo *diskstore.Repository
 }
 
+type Tokenizer interface {
+	Tokenize(text string) ([]int, error)
+	Detokenize(tokenIds []int) string
+}
+
 // LoadText2Text returns a Text2Text loading the model, the embeddings and the tokenizer from a directory.
 func LoadText2Text(modelPath string) (*Text2Text, error) {
-	tok, err := sentencepiece.NewFromModelFolder(modelPath, false)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load sentencepiece tokenizer for text2text: %w", err)
-	}
-
 	embeddingsRepo, err := diskstore.NewRepository(filepath.Join(modelPath, "repo"), diskstore.ReadOnlyMode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load embeddings repository for text2text: %w", err)
@@ -58,11 +60,59 @@ func LoadText2Text(modelPath string) (*Text2Text, error) {
 		return nil, fmt.Errorf("failed to load embeddings: %w", err)
 	}
 
+	tok, err := resolveTokenizer(modelPath, m.Bart.Config)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Text2Text{
 		Model:          m,
 		Tokenizer:      tok,
 		embeddingsRepo: embeddingsRepo,
 	}, nil
+}
+
+func resolveTokenizer(path string, config bart.Config) (Tokenizer, error) {
+	if doesFileExist(filepath.Join(path, "spiece.model")) || doesFileExist(filepath.Join(path, "source.spm")) {
+		return loadSentencePieceTokenizer(path, config)
+	}
+	return loadBPETokenizer(path, config)
+}
+
+func loadSentencePieceTokenizer(path string, config bart.Config) (Tokenizer, error) {
+	tok, err := sentencepiece.NewFromModelFolder(path, false)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load sentencepiece tokenizer for text2text: %w", err)
+	}
+	return &SentencePieceTokenizer{
+		Tokenizer:           tok,
+		EosTokenID:          config.EosTokenID,
+		BosTokenID:          config.BosTokenID,
+		PadTokenID:          config.PadTokenID,
+		DecoderStartTokenID: config.DecoderStartTokenID,
+	}, nil
+}
+
+func loadBPETokenizer(path string, config bart.Config) (Tokenizer, error) {
+	tok, err := bpetokenizer.NewFromModelFolder(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load bpe tokenizer for zero-shot: %w", err)
+	}
+	return &BPETokenizer{
+		BPETokenizer:        tok,
+		EosTokenID:          config.EosTokenID,
+		BosTokenID:          config.BosTokenID,
+		PadTokenID:          config.PadTokenID,
+		DecoderStartTokenID: config.DecoderStartTokenID,
+	}, nil
+}
+
+func doesFileExist(fileName string) bool {
+	_, err := os.Stat(fileName)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return true
 }
 
 // Close finalizes the Text2Text resources.
@@ -81,13 +131,17 @@ func (m *Text2Text) Generate(ctx context.Context, text string, opts *text2text.O
 			TopP:        nullable.Type[float64]{Valid: false},
 		}
 	}
-	sequences, scores := m.process(ctx, m.Tokenize(text), *opts)
+	tokenized, err := m.Tokenizer.Tokenize(text)
+	if err != nil {
+		return text2text.Response{}, err
+	}
+	sequences, scores := m.process(ctx, tokenized, *opts)
 	result := text2text.Response{
 		Texts:  make([]string, len(sequences)),
 		Scores: make([]float64, len(scores)),
 	}
 	for i, sequence := range sequences {
-		result.Texts[i], result.Scores[i] = m.Detokenize(sequence), scores[i]
+		result.Texts[i], result.Scores[i] = m.Tokenizer.Detokenize(sequence), scores[i]
 	}
 	return result, nil
 }

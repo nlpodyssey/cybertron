@@ -6,10 +6,12 @@ package client
 
 import (
 	"context"
+	"fmt"
+	"time"
+
 	textencodingv1 "github.com/nlpodyssey/cybertron/pkg/server/gen/proto/go/textencoding/v1"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/textencoding"
 	"github.com/nlpodyssey/spago/mat"
-	"time"
 )
 
 var _ textencoding.Interface = &clientForTextEncoding{}
@@ -33,6 +35,9 @@ func NewClientForTextEncoding(target string, opts Options) textencoding.Interfac
 // Encode returns the encoded representation of the given text.
 func (c *clientForTextEncoding) Encode(ctx context.Context, text string, poolingStrategy int) (textencoding.Response, error) {
 	conn, err := Dial(ctx, c.target, c.opts)
+	if err != nil {
+		return textencoding.Response{}, fmt.Errorf("failed to dial %q: %w", c.target, err)
+	}
 	cc := textencodingv1.NewTextEncodingServiceClient(conn)
 
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)

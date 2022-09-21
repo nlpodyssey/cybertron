@@ -6,6 +6,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	text2textv1 "github.com/nlpodyssey/cybertron/pkg/server/gen/proto/go/text2text/v1"
@@ -42,6 +43,9 @@ func (c *clientForTextGeneration) Generate(ctx context.Context, text string, opt
 	}
 
 	conn, err := Dial(ctx, c.target, c.opts)
+	if err != nil {
+		return text2text.Response{}, fmt.Errorf("failed to dial %q: %w", c.target, err)
+	}
 	cc := text2textv1.NewText2TextServiceClient(conn)
 
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)

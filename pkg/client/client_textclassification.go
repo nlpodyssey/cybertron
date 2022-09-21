@@ -6,6 +6,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	textclassificationv1 "github.com/nlpodyssey/cybertron/pkg/server/gen/proto/go/textclassification/v1"
@@ -33,6 +34,9 @@ func NewClientForTextClassification(target string, opts Options) textclassificat
 // Classify classifies the given text.
 func (c *clientForTextClassification) Classify(ctx context.Context, text string) (textclassification.Response, error) {
 	conn, err := Dial(ctx, c.target, c.opts)
+	if err != nil {
+		return textclassification.Response{}, fmt.Errorf("failed to dial %q: %w", c.target, err)
+	}
 	cc := textclassificationv1.NewTextClassificationServiceClient(conn)
 
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)

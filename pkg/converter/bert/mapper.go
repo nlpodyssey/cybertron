@@ -55,7 +55,6 @@ func mapEmbeddingsLayerNorm(embeddingsNorm *layernorm.Model, params paramsMap) {
 func mapPooler(pooler *bert.Pooler, params paramsMap) {
 	params["bert.pooler.dense.weight"] = pooler.Model[0].(*linear.Model).W.Value()
 	params["bert.pooler.dense.bias"] = pooler.Model[0].(*linear.Model).B.Value()
-	return
 }
 
 func mapSeqClassifier(model *linear.Model, params paramsMap) {

@@ -20,5 +20,4 @@ func Finalize(i any) {
 	if err := ii.Close(); err != nil {
 		log.Fatal().Err(err).Send()
 	}
-	return
 }

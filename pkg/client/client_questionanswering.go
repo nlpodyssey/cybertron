@@ -6,11 +6,12 @@ package client
 
 import (
 	"context"
-	"github.com/nlpodyssey/cybertron/pkg/utils/ptr"
+	"fmt"
 	"time"
 
 	questionansweringnv1 "github.com/nlpodyssey/cybertron/pkg/server/gen/proto/go/questionanswering/v1"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering"
+	"github.com/nlpodyssey/cybertron/pkg/utils/ptr"
 )
 
 var _ questionanswering.Interface = &clientForQuestionAnswering{}
@@ -38,6 +39,9 @@ func (c *clientForQuestionAnswering) Answer(ctx context.Context, question, passa
 	}
 
 	conn, err := Dial(ctx, c.target, c.opts)
+	if err != nil {
+		return questionanswering.Response{}, fmt.Errorf("failed to dial %q: %w", c.target, err)
+	}
 	cc := questionansweringnv1.NewQuestionAnsweringServiceClient(conn)
 
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)

@@ -7,6 +7,7 @@ package text2text
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/nlpodyssey/cybertron/pkg/utils/nullable"
 )
@@ -25,6 +26,10 @@ const (
 	// DefaultModelForTextSummarization is a summarization model.
 	// Model card: https://huggingface.co/google/pegasus-multi_news
 	DefaultModelForTextSummarization = "google/pegasus-multi_news"
+
+	// DefaultModelForAbstractiveQuestionAnswering is a summarization model fine-tuned for answer generation.
+	// Model card: https://huggingface.co/vblagoje/bart_lfqa/tree/main
+	DefaultModelForAbstractiveQuestionAnswering = "vblagoje/bart_lfqa"
 )
 
 // DefaultModelForMachineTranslation specializes the model template for the source and target languages (iso-a2).
@@ -76,4 +81,10 @@ func DefaultOptionsForTextParaphrasing() *Options {
 		TopK:        nullable.Type[int]{Value: 120, Valid: true},
 		TopP:        nullable.Type[float64]{Value: 0.98, Valid: false},
 	}
+}
+
+// PrepareInputForAbstractiveQuestionAnswering returns text to be input to the DefaultModelForAbstractiveQuestionAnswering.
+func PrepareInputForAbstractiveQuestionAnswering(question string, passages []string) string {
+	context := "<P> " + strings.Join(passages, " <P> ")
+	return fmt.Sprintf("question: {%s} context: {%s}", question, context)
 }

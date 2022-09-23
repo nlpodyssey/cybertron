@@ -11,13 +11,9 @@ import (
 
 // decoderConfig converts the Bart model Config to a generationutils.Config.
 func decoderConfig(c bart.Config) generationutils.Config {
-	lengthPenalty := c.LengthPenalty
-	if lengthPenalty == 0 {
-		lengthPenalty = 1.0
-	}
 	return generationutils.Config{
 		NumBeams:            c.NumBeams,
-		MinLength:           0,
+		MinLength:           c.MinLength,
 		MaxLength:           c.MaxLength,
 		IsEncoderDecoder:    c.IsEncoderDecoder,
 		BOSTokenID:          c.BosTokenID,
@@ -25,8 +21,8 @@ func decoderConfig(c bart.Config) generationutils.Config {
 		PadTokenID:          c.PadTokenID,
 		VocabSize:           c.VocabSize,
 		DecoderStartTokenID: c.DecoderStartTokenID,
-		LengthPenalty:       lengthPenalty,
-		EarlyStopping:       false,
+		LengthPenalty:       c.LengthPenalty,
+		EarlyStopping:       c.EarlyStopping,
 		BadWordsIDs:         c.BadWordsIDs,
 	}
 }

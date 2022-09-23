@@ -54,7 +54,9 @@ type Config struct {
 	VocabSize                  int               `json:"vocab_size"`
 	NumBeams                   int               `json:"num_beams"`
 	MaxLength                  int               `json:"max_length"`
+	MinLength                  int               `json:"min_length"`
 	BadWordsIDs                [][]int           `json:"bad_words_ids"`
+	EarlyStopping              bool              `json:"early_stopping"`
 	Cybertron                  struct {
 		Training                           bool   `json:"training"`
 		PositionalEncoderOffset            int    `json:"positional_encoder_offset"`

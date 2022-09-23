@@ -109,10 +109,7 @@ func loadBPETokenizer(path string, config bart.Config) (Tokenizer, error) {
 
 func doesFileExist(fileName string) bool {
 	_, err := os.Stat(fileName)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return true
+	return !os.IsNotExist(err)
 }
 
 // Close finalizes the Text2Text resources.

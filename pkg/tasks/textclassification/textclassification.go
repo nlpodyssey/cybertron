@@ -4,7 +4,9 @@
 
 package textclassification
 
-import "context"
+import (
+	"context"
+)
 
 const (
 	// DefaultModelForItalianNewsClassification is a model fine-tuned for news headlines classification in Italian.
@@ -26,4 +28,26 @@ type Response struct {
 	Labels []string
 	// a list of floats that correspond the probability of label, in the same order as labels.
 	Scores []float64
+}
+
+// Filter returns a function to filter the classification response with respect to two parameters, keepThreshold and
+// keepSumThreshold, which are used to check whether to consider the single prediction, and to check whether the sum
+// of all collected prediction scores allows a result to be returned or not, respectively.
+func Filter(keepThreshold, keepSumThreshold float64) func(r Response) Response {
+	return func(response Response) Response {
+		n, sum := -1, 0.0
+		for i, score := range response.Scores {
+			if score >= keepThreshold {
+				n = i
+				sum += score
+			}
+		}
+		if n == -1 || sum < keepSumThreshold {
+			return Response{}
+		}
+		return Response{
+			Labels: response.Labels[:n+1],
+			Scores: response.Scores[:n+1],
+		}
+	}
 }

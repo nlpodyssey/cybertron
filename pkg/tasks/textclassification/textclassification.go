@@ -6,6 +6,13 @@ package textclassification
 
 import "context"
 
+const (
+	// DefaultModelForItalianNewsClassification is a model fine-tuned for news headlines classification in Italian.
+	// It predicts the top-level category of the IPTC subject taxonomy: https://cv.iptc.org/newscodes/subjectcode
+	// Model card: https://huggingface.co/nlpodyssey/bert-italian-uncased-iptc-headlines
+	DefaultModelForItalianNewsClassification = "nlpodyssey/bert-italian-uncased-iptc-headlines"
+)
+
 // Interface defines the main functions for text classification task.
 type Interface interface {
 	// Classify returns the classification of the given example.

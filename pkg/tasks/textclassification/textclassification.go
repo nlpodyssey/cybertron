@@ -13,6 +13,11 @@ const (
 	// It predicts the top-level category of the IPTC subject taxonomy: https://cv.iptc.org/newscodes/subjectcode
 	// Model card: https://huggingface.co/nlpodyssey/bert-italian-uncased-iptc-headlines
 	DefaultModelForItalianNewsClassification = "nlpodyssey/bert-italian-uncased-iptc-headlines"
+
+	// DefaultModelForGeographicCategorizationMulti is a multilingual model fine-tuned to perform geographic
+	// classification of news headlines. It predicts the ISO 3166-1 alpha-3 country codes.
+	// Model card: https://huggingface.co/nlpodyssey/bert-multilingual-uncased-geo-countries-headlines
+	DefaultModelForGeographicCategorizationMulti = "nlpodyssey/bert-multilingual-uncased-geo-countries-headlines"
 )
 
 // Interface defines the main functions for text classification task.

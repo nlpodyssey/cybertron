@@ -42,7 +42,7 @@ func main() {
 			return err
 		}
 		fmt.Println(time.Since(start).Seconds())
-		fmt.Println(result)
+		fmt.Println(MarshalJSON(result))
 		return nil
 	}
 

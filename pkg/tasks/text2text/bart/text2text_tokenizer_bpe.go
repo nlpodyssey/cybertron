@@ -8,7 +8,11 @@ import "github.com/nlpodyssey/cybertron/pkg/tokenizers/bpetokenizer"
 
 type BPETokenizer struct {
 	*bpetokenizer.BPETokenizer
-	EosTokenID, BosTokenID, PadTokenID, DecoderStartTokenID int
+	EosTokenID           int
+	BosTokenID           int
+	PadTokenID           int
+	DecoderStartTokenID  int
+	ExtraSpecialTokenIDs map[int]string
 }
 
 // Tokenize returns the token IDs of the input text applying the EOS pad token.
@@ -27,8 +31,12 @@ func (m *BPETokenizer) Tokenize(text string) ([]int, error) {
 }
 
 // Detokenize returns the text of the input token IDs removing the padding token.
-func (m *BPETokenizer) Detokenize(tokenIds []int) string {
-	stripBadTokens := func(tokenIds []int) []int {
+func (m *BPETokenizer) Detokenize(tokenIds []int, stripPaddingTokens bool) string {
+	if !stripPaddingTokens {
+		return m.BPETokenizer.Detokenize(tokenIds)
+	}
+
+	stripPaddingTokensFn := func(tokenIds []int) []int {
 		result := make([]int, 0, len(tokenIds))
 		for _, id := range tokenIds {
 			if id == m.EosTokenID || id == m.PadTokenID || id == m.BosTokenID || id == m.DecoderStartTokenID {
@@ -39,5 +47,5 @@ func (m *BPETokenizer) Detokenize(tokenIds []int) string {
 		return result
 	}
 
-	return m.BPETokenizer.Detokenize(stripBadTokens(tokenIds))
+	return m.BPETokenizer.Detokenize(stripPaddingTokensFn(tokenIds))
 }

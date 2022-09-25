@@ -8,7 +8,10 @@ import "github.com/nlpodyssey/cybertron/pkg/tokenizers/sentencepiece"
 
 type SentencePieceTokenizer struct {
 	*sentencepiece.Tokenizer
-	EosTokenID, BosTokenID, PadTokenID, DecoderStartTokenID int
+	EosTokenID          int
+	BosTokenID          int
+	PadTokenID          int
+	DecoderStartTokenID int
 }
 
 // Tokenize returns the token IDs of the input text applying the EOS pad token.
@@ -17,7 +20,11 @@ func (m *SentencePieceTokenizer) Tokenize(text string) ([]int, error) {
 }
 
 // Detokenize returns the text of the input token IDs removing the padding token.
-func (m *SentencePieceTokenizer) Detokenize(tokenIds []int) string {
+func (m *SentencePieceTokenizer) Detokenize(tokenIds []int, stripPaddingTokens bool) string {
+	if !stripPaddingTokens {
+		return m.Tokenizer.Detokenize(m.Tokenizer.IDsToTokens(tokenIds))
+	}
+
 	stripBadTokens := func(tokenIds []int) []int {
 		result := make([]int, 0, len(tokenIds))
 		for _, id := range tokenIds {

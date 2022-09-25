@@ -40,7 +40,7 @@ type Text2Text struct {
 
 type Tokenizer interface {
 	Tokenize(text string) ([]int, error)
-	Detokenize(tokenIds []int) string
+	Detokenize(tokenIds []int, stripPaddingTokens bool) string
 }
 
 // LoadText2Text returns a Text2Text loading the model, the embeddings and the tokenizer from a directory.
@@ -98,6 +98,9 @@ func loadBPETokenizer(path string, config bart.Config) (Tokenizer, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to load bpe tokenizer for zero-shot: %w", err)
 	}
+	if config.ExtraSpecialTokens != nil {
+		tok.SetExtraSpecialTokens(config.ExtraSpecialTokens)
+	}
 	return &BPETokenizer{
 		BPETokenizer:        tok,
 		EosTokenID:          config.EosTokenID,
@@ -138,7 +141,7 @@ func (m *Text2Text) Generate(ctx context.Context, text string, opts *text2text.O
 		Scores: make([]float64, len(scores)),
 	}
 	for i, sequence := range sequences {
-		result.Texts[i], result.Scores[i] = m.Tokenizer.Detokenize(sequence), scores[i]
+		result.Texts[i], result.Scores[i] = m.Tokenizer.Detokenize(sequence, true), scores[i]
 	}
 	return result, nil
 }

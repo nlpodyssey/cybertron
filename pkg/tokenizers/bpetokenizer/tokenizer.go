@@ -24,9 +24,10 @@ import (
 
 // BPETokenizer is a higher-level tokenizer, which includes byte-level pre-tokenization.
 type BPETokenizer struct {
-	preTokenizer *bytelevelpretokenizer.ByteLevelPreTokenizer
-	model        *bpemodel.BPEModel
-	vocab        *vocabulary.Vocabulary
+	preTokenizer         *bytelevelpretokenizer.ByteLevelPreTokenizer
+	model                *bpemodel.BPEModel
+	vocab                *vocabulary.Vocabulary
+	extraSpecialTokenIDs map[int]string
 }
 
 // New returns a new BPETokenizer.
@@ -91,6 +92,10 @@ func NewFromModelFolder(path string) (*BPETokenizer, error) {
 	)
 
 	return New(preTokenizer, model, vocab), nil
+}
+
+func (t *BPETokenizer) SetExtraSpecialTokens(extra map[int]string) {
+	t.extraSpecialTokenIDs = extra
 }
 
 // Tokenize performs byte-level pre-tokenization and BPE tokenization.
@@ -179,6 +184,11 @@ func (t *BPETokenizer) Encode(text string) (*encodings.Encoding, error) {
 func (t *BPETokenizer) Detokenize(ids []int) string {
 	var sb strings.Builder
 	for _, id := range ids {
+		if s, ok := t.extraSpecialTokenIDs[id]; ok {
+			sb.WriteString(s)
+			continue
+		}
+
 		if s, ok := t.vocab.GetString(id); ok {
 			sb.WriteString(s)
 		}

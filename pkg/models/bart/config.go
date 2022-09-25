@@ -58,6 +58,7 @@ type Config struct {
 	BadWordsIDs                [][]int           `json:"bad_words_ids"`
 	EarlyStopping              bool              `json:"early_stopping"`
 	NoRepeatNGramSize          int               `json:"no_repeat_ngram_size"`
+	ExtraSpecialTokens         map[int]string    `json:"extra_special_tokens"`
 	Cybertron                  struct {
 		Training                           bool   `json:"training"`
 		PositionalEncoderOffset            int    `json:"positional_encoder_offset"`

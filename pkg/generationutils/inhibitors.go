@@ -7,11 +7,14 @@
 package generationutils
 
 import (
+	"encoding/binary"
 	"math"
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 )
+
+var floatNegInf = float.Interface(math.Inf(-1))
 
 func (b *BeamSearchDecoder) adjustPrediction(inputIDs [][]int, scores []mat.Matrix) []mat.Matrix {
 	if b.Config.MinLength >= 0 && b.Config.EOSTokenID >= 0 {
@@ -19,6 +22,9 @@ func (b *BeamSearchDecoder) adjustPrediction(inputIDs [][]int, scores []mat.Matr
 	}
 	if len(b.Config.BadWordsIDs) > 0 {
 		scores = b.processBadWordsScores(inputIDs, scores)
+	}
+	if b.Config.NoRepeatNGramSize > 0 {
+		scores = b.processNoRepeatNGramScores(inputIDs, scores)
 	}
 	return scores
 }
@@ -46,10 +52,9 @@ func (b *BeamSearchDecoder) processBadWordsScores(inputIDs [][]int, scores []mat
 	}
 
 	// Set scores to -Inf for banned tokens
-	negInf := float.Interface(math.Inf(-1))
 	for idx, batchBannedTokens := range bannedTokens {
 		for _, tokenID := range batchBannedTokens {
-			scores[idx].SetVecScalar(tokenID, negInf)
+			scores[idx].SetVecScalar(tokenID, floatNegInf)
 		}
 	}
 
@@ -75,15 +80,87 @@ func (b *BeamSearchDecoder) processMinLengthScores(inputIDs [][]int, scores []ma
 	}
 
 	eosTokenID := b.Config.EOSTokenID
-	negInf := float.Interface(math.Inf(-1))
 	for _, n := range scores {
-		n.SetVecScalar(eosTokenID, negInf)
+		n.SetVecScalar(eosTokenID, floatNegInf)
 	}
 
 	return scores
 }
 
-// intSliceEqual returns whether the two sliceutils are equal, or not.
+func (b *BeamSearchDecoder) processNoRepeatNGramScores(inputIDs [][]int, scores []mat.Matrix) []mat.Matrix {
+	numBatchHypotheses := len(scores)
+	curLen := len(inputIDs[0])
+	bannedBatchTokens := b.calcBannedNGramTokens(inputIDs, numBatchHypotheses, curLen)
+	if len(bannedBatchTokens) == 0 {
+		return scores
+	}
+
+	for i, bannedTokens := range bannedBatchTokens {
+		sc := scores[i]
+		for _, j := range bannedTokens {
+			sc.SetVecScalar(j, floatNegInf)
+		}
+	}
+	return scores
+}
+
+func (b *BeamSearchDecoder) calcBannedNGramTokens(prevInputIDs [][]int, numHypos, curLen int) [][]int {
+	nGramSize := b.Config.NoRepeatNGramSize
+	if curLen+1 < nGramSize {
+		return nil // No banned tokens
+	}
+
+	generatedNGrams := b.getNGrams(prevInputIDs, numHypos)
+
+	bannedTokens := make([][]int, numHypos)
+	for i := range bannedTokens {
+		bannedTokens[i] = b.getGeneratedNGrams(generatedNGrams[i], prevInputIDs[i], curLen)
+	}
+
+	return bannedTokens
+}
+
+func (b *BeamSearchDecoder) getGeneratedNGrams(bannedNGrams map[string][]int, prevInputIDs []int, curLen int) []int {
+	nGramSize := b.Config.NoRepeatNGramSize
+	startIndex := curLen + 1 - nGramSize
+	nGram := prevInputIDs[startIndex:curLen]
+	key := intSliceMapKey(nGram)
+	return bannedNGrams[key]
+}
+
+func (b *BeamSearchDecoder) getNGrams(prevInputIDs [][]int, numHypos int) []map[string][]int {
+	nGramSize := b.Config.NoRepeatNGramSize
+	generatedNGrams := make([]map[string][]int, numHypos)
+	for idx := range generatedNGrams {
+		genTokens := prevInputIDs[idx]
+
+		mapSize := len(genTokens) - nGramSize + 1
+		if mapSize == 0 {
+			continue
+		}
+
+		generatedNGrams[idx] = make(map[string][]int, mapSize)
+		generatedNGram := generatedNGrams[idx]
+
+		for nGramStart := 0; nGramStart < mapSize; nGramStart++ {
+			nGram := genTokens[nGramStart : nGramStart+nGramSize]
+			prevNGram := nGram[:len(nGram)-1]
+			key := intSliceMapKey(prevNGram)
+			generatedNGram[key] = append(generatedNGram[key], nGram[len(nGram)-1])
+		}
+	}
+	return generatedNGrams
+}
+
+func intSliceMapKey(v []int) string {
+	bs := make([]byte, len(v)*8) // binary representation of len(s) uint64
+	for i, x := range v {
+		binary.LittleEndian.PutUint64(bs[8*i:], uint64(x))
+	}
+	return string(bs)
+}
+
+// intSliceEqual returns whether the two slices are equal, or not.
 func intSliceEqual(a, b []int) bool {
 	if len(a) != len(b) {
 		return false

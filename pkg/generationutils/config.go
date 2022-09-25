@@ -37,4 +37,7 @@ type Config struct {
 	EarlyStopping bool
 	// BadWordsIDs is a list of token IDs that are not allowed to be generated.
 	BadWordsIDs [][]int
+	// When set to a positive value, generated n-grams of this size will
+	// only occur once.
+	NoRepeatNGramSize int
 }

@@ -57,6 +57,7 @@ type Config struct {
 	MinLength                  int               `json:"min_length"`
 	BadWordsIDs                [][]int           `json:"bad_words_ids"`
 	EarlyStopping              bool              `json:"early_stopping"`
+	NoRepeatNGramSize          int               `json:"no_repeat_ngram_size"`
 	Cybertron                  struct {
 		Training                           bool   `json:"training"`
 		PositionalEncoderOffset            int    `json:"positional_encoder_offset"`

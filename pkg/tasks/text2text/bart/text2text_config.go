@@ -24,5 +24,6 @@ func decoderConfig(c bart.Config) generationutils.Config {
 		LengthPenalty:       c.LengthPenalty,
 		EarlyStopping:       c.EarlyStopping,
 		BadWordsIDs:         c.BadWordsIDs,
+		NoRepeatNGramSize:   c.NoRepeatNGramSize,
 	}
 }

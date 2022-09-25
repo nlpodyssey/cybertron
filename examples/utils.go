@@ -6,6 +6,7 @@ package examples
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -40,6 +41,12 @@ func HasEnvVar(key string) string {
 		log.Fatal().Msgf("missing env var: %s", key)
 	}
 	return value
+}
+
+// MarshalJSON returns the JSON string representation of the input data
+func MarshalJSON(data any) string {
+	m, _ := json.MarshalIndent(data, "", "  ")
+	return string(m)
 }
 
 // LoadDotenv loads the .env file if it exists.

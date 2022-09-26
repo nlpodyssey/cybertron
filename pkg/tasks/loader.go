@@ -12,6 +12,8 @@ import (
 	"github.com/nlpodyssey/cybertron/pkg/converter"
 	"github.com/nlpodyssey/cybertron/pkg/downloader"
 	"github.com/nlpodyssey/cybertron/pkg/models"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/languagemodeling"
+	bert_for_language_modeling "github.com/nlpodyssey/cybertron/pkg/tasks/languagemodeling/bert"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering"
 	bert_for_question_answering "github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering/bert"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
@@ -34,6 +36,7 @@ var (
 	textclassificationInterface  = reflect.TypeOf((*textclassification.Interface)(nil)).Elem()
 	tokenclassificationInterface = reflect.TypeOf((*tokenclassification.Interface)(nil)).Elem()
 	textencodingInterface        = reflect.TypeOf((*textencoding.Interface)(nil)).Elem()
+	languagemodelingInterface    = reflect.TypeOf((*languagemodeling.Interface)(nil)).Elem()
 )
 
 // Load loads a model from file.
@@ -59,6 +62,10 @@ func LoadModelForZeroShotTextClassification(conf *Config) (zeroshotclassifier.In
 
 func LoadModelForTextEncoding(conf *Config) (textencoding.Interface, error) {
 	return Load[textencoding.Interface](conf)
+}
+
+func LoadModelLanguageModeling(conf *Config) (languagemodeling.Interface, error) {
+	return Load[languagemodeling.Interface](conf)
 }
 
 func LoadModelForTokenClassification(conf *Config) (tokenclassification.Interface, error) {
@@ -113,6 +120,8 @@ func (l loader[T]) resolveLoadingFunc() (func() (T, error), error) {
 		return l.resolveModelForTokenClassification, nil
 	case t.Implements(textencodingInterface):
 		return l.resolveModelForTextEncoding, nil
+	case t.Implements(languagemodelingInterface):
+		return l.resolveModelForLanguageModeling, nil
 	default:
 		return nil, fmt.Errorf("loader: invalid type %T", obj)
 	}
@@ -207,6 +216,21 @@ func (l loader[T]) resolveModelForTextEncoding() (obj T, _ error) {
 		return typeCheck[T](bert_for_text_encoding.LoadTextEncoding(modelDir))
 	default:
 		return obj, fmt.Errorf("model type %#v doesn't support the text encoding task", modelConfig.ModelType)
+	}
+}
+
+func (l loader[T]) resolveModelForLanguageModeling() (obj T, _ error) {
+	modelDir := l.conf.FullModelPath()
+	modelConfig, err := models.ReadCommonModelConfig(modelDir, "")
+	if err != nil {
+		return obj, err
+	}
+
+	switch modelConfig.ModelType {
+	case "bert":
+		return typeCheck[T](bert_for_language_modeling.LoadMaskedLanguageModel(modelDir))
+	default:
+		return obj, fmt.Errorf("model type %#v doesn't support the language modeling task", modelConfig.ModelType)
 	}
 }
 

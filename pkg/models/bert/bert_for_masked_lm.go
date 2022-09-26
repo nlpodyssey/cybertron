@@ -17,7 +17,7 @@ import (
 
 var _ nn.Model = &ModelForTokenClassification{}
 
-// ModelForMaskedLM implements a Bert model for masked language model.
+// ModelForMaskedLM implements a Bert model for masked language modeling.
 type ModelForMaskedLM struct {
 	nn.Module
 	// Bart is the fine-tuned BERT model.
@@ -37,7 +37,7 @@ func NewModelForMaskedLM[T float.DType](bert *Model) *ModelForMaskedLM {
 		Bert: bert,
 		Layers: []nn.StandardModel{
 			linear.New[T](c.HiddenSize, c.HiddenSize),
-			activation.New[T](activation.MustActivation(c.HiddenAct)),
+			activation.New(activation.MustActivation(c.HiddenAct)),
 			layernorm.New[T](c.HiddenSize, 1e-5),
 			linear.New[T](c.HiddenSize, c.VocabSize),
 		},
@@ -45,7 +45,8 @@ func NewModelForMaskedLM[T float.DType](bert *Model) *ModelForMaskedLM {
 }
 
 // Predict returns the predictions for the token associated to the masked nodes.
-func (m *ModelForMaskedLM) Predict(encoded []ag.Node, masked []int) map[int]ag.Node {
+func (m *ModelForMaskedLM) Predict(tokens []string, masked []int) map[int]ag.Node {
+	encoded := m.Bert.Encode(tokens)
 	result := make(map[int]ag.Node)
 	for _, id := range masked {
 		result[id] = nn.Forward(m.Layers)(encoded[id])[0]

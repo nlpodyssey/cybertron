@@ -96,21 +96,16 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 		panic(err)
 	}
 
-	m := bert.New[T](config, repo)
-	bertForQuestionAnswering := bert.NewModelForQuestionAnswering[T](m)
-	bertForSequenceClassification := bert.NewModelForSequenceClassification[T](m)
-	bertForTokenClassification := bert.NewModelForTokenClassification[T](m)
-	bertForSequenceEncoding := bert.NewModelForSequenceEncoding(m)
-
+	baseModel := bert.New[T](config, repo)
 	{
 		source := pyParams.Pop("bert.embeddings.word_embeddings.weight")
-		size := m.Embeddings.Tokens.Config.Size
+		size := baseModel.Embeddings.Tokens.Config.Size
 		for i := 0; i < config.VocabSize; i++ {
 			key, _ := vocab.Term(i)
 			if len(key) == 0 {
 				continue // skip empty key
 			}
-			item, _ := m.Embeddings.Tokens.Embedding(key)
+			item, _ := baseModel.Embeddings.Tokens.Embedding(key)
 			item.ReplaceValue(mat.NewVecDense[T](source[i*size : (i+1)*size]))
 		}
 	}
@@ -119,7 +114,7 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 
 	{
 		source := pyParams.Pop("bert.embeddings.position_embeddings.weight")
-		dest := m.Embeddings.Positions
+		dest := baseModel.Embeddings.Positions
 		for i := 0; i < config.MaxPositionEmbeddings; i++ {
 			item, _ := dest.Embedding(i)
 			item.ReplaceValue(mat.NewVecDense[T](source[i*cols : (i+1)*cols]))
@@ -128,7 +123,7 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 
 	{
 		source := pyParams.Pop("bert.embeddings.token_type_embeddings.weight")
-		dest := m.Embeddings.TokenTypes
+		dest := baseModel.Embeddings.TokenTypes
 		for i := 0; i < config.TypeVocabSize; i++ {
 			item, _ := dest.Embedding(i)
 			item.ReplaceValue(mat.NewVecDense[T](source[i*cols : (i+1)*cols]))
@@ -136,19 +131,35 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 	}
 
 	params := make(paramsMap)
-	mapPooler(m.Pooler, params)
-	mapEmbeddingsLayerNorm(m.Embeddings.Norm, params)
-	mapEncoderParams(m.Encoder, params)
-	mapQAClassifier(bertForQuestionAnswering.Classifier, params)
+	mapPooler(baseModel.Pooler, params)
+	mapEmbeddingsLayerNorm(baseModel.Embeddings.Norm, params)
+	mapEncoderParams(baseModel.Encoder, params)
 
-	{
-		// both architectures map `classifier` params
-		switch config.Architectures[0] {
-		case "BertForSequenceClassification":
-			mapSeqClassifier(bertForSequenceClassification.Classifier, params)
-		case "BertForTokenClassification":
-			mapTokenClassifier(bertForTokenClassification.Classifier, params)
-		}
+	var finalModel any
+	switch config.Architectures[0] {
+	case "BertBase":
+		finalModel = baseModel
+	case "BertForQuestionAnswering":
+		qaModel := bert.NewModelForQuestionAnswering[T](baseModel)
+		mapQAClassifier(qaModel.Classifier, params)
+		finalModel = qaModel
+
+	case "BertForSequenceClassification":
+		scModel := bert.NewModelForSequenceClassification[T](baseModel)
+		mapSeqClassifier(scModel.Classifier, params)
+		finalModel = scModel
+
+	case "BertForTokenClassification":
+		tcModel := bert.NewModelForTokenClassification[T](baseModel)
+		mapTokenClassifier(tcModel.Classifier, params)
+		finalModel = tcModel
+
+	case "HF_ColBERT":
+		colbertModel := bert.NewColbertModel[T](baseModel)
+		mapLinear(colbertModel.Linear, params)
+		finalModel = colbertModel
+	default:
+		panic(fmt.Errorf("bert: unsupported architecture %s", config.Architectures[0]))
 	}
 
 	mapping := make(map[string]*mappingParam)
@@ -191,40 +202,12 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 	}
 
 	fmt.Printf("Serializing model to \"%s\"... ", goModelFilename)
+	err = nn.DumpToFile(finalModel, goModelFilename)
+	if err != nil {
+		return err
+	}
 	if config.Architectures == nil {
 		config.Architectures = append(config.Architectures, "BertBase")
-	}
-
-	{
-		switch config.Architectures[0] {
-		case "BertBase":
-			err := nn.DumpToFile(m, goModelFilename)
-			if err != nil {
-				return err
-			}
-		case "BertModel":
-			err := nn.DumpToFile(bertForSequenceEncoding, goModelFilename)
-			if err != nil {
-				return err
-			}
-		case "BertForQuestionAnswering":
-			err := nn.DumpToFile(bertForQuestionAnswering, goModelFilename)
-			if err != nil {
-				return err
-			}
-		case "BertForSequenceClassification":
-			err := nn.DumpToFile(bertForSequenceClassification, goModelFilename)
-			if err != nil {
-				return err
-			}
-		case "BertForTokenClassification":
-			err := nn.DumpToFile(bertForTokenClassification, goModelFilename)
-			if err != nil {
-				return err
-			}
-		default:
-			panic(fmt.Errorf("bert: unsupported architecture %s", config.Architectures[0]))
-		}
 	}
 
 	fmt.Println("Done.")

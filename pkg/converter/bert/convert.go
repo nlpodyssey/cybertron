@@ -101,6 +101,7 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 	bertForSequenceClassification := bert.NewModelForSequenceClassification[T](m)
 	bertForTokenClassification := bert.NewModelForTokenClassification[T](m)
 	bertForSequenceEncoding := bert.NewModelForSequenceEncoding(m)
+	bertForMaskedLM := bert.NewModelForMaskedLM[T](m)
 
 	{
 		source := pyParams.Pop("bert.embeddings.word_embeddings.weight")
@@ -140,6 +141,7 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 	mapEmbeddingsLayerNorm(m.Embeddings.Norm, params)
 	mapEncoderParams(m.Encoder, params)
 	mapQAClassifier(bertForQuestionAnswering.Classifier, params)
+	mapMaskedLM(bertForMaskedLM.Layers, params)
 
 	{
 		// both architectures map `classifier` params
@@ -204,6 +206,11 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 			}
 		case "BertModel":
 			err := nn.DumpToFile(bertForSequenceEncoding, goModelFilename)
+			if err != nil {
+				return err
+			}
+		case "BertForMaskedLM":
+			err := nn.DumpToFile(bertForMaskedLM, goModelFilename)
 			if err != nil {
 				return err
 			}

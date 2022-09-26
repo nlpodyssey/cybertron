@@ -9,6 +9,7 @@ import (
 
 	"github.com/nlpodyssey/cybertron/pkg/models/bert"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/linear"
 	"github.com/nlpodyssey/spago/nn/normalization/layernorm"
 )
@@ -71,4 +72,13 @@ func mapTokenClassifier(model *linear.Model, params paramsMap) {
 func mapQAClassifier(model *linear.Model, params paramsMap) {
 	params["qa_outputs.weight"] = model.W.Value()
 	params["qa_outputs.bias"] = model.B.Value()
+}
+
+func mapMaskedLM(layers []nn.StandardModel, params paramsMap) {
+	params["cls.predictions.transform.dense.weight"] = layers[0].(*linear.Model).W.Value()
+	params["cls.predictions.transform.dense.bias"] = layers[0].(*linear.Model).B.Value()
+	params["cls.predictions.transform.LayerNorm.weight"] = layers[2].(*layernorm.Model).W.Value()
+	params["cls.predictions.transform.LayerNorm.bias"] = layers[2].(*layernorm.Model).B.Value()
+	params["cls.predictions.decoder.weight"] = layers[3].(*linear.Model).W.Value()
+	params["cls.predictions.decoder.bias"] = layers[3].(*linear.Model).B.Value()
 }

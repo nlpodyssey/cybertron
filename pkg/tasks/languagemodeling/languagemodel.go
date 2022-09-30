@@ -22,8 +22,15 @@ type Interface interface {
 	Predict(ctx context.Context, text string) (Response, error)
 }
 
-// Response contains the response from language modelling.
+// Token is a labeled text token.
+type Token struct {
+	Text  string
+	Start int
+	End   int
+	Score float64
+}
+
+// Response contains the response from language modelling..
 type Response struct {
-	Words  []string
-	Scores []float64
+	Tokens []Token
 }

@@ -6,6 +6,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	//lint:ignore ST1001 allow dot import just to make the example more readable
@@ -30,10 +31,11 @@ func main() {
 	defer tasks.Finalize(m)
 
 	fn := func(text string) error {
-		_, err := m.Predict(context.Background(), text)
+		result, err := m.Predict(context.Background(), text)
 		if err != nil {
 			return err
 		}
+		fmt.Println(MarshalJSON(result))
 		return nil
 	}
 

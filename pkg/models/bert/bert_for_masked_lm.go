@@ -7,6 +7,7 @@ package bert
 import (
 	"encoding/gob"
 
+	"github.com/nlpodyssey/cybertron/pkg/tokenizers/wordpiecetokenizer"
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
@@ -45,11 +46,28 @@ func NewModelForMaskedLM[T float.DType](bert *Model) *ModelForMaskedLM {
 }
 
 // Predict returns the predictions for the token associated to the masked nodes.
-func (m *ModelForMaskedLM) Predict(tokens []string, masked []int) map[int]ag.Node {
-	encoded := m.Bert.Encode(tokens)
+func (m *ModelForMaskedLM) Predict(tokens []string) map[int]ag.Node {
+	encoded := evaluate(m.Bert.Encode(tokens)...)
 	result := make(map[int]ag.Node)
-	for _, id := range masked {
+	for _, id := range masked(tokens) {
 		result[id] = nn.Forward(m.Layers)(encoded[id])[0]
+	}
+	return result
+}
+
+func evaluate(xs ...ag.Node) []ag.Node {
+	for _, x := range xs {
+		x.Value()
+	}
+	return xs
+}
+
+func masked(tokens []string) []int {
+	result := make([]int, 0)
+	for i := range tokens {
+		if tokens[i] == wordpiecetokenizer.DefaultMaskToken {
+			result = append(result, i) // target tokens
+		}
 	}
 	return result
 }

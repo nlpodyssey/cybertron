@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/nlpodyssey/cybertron/pkg/models/bert"
@@ -71,22 +72,13 @@ func LoadMaskedLanguageModel(modelPath string) (*LanguageModel, error) {
 	}, nil
 }
 
-func mask(tokens []string) []int {
-	result := make([]int, 0)
-	for i := range tokens {
-		if tokens[i] == wordpiecetokenizer.DefaultMaskToken {
-			result = append(result, i) // target tokens
-		}
-	}
-	return result
-}
-
 // Predict returns the predicted tokens
 func (m *LanguageModel) Predict(_ context.Context, text string) (languagemodeling.Response, error) {
-	tokenized := m.tokenize(text)
-	prediction := m.Model.Predict(tokenized, mask(tokenized))
+	tokenized := pad(m.tokenize(text))
+	prediction := m.Model.Predict(tokenizers.GetStrings(tokenized))
 
-	for _, logits := range prediction {
+	result := make([]languagemodeling.Token, 0, len(prediction))
+	for i, logits := range prediction {
 		probs := logits.Value().Softmax()
 		argmax := probs.ArgMax()
 		score := probs.AtVec(argmax).Scalar().F64()
@@ -94,18 +86,37 @@ func (m *LanguageModel) Predict(_ context.Context, text string) (languagemodelin
 		if !ok {
 			word = wordpiecetokenizer.DefaultUnknownToken // if this is returned, there's a misalignment with the vocabulary
 		}
-		fmt.Printf("%s (%.2f)\n", word, score)
+		start, end := tokenized[i].Offsets.Start, tokenized[i].Offsets.End
+		result = append(result, languagemodeling.Token{
+			Text:  word,
+			Start: start,
+			End:   end,
+			Score: score,
+		})
 	}
 
-	return languagemodeling.Response{}, nil
+	sort.SliceStable(result, func(i, j int) bool {
+		return result[i].Start > result[i].End
+	})
+
+	return languagemodeling.Response{
+		Tokens: result,
+	}, nil
 }
 
-// tokenize returns the tokens of the given text (including padding tokens).
-func (m *LanguageModel) tokenize(text string) []string {
+// tokenize returns the tokens of the given text (without padding tokens).
+func (m *LanguageModel) tokenize(text string) []tokenizers.StringOffsetsPair {
 	if m.doLowerCase {
 		text = strings.ToLower(text)
 	}
-	cls := wordpiecetokenizer.DefaultClassToken
-	sep := wordpiecetokenizer.DefaultSequenceSeparator
-	return append([]string{cls}, append(tokenizers.GetStrings(m.Tokenizer.Tokenize(text)), sep)...)
+	return m.Tokenizer.Tokenize(text)
+}
+
+func pad(tokens []tokenizers.StringOffsetsPair) []tokenizers.StringOffsetsPair {
+	return append(prepend(tokens, tokenizers.StringOffsetsPair{String: wordpiecetokenizer.DefaultClassToken}),
+		tokenizers.StringOffsetsPair{String: wordpiecetokenizer.DefaultSequenceSeparator})
+}
+
+func prepend(x []tokenizers.StringOffsetsPair, y tokenizers.StringOffsetsPair) []tokenizers.StringOffsetsPair {
+	return append([]tokenizers.StringOffsetsPair{y}, x...)
 }

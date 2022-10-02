@@ -41,7 +41,7 @@ func main() {
 			return err
 		}
 		fmt.Println(time.Since(start).Seconds())
-		fmt.Printf("%+v\n", result)
+		fmt.Println(MarshalJSON(result))
 		return nil
 	}
 

@@ -109,7 +109,7 @@ func (m *LanguageModel) Predict(_ context.Context, text string, parameters langu
 	}
 
 	sort.SliceStable(result, func(i, j int) bool {
-		return result[i].Start < result[i].Start
+		return result[i].Start < result[j].Start
 	})
 
 	return languagemodeling.Response{

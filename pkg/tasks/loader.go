@@ -96,17 +96,7 @@ func (l loader[T]) load() (obj T, _ error) {
 }
 
 func (l loader[T]) resolveLoadingFunc() (func() (T, error), error) {
-	var (
-		obj T
-		t   reflect.Type
-	)
-
-	if any(obj) == nil {
-		t = reflect.ValueOf(&obj).Type().Elem()
-	} else {
-		t = reflect.ValueOf(obj).Type()
-	}
-
+	obj, t := l.reflectType()
 	switch {
 	case t.Implements(text2textInterface):
 		return l.resolveModelForText2Text, nil
@@ -125,6 +115,13 @@ func (l loader[T]) resolveLoadingFunc() (func() (T, error), error) {
 	default:
 		return nil, fmt.Errorf("loader: invalid type %T", obj)
 	}
+}
+
+func (l loader[T]) reflectType() (obj T, t reflect.Type) {
+	if any(obj) == nil {
+		return obj, reflect.ValueOf(&obj).Type().Elem()
+	}
+	return obj, reflect.ValueOf(obj).Type()
 }
 
 func (l loader[T]) resolveModelForText2Text() (obj T, _ error) {

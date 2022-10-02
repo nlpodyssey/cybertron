@@ -89,7 +89,7 @@ func (qa *QuestionAnswering) Answer(_ context.Context, question string, passage 
 	}
 
 	sort.Slice(answers, func(i, j int) bool {
-		return answers[i].Score < answers[j].Score
+		return answers[i].Score > answers[j].Score
 	})
 
 	if len(answers) > opts.MaxAnswers {

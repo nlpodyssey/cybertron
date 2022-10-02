@@ -24,7 +24,7 @@ A unique feature of Cybertron is its compatibility with [HuggingFace Transformer
 
 Requirements:
 
-* [Go 1.18](https://golang.org/dl/)
+* [Go 1.19](https://golang.org/dl/)
 
 Clone this repo or get the library:
 

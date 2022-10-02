@@ -62,26 +62,6 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 		return err
 	}
 
-	// Enable training mode, so that we have writing permissions
-	// (for example, for embeddings storage files).
-	config.Cybertron.Training = true
-
-	config.Cybertron.TokensStoreName = "tokens"
-	config.Cybertron.PositionsStoreName = "positions"
-	config.Cybertron.TokenTypesStoreName = "token_types"
-
-	if config.ModelType == "bert" || config.EmbeddingsSize == 0 {
-		config.EmbeddingsSize = config.HiddenSize
-	}
-
-	pyParams := pytorch.NewParamsProvider[T]().
-		WithNameMapping(fixParamsName).
-		WithPreProcessing(fixAttentionLayers[T](config))
-
-	if err = pyParams.Load(pyModelFilename); err != nil {
-		return err
-	}
-
 	repo, err := diskstore.NewRepository(filepath.Join(modelDir, "repo"), diskstore.ReadWriteMode)
 	if err != nil {
 		panic(err)
@@ -96,62 +76,30 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 		panic(err)
 	}
 
-	m := bert.New[T](config, repo)
-	bertForQuestionAnswering := bert.NewModelForQuestionAnswering[T](m)
-	bertForSequenceClassification := bert.NewModelForSequenceClassification[T](m)
-	bertForTokenClassification := bert.NewModelForTokenClassification[T](m)
-	bertForSequenceEncoding := bert.NewModelForSequenceEncoding(m)
-	bertForMaskedLM := bert.NewModelForMaskedLM[T](m)
-
 	{
-		source := pyParams.Pop("bert.embeddings.word_embeddings.weight")
-		size := m.Embeddings.Tokens.Config.Size
-		for i := 0; i < config.VocabSize; i++ {
-			key, _ := vocab.Term(i)
-			if len(key) == 0 {
-				continue // skip empty key
-			}
-			item, _ := m.Embeddings.Tokens.Embedding(key)
-			item.ReplaceValue(mat.NewVecDense[T](source[i*size : (i+1)*size]))
+		// Enable training mode, so that we have writing permissions
+		// (for example, for embeddings storage files).
+		config.Cybertron.Training = true
+		config.Cybertron.TokensStoreName = "tokens"
+		config.Cybertron.PositionsStoreName = "positions"
+		config.Cybertron.TokenTypesStoreName = "token_types"
+
+		if config.ModelType == "bert" || config.EmbeddingsSize == 0 {
+			config.EmbeddingsSize = config.HiddenSize
 		}
 	}
 
-	cols := config.HiddenSize
+	pyParams := pytorch.NewParamsProvider[T]().
+		WithNameMapping(fixParamsName).
+		WithPreProcessing(fixAttentionLayers[T](config))
 
-	{
-		source := pyParams.Pop("bert.embeddings.position_embeddings.weight")
-		dest := m.Embeddings.Positions
-		for i := 0; i < config.MaxPositionEmbeddings; i++ {
-			item, _ := dest.Embedding(i)
-			item.ReplaceValue(mat.NewVecDense[T](source[i*cols : (i+1)*cols]))
-		}
-	}
-
-	{
-		source := pyParams.Pop("bert.embeddings.token_type_embeddings.weight")
-		dest := m.Embeddings.TokenTypes
-		for i := 0; i < config.TypeVocabSize; i++ {
-			item, _ := dest.Embedding(i)
-			item.ReplaceValue(mat.NewVecDense[T](source[i*cols : (i+1)*cols]))
-		}
+	if err = pyParams.Load(pyModelFilename); err != nil {
+		return err
 	}
 
 	params := make(paramsMap)
-	mapPooler(m.Pooler, params)
-	mapEmbeddingsLayerNorm(m.Embeddings.Norm, params)
-	mapEncoderParams(m.Encoder, params)
-	mapQAClassifier(bertForQuestionAnswering.Classifier, params)
-	mapMaskedLM(bertForMaskedLM.Layers, params)
-
-	{
-		// both architectures map `classifier` params
-		switch config.Architectures[0] {
-		case "BertForSequenceClassification":
-			mapSeqClassifier(bertForSequenceClassification.Classifier, params)
-		case "BertForTokenClassification":
-			mapTokenClassifier(bertForTokenClassification.Classifier, params)
-		}
-	}
+	baseModel := mapBaseModel[T](config, repo, pyParams, params, vocab)
+	finalModel := mapSpecificArchitecture[T](baseModel, config.Architectures, params)
 
 	mapping := make(map[string]*mappingParam)
 	for k, v := range params {
@@ -193,50 +141,88 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 	}
 
 	fmt.Printf("Serializing model to \"%s\"... ", goModelFilename)
-	if config.Architectures == nil {
-		config.Architectures = append(config.Architectures, "BertBase")
-	}
-
-	{
-		switch config.Architectures[0] {
-		case "BertBase":
-			err := nn.DumpToFile(m, goModelFilename)
-			if err != nil {
-				return err
-			}
-		case "BertModel":
-			err := nn.DumpToFile(bertForSequenceEncoding, goModelFilename)
-			if err != nil {
-				return err
-			}
-		case "BertForMaskedLM":
-			err := nn.DumpToFile(bertForMaskedLM, goModelFilename)
-			if err != nil {
-				return err
-			}
-		case "BertForQuestionAnswering":
-			err := nn.DumpToFile(bertForQuestionAnswering, goModelFilename)
-			if err != nil {
-				return err
-			}
-		case "BertForSequenceClassification":
-			err := nn.DumpToFile(bertForSequenceClassification, goModelFilename)
-			if err != nil {
-				return err
-			}
-		case "BertForTokenClassification":
-			err := nn.DumpToFile(bertForTokenClassification, goModelFilename)
-			if err != nil {
-				return err
-			}
-		default:
-			panic(fmt.Errorf("bert: unsupported architecture %s", config.Architectures[0]))
-		}
+	err = nn.DumpToFile(finalModel, goModelFilename)
+	if err != nil {
+		return err
 	}
 
 	fmt.Println("Done.")
 
 	return nil
+}
+
+func mapBaseModel[T float.DType](config bert.Config, repo *diskstore.Repository, pyParams *pytorch.ParamsProvider[T], params paramsMap, vocab *vocabulary.Vocabulary) *bert.Model {
+	baseModel := bert.New[T](config, repo)
+
+	{
+		source := pyParams.Pop("bert.embeddings.word_embeddings.weight")
+		size := baseModel.Embeddings.Tokens.Config.Size
+		for i := 0; i < config.VocabSize; i++ {
+			key, _ := vocab.Term(i)
+			if len(key) == 0 {
+				continue // skip empty key
+			}
+			item, _ := baseModel.Embeddings.Tokens.Embedding(key)
+			item.ReplaceValue(mat.NewVecDense[T](source[i*size : (i+1)*size]))
+		}
+	}
+
+	cols := config.HiddenSize
+
+	{
+		source := pyParams.Pop("bert.embeddings.position_embeddings.weight")
+		dest := baseModel.Embeddings.Positions
+		for i := 0; i < config.MaxPositionEmbeddings; i++ {
+			item, _ := dest.Embedding(i)
+			item.ReplaceValue(mat.NewVecDense[T](source[i*cols : (i+1)*cols]))
+		}
+	}
+
+	{
+		source := pyParams.Pop("bert.embeddings.token_type_embeddings.weight")
+		dest := baseModel.Embeddings.TokenTypes
+		for i := 0; i < config.TypeVocabSize; i++ {
+			item, _ := dest.Embedding(i)
+			item.ReplaceValue(mat.NewVecDense[T](source[i*cols : (i+1)*cols]))
+		}
+	}
+
+	mapPooler(baseModel.Pooler, params)
+	mapEmbeddingsLayerNorm(baseModel.Embeddings.Norm, params)
+	mapEncoderParams(baseModel.Encoder, params)
+
+	return baseModel
+}
+
+func mapSpecificArchitecture[T float.DType](baseModel *bert.Model, architectures []string, params paramsMap) nn.Model {
+	if architectures == nil {
+		architectures = append(architectures, "BertBase")
+	}
+
+	switch architectures[0] {
+	case "BertBase":
+		return baseModel
+	case "BertModel":
+		return bert.NewModelForSequenceEncoding(baseModel)
+	case "BertForMaskedLM":
+		m := bert.NewModelForMaskedLM[T](baseModel)
+		mapMaskedLM(m.Layers, params)
+		return m
+	case "BertForQuestionAnswering":
+		m := bert.NewModelForQuestionAnswering[T](baseModel)
+		mapQAClassifier(m.Classifier, params)
+		return m
+	case "BertForSequenceClassification":
+		m := bert.NewModelForSequenceClassification[T](baseModel)
+		mapSeqClassifier(m.Classifier, params)
+		return m
+	case "BertForTokenClassification":
+		m := bert.NewModelForTokenClassification[T](baseModel)
+		mapTokenClassifier(m.Classifier, params)
+		return m
+	default:
+		panic(fmt.Errorf("bert: unsupported architecture %s", architectures[0]))
+	}
 }
 
 func fixParamsName(from string) (to string) {

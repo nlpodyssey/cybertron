@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package languagemodeling.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/nlpodyssey/cybertron/pkg/server/apis/languagemodeling/v1;languagemodelingv1";
+
+service LanguageModelingService {
+  rpc Predict(LanguageModelingRequest) returns (LanguageModelingResponse) {
+    option (google.api.http) = {
+      post: "/v1/predict"
+      body: "*"
+    };
+  }
+}
+
+message LanguageModelingRequest {
+  string input = 1;
+  LanguageModelingParameters parameters = 2;
+}
+
+message LanguageModelingParameters {
+  int32 k = 1;
+}
+
+message Token {
+  int32  start = 1;
+  int32  end   = 2;
+  repeated string words  = 3;
+  repeated double scores = 4;
+}
+
+message LanguageModelingResponse {
+  repeated Token tokens = 1;
+}

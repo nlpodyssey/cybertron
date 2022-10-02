@@ -31,7 +31,7 @@ func main() {
 	defer tasks.Finalize(m)
 
 	fn := func(text string) error {
-		result, err := m.Predict(context.Background(), text)
+		result, err := m.Predict(context.Background(), text, languagemodeling.Parameters{K: 10})
 		if err != nil {
 			return err
 		}

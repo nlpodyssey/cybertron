@@ -16,6 +16,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/nlpodyssey/cybertron/pkg/server"
 	"github.com/nlpodyssey/cybertron/pkg/tasks"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/languagemodeling"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/textclassification"
@@ -97,6 +98,8 @@ func loadModelForTask(conf *config) (m any, err error) {
 		return tasks.Load[tokenclassification.Interface](conf.loaderConfig)
 	case TextEncodingTask:
 		return tasks.Load[textencoding.Interface](conf.loaderConfig)
+	case LanguageModelingTask:
+		return tasks.Load[languagemodeling.Interface](conf.loaderConfig)
 	default:
 		return nil, fmt.Errorf("failed to load model/task type %s", conf.task)
 	}

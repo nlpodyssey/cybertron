@@ -7,6 +7,7 @@ package bert
 import (
 	"context"
 	"fmt"
+	"github.com/nlpodyssey/spago/mat"
 	"path"
 	"path/filepath"
 	"sort"
@@ -20,6 +21,8 @@ import (
 	"github.com/nlpodyssey/spago/embeddings/store/diskstore"
 	"github.com/nlpodyssey/spago/nn"
 )
+
+const defaultTopK = 10
 
 // LanguageModel is a masked language model.
 type LanguageModel struct {
@@ -73,30 +76,40 @@ func LoadMaskedLanguageModel(modelPath string) (*LanguageModel, error) {
 }
 
 // Predict returns the predicted tokens
-func (m *LanguageModel) Predict(_ context.Context, text string) (languagemodeling.Response, error) {
+func (m *LanguageModel) Predict(_ context.Context, text string, parameters languagemodeling.Parameters) (languagemodeling.Response, error) {
+	if parameters.K == 0 {
+		parameters.K = defaultTopK
+	}
+
 	tokenized := pad(m.tokenize(text))
 	prediction := m.Model.Predict(tokenizers.GetStrings(tokenized))
 
 	result := make([]languagemodeling.Token, 0, len(prediction))
 	for i, logits := range prediction {
 		probs := logits.Value().Softmax()
-		argmax := probs.ArgMax()
-		score := probs.AtVec(argmax).Scalar().F64()
-		word, ok := m.vocab.Term(argmax)
-		if !ok {
-			word = wordpiecetokenizer.DefaultUnknownToken // if this is returned, there's a misalignment with the vocabulary
+
+		scores := make([]float64, 0)
+		words := make([]string, 0)
+		for _, item := range selectTopK(probs, parameters.K) {
+			word, ok := m.vocab.Term(item.Index)
+			if !ok {
+				word = wordpiecetokenizer.DefaultUnknownToken // if this is returned, there's a misalignment with the vocabulary
+			}
+			words = append(words, word)
+			scores = append(scores, item.Score)
 		}
+
 		start, end := tokenized[i].Offsets.Start, tokenized[i].Offsets.End
 		result = append(result, languagemodeling.Token{
-			Text:  word,
-			Start: start,
-			End:   end,
-			Score: score,
+			Start:  start,
+			End:    end,
+			Words:  words,
+			Scores: scores,
 		})
 	}
 
 	sort.SliceStable(result, func(i, j int) bool {
-		return result[i].Start > result[i].End
+		return result[i].Start < result[i].Start
 	})
 
 	return languagemodeling.Response{
@@ -119,4 +132,72 @@ func pad(tokens []tokenizers.StringOffsetsPair) []tokenizers.StringOffsetsPair {
 
 func prepend(x []tokenizers.StringOffsetsPair, y tokenizers.StringOffsetsPair) []tokenizers.StringOffsetsPair {
 	return append([]tokenizers.StringOffsetsPair{y}, x...)
+}
+
+type IndexScorePair struct {
+	Index int
+	Score float64
+}
+
+// selectTopK returns the next tokens to be generated.
+func selectTopK(scores mat.Matrix, resultSize int) []*IndexScorePair {
+	if resultSize == 1 {
+		argmax := scores.ArgMax()
+		return []*IndexScorePair{
+			{
+				Index: argmax,
+				Score: scores.ScalarAtVec(argmax).F64(),
+			},
+		}
+	}
+
+	arena := make([]IndexScorePair, resultSize)
+	result := make([]*IndexScorePair, 0, resultSize)
+
+	var minScore float64
+	minIndex := -1
+
+	for i, score := range scores.Data().F64() {
+
+		if len(result) < resultSize {
+			if minIndex == -1 || score < minScore {
+				minScore = score
+				minIndex = len(result)
+			}
+
+			st := &arena[0]
+			arena = arena[1:]
+
+			st.Index = i
+			st.Score = score
+
+			result = append(result, st)
+			continue
+		}
+
+		if score <= minScore {
+			continue
+		}
+
+		// Replace the scored token with minimum score with the new one
+		st := result[minIndex]
+		st.Index = i
+		st.Score = score
+
+		// Find the new minimum
+		minScore = result[0].Score
+		minIndex = 0
+		for j, v := range result {
+			if v.Score < minScore {
+				minScore = v.Score
+				minIndex = j
+			}
+		}
+	}
+
+	sort.SliceStable(result, func(i, j int) bool {
+		return result[i].Score > result[j].Score
+	})
+
+	return result
 }

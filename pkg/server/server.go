@@ -9,6 +9,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/languagemodeling"
 	"net"
 	"net/http"
 	"strings"
@@ -76,6 +77,8 @@ func ResolveRequestHandler(model any) (RequestHandler, error) {
 		return NewServerForTextEncoding(m), nil
 	case tokenclassification.Interface:
 		return NewServerForTokenClassification(m), nil
+	case languagemodeling.Interface:
+		return NewServerForLanguageModeling(m), nil
 	default:
 		return nil, fmt.Errorf("failed to resolve register funcs for model/task type %T", m)
 	}

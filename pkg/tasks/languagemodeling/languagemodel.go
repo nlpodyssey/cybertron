@@ -19,15 +19,21 @@ const (
 // Interface defines the main functions for language modelling.
 type Interface interface {
 	// Predict returns the prediction of the given example.
-	Predict(ctx context.Context, text string) (Response, error)
+	Predict(ctx context.Context, text string, parameters Parameters) (Response, error)
+}
+
+// Parameters contains the parameters for language modeling.
+type Parameters struct {
+	// K is the number of returned predictions per token
+	K int
 }
 
 // Token is a labeled text token.
 type Token struct {
-	Text  string
-	Start int
-	End   int
-	Score float64
+	Start  int
+	End    int
+	Words  []string
+	Scores []float64
 }
 
 // Response contains the response from language modelling..

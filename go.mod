@@ -1,6 +1,6 @@
 module github.com/nlpodyssey/cybertron
 
-go 1.18
+go 1.19
 
 require (
 	github.com/bufbuild/buf v1.4.0

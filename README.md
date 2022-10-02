@@ -12,11 +12,13 @@ A unique feature of Cybertron is its compatibility with [HuggingFace Transformer
 
 ## Supported tasks
 
-- Question-Answering (Extractive)
+- Language Modeling (Masked)
 - Text Classification (Supervised, Zero-Shot)
+- Token Classification (NER, POS-Tagging)
+- Question-Answering (Extractive, Abstractive)
 - Text Encoding (Text Similarity)
 - Text Generation (Translation, Paraphrasing)
-- Token Classification (NER, POS-Tagging)
+- Relation Extraction
 
 # Usage
 

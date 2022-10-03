@@ -24,8 +24,17 @@ const (
 	DefaultModelForTextParaphrasing = "tuner007/pegasus_paraphrase"
 
 	// DefaultModelForTextSummarization is a summarization model.
+	// Model card: https://huggingface.co/facebook/bart-large-cnn
+	DefaultModelForTextSummarization = "facebook/bart-large-cnn"
+
+	// DefaultModelForTextSummarization2 is a summarization model.
 	// Model card: https://huggingface.co/google/pegasus-multi_news
-	DefaultModelForTextSummarization = "google/pegasus-multi_news"
+	DefaultModelForTextSummarization2 = "google/pegasus-multi_news"
+
+	// DefaultModelForExtremeTextSummarization is a summarization model that tries to generate one-sentence answering
+	// the question “What is the article about?”.
+	// Model card: https://huggingface.co/facebook/bart-large-xsum
+	DefaultModelForExtremeTextSummarization = "facebook/bart-large-xsum"
 
 	// DefaultModelForAbstractiveQuestionAnswering is a summarization model fine-tuned for answer generation.
 	// Model card: https://huggingface.co/vblagoje/bart_lfqa/tree/main

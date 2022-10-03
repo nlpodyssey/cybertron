@@ -39,6 +39,10 @@ const (
 	// DefaultModelForAbstractiveQuestionAnswering is a summarization model fine-tuned for answer generation.
 	// Model card: https://huggingface.co/vblagoje/bart_lfqa/tree/main
 	DefaultModelForAbstractiveQuestionAnswering = "vblagoje/bart_lfqa"
+
+	// DefaultModelForKeywordsGeneration is a text generation model that produces a concatenated sequence of keyphrases.
+	// Model card: https://huggingface.co/bloomberg/KeyBART
+	DefaultModelForKeywordsGeneration = "bloomberg/KeyBART"
 )
 
 // DefaultModelForMachineTranslation specializes the model template for the source and target languages (iso-a2).

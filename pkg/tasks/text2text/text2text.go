@@ -6,6 +6,7 @@ package text2text
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -75,6 +76,10 @@ type Response struct {
 	// a list of floats that correspond the score of the generated text, in the same order as texts.
 	Scores []float64
 }
+
+// ErrInputSequenceTooLong means that pre-processing the input text
+// produced a sequence that exceeds the maximum allowed length.
+var ErrInputSequenceTooLong = errors.New("input sequence too long")
 
 // DefaultOptions returns the default options for generating text.
 func DefaultOptions() *Options {

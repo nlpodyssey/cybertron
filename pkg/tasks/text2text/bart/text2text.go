@@ -135,6 +135,10 @@ func (m *Text2Text) Generate(ctx context.Context, text string, opts *text2text.O
 	if err != nil {
 		return text2text.Response{}, err
 	}
+	if l, max := len(tokenized), m.Model.Bart.Config.MaxLength; l > max {
+		return text2text.Response{}, fmt.Errorf("%w: %d > %d", text2text.ErrInputSequenceTooLong, l, max)
+	}
+
 	sequences, scores := m.process(ctx, tokenized, *opts)
 	result := text2text.Response{
 		Texts:  make([]string, len(sequences)),

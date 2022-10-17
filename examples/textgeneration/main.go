@@ -46,6 +46,6 @@ func main() {
 
 	err = ForEachInput(os.Stdin, fn)
 	if err != nil {
-		log.Fatal().Err(err)
+		log.Fatal().Err(err).Send()
 	}
 }

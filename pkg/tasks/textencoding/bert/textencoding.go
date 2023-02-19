@@ -82,7 +82,7 @@ func (m *TextEncoding) Encode(_ context.Context, text string, poolingStrategy in
 	}
 
 	response := textencoding.Response{
-		Vector: encoded.Value(),
+		Vector: ag.CopyValue(encoded),
 	}
 	return response, nil
 }

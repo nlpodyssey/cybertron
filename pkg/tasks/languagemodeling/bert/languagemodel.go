@@ -82,6 +82,10 @@ func (m *LanguageModel) Predict(_ context.Context, text string, parameters langu
 	}
 
 	tokenized := pad(m.tokenize(text))
+	if l, max := len(tokenized), m.Model.Bert.Config.MaxPositionEmbeddings; l > max {
+		return languagemodeling.Response{}, fmt.Errorf("%w: %d > %d", languagemodeling.ErrInputSequenceTooLong, l, max)
+	}
+
 	prediction := m.Model.Predict(tokenizers.GetStrings(tokenized))
 
 	result := make([]languagemodeling.Token, 0, len(prediction))

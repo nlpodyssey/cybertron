@@ -4,7 +4,10 @@
 
 package zeroshotclassifier
 
-import "context"
+import (
+	"context"
+	"errors"
+)
 
 const (
 	// DefaultModel is a model for Natural Language Inference (NLI) that can be used for zero-shot classification.
@@ -16,6 +19,10 @@ const (
 	// DefaultHypothesisTemplate is the string template that is interpolated with each class to predict.
 	DefaultHypothesisTemplate = "This example is {}."
 )
+
+// ErrInputSequenceTooLong means that pre-processing the input text
+// produced a sequence that exceeds the maximum allowed length.
+var ErrInputSequenceTooLong = errors.New("input sequence too long")
 
 // Interface defines the main functions for zero-shot classification task.
 type Interface interface {

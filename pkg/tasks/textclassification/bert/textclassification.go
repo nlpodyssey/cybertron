@@ -99,7 +99,11 @@ func ID2Label(value map[string]string) []string {
 
 // Classify returns the classification of the given text.
 func (m *TextClassification) Classify(_ context.Context, text string) (textclassification.Response, error) {
-	logits := m.Model.Classify(m.tokenize(text))
+	tokenized := m.tokenize(text)
+	if l, max := len(tokenized), m.Model.Bert.Config.MaxPositionEmbeddings; l > max {
+		return textclassification.Response{}, fmt.Errorf("%w: %d > %d", textclassification.ErrInputSequenceTooLong, l, max)
+	}
+	logits := m.Model.Classify(tokenized)
 	defer func() {
 		go ag.ReleaseGraph(logits)
 	}()

@@ -4,7 +4,10 @@
 
 package tokenclassification
 
-import "context"
+import (
+	"context"
+	"errors"
+)
 
 const (
 	// DefaultEnglishModel is a model for Named Entities Recognition for the English language.
@@ -28,6 +31,10 @@ const (
 	// AggregationStrategySimple - Entities are grouped according to the IOB annotation schema.
 	AggregationStrategySimple AggregationStrategy = "simple"
 )
+
+// ErrInputSequenceTooLong means that pre-processing the input text
+// produced a sequence that exceeds the maximum allowed length.
+var ErrInputSequenceTooLong = errors.New("input sequence too long")
 
 type Parameters struct {
 	AggregationStrategy AggregationStrategy

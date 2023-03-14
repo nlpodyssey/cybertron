@@ -6,6 +6,7 @@ package textencoding
 
 import (
 	"context"
+	"errors"
 
 	"github.com/nlpodyssey/spago/mat"
 )
@@ -23,6 +24,10 @@ const (
 	// Model card: https://huggingface.co/sentence-transformers/LaBSE
 	DefaultModelMulti = "sentence-transformers/LaBSE"
 )
+
+// ErrInputSequenceTooLong means that pre-processing the input text
+// produced a sequence that exceeds the maximum allowed length.
+var ErrInputSequenceTooLong = errors.New("input sequence too long")
 
 // Interface defines the main functions for text encoding task.
 type Interface interface {

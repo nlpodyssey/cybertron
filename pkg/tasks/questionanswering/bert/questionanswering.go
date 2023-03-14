@@ -77,6 +77,10 @@ func (qa *QuestionAnswering) Answer(_ context.Context, question string, passage 
 	checkOptions(opts)
 
 	qt, pt := qa.tokenize(question, passage)
+	if l, max := len(qt)+len(pt), qa.Model.Bert.Config.MaxPositionEmbeddings; l > max {
+		return questionanswering.Response{}, fmt.Errorf("%w: %d > %d", questionanswering.ErrInputSequenceTooLong, l, max)
+	}
+
 	starts, ends := qa.Model.Answer(concat(qt, pt))
 	starts, ends = adjustLogitsForInference(starts, ends, qt, pt)
 	startsIdx := getBestIndices(extractScores(starts), opts.MaxCandidates)

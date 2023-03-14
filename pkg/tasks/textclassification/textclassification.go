@@ -6,6 +6,7 @@ package textclassification
 
 import (
 	"context"
+	"errors"
 )
 
 const (
@@ -19,6 +20,10 @@ const (
 	// Model card: https://huggingface.co/nlpodyssey/bert-multilingual-uncased-geo-countries-headlines
 	DefaultModelForGeographicCategorizationMulti = "nlpodyssey/bert-multilingual-uncased-geo-countries-headlines"
 )
+
+// ErrInputSequenceTooLong means that pre-processing the input text
+// produced a sequence that exceeds the maximum allowed length.
+var ErrInputSequenceTooLong = errors.New("input sequence too long")
 
 // Interface defines the main functions for text classification task.
 type Interface interface {

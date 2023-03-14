@@ -94,6 +94,9 @@ func (m *ZeroShotClassifier) Classify(_ context.Context, text string, parameters
 	if err != nil {
 		return zeroshotclassifier.Response{}, err
 	}
+	if l, max := len(premise), m.Model.Bart.Config.MaxLength; l > max {
+		return zeroshotclassifier.Response{}, fmt.Errorf("%w: %d > %d", zeroshotclassifier.ErrInputSequenceTooLong, l, max)
+	}
 
 	multiClass := parameters.MultiLabel || len(parameters.CandidateLabels) == 1
 	scoreFn := m.score(premise, multiClass)

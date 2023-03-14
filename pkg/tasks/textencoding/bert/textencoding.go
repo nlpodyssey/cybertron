@@ -73,7 +73,11 @@ func LoadTextEncoding(modelPath string) (*TextEncoding, error) {
 
 // Encode returns the dense encoded representation of the given text.
 func (m *TextEncoding) Encode(_ context.Context, text string, poolingStrategy int) (textencoding.Response, error) {
-	encoded, err := m.Model.Encode(m.tokenize(text), bert.PoolingStrategyType(poolingStrategy))
+	tokenized := m.tokenize(text)
+	if l, max := len(tokenized), m.Model.Bert.Config.MaxPositionEmbeddings; l > max {
+		return textencoding.Response{}, fmt.Errorf("%w: %d > %d", textencoding.ErrInputSequenceTooLong, l, max)
+	}
+	encoded, err := m.Model.Encode(tokenized, bert.PoolingStrategyType(poolingStrategy))
 	defer func() {
 		go ag.ReleaseGraph(encoded)
 	}()

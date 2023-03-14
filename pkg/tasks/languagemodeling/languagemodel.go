@@ -4,7 +4,10 @@
 
 package languagemodeling
 
-import "context"
+import (
+	"context"
+	"errors"
+)
 
 const (
 	// DefaultModel is a BERT pretrained model on English language using a masked language modeling (MLM) objective.
@@ -15,6 +18,10 @@ const (
 	// Model card: https://huggingface.co/dbmdz/bert-base-italian-cased
 	DefaultItalianModel = "dbmdz/bert-base-italian-cased"
 )
+
+// ErrInputSequenceTooLong means that pre-processing the input text
+// produced a sequence that exceeds the maximum allowed length.
+var ErrInputSequenceTooLong = errors.New("input sequence too long")
 
 // Interface defines the main functions for language modelling.
 type Interface interface {

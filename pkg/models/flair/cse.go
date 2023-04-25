@@ -6,6 +6,7 @@ package flair
 
 import (
 	"encoding/gob"
+	"github.com/nlpodyssey/spago/mat"
 	"strings"
 	"sync"
 
@@ -99,7 +100,7 @@ func (m *ContextualStringEmbeddings) merge(a, b ag.Node) ag.Node {
 	case Prod:
 		return ag.Prod(a, b)
 	case Avg:
-		return ag.ProdScalar(ag.Add(a, b), ag.Scalar(0.5))
+		return ag.ProdScalar(ag.Add(a, b), mat.NewScalar(0.5))
 	default:
 		panic("flair: invalid merge mode for the ContextualStringEmbeddings")
 	}

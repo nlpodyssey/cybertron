@@ -24,7 +24,7 @@ type ModelForMaskedLM struct {
 	// Bart is the fine-tuned BERT model.
 	Bert *Model
 	// Layers contains the feedforward layers for masked language modeling.
-	Layers []nn.StandardModel
+	Layers nn.ModuleList[nn.StandardModel]
 }
 
 func init() {
@@ -50,7 +50,7 @@ func (m *ModelForMaskedLM) Predict(tokens []string) map[int]ag.Node {
 	encoded := evaluate(m.Bert.Encode(tokens)...)
 	result := make(map[int]ag.Node)
 	for _, id := range masked(tokens) {
-		result[id] = nn.Forward(m.Layers)(encoded[id])[0]
+		result[id] = m.Layers.Forward(encoded[id])[0]
 	}
 	return result
 }

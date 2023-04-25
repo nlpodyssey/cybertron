@@ -42,7 +42,7 @@ func New[T float.DType](c Config, repo store.Repository) *Model {
 
 // SetEmbeddings sets the embeddings of the model.
 func (m *Model) SetEmbeddings(repo *diskstore.Repository) (err error) {
-	nn.Apply(m, func(model nn.Model, name string) {
+	nn.Apply(m, func(model nn.Model) {
 		switch em := model.(type) {
 		case *embeddings.Model[[]byte], *embeddings.Model[int], *embeddings.Model[string]:
 			// In order to avoid setting the repository to shared embeddings,

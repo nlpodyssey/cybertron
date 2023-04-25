@@ -25,7 +25,7 @@ var _ nn.Model = &FeedForwardBlock{}
 // FeedForwardBlock is a feed-forward block with normalization and residual connection.
 type FeedForwardBlock struct {
 	nn.Module
-	FFN  []nn.StandardModel
+	FFN  nn.ModuleList[nn.StandardModel]
 	Norm *layernorm.Model
 }
 

@@ -16,7 +16,7 @@ import (
 // Pooler implements a Bert pooler.
 type Pooler struct {
 	nn.Module
-	Model []nn.StandardModel
+	Model nn.ModuleList[nn.StandardModel]
 }
 
 func init() {
@@ -35,7 +35,7 @@ func NewPooler[T float.DType](c Config) *Pooler {
 
 // Forward applies a linear transformation followed by a Tanh activation to the first `[CLS]` encoded token.
 func (m *Pooler) Forward(encoded []ag.Node) ag.Node {
-	return nn.Forward(m.Model)(first(encoded))[0]
+	return m.Model.Forward(first(encoded))[0]
 }
 
 // first returns only the first node, but waits for the values of all the other nodes.

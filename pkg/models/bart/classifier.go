@@ -35,7 +35,7 @@ type Classifier struct {
 	// Config is the configuration of the classifier.
 	Config ClassifierConfig
 	// Layers is the list of layers of the MLP.
-	Layers []nn.StandardModel
+	Layers nn.ModuleList[nn.StandardModel]
 }
 
 func init() {
@@ -58,5 +58,5 @@ func NewClassifier[T float.DType](c ClassifierConfig) *Classifier {
 
 // Forward implements the forward pass of the Classifier.
 func (m *Classifier) Forward(xs ag.Node) ag.Node {
-	return nn.Forward(m.Layers)(xs)[0]
+	return m.Layers.Forward(xs)[0]
 }

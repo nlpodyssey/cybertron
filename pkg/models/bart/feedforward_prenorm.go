@@ -24,5 +24,5 @@ func init() {
 
 // Forward performs the forward pass.
 func (m PreNormFeedForwardBlock) Forward(xs []ag.Node) []ag.Node {
-	return ag.Map2(ag.Add, xs, nn.Forward(m.FFN)(m.Norm.Forward(xs...)...))
+	return ag.Map2(ag.Add, xs, m.FFN.Forward(m.Norm.Forward(xs...)...))
 }

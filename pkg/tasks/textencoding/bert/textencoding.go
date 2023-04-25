@@ -7,6 +7,7 @@ package bert
 import (
 	"context"
 	"fmt"
+	"github.com/nlpodyssey/spago/mat"
 	"path"
 	"path/filepath"
 	"strings"
@@ -86,7 +87,7 @@ func (m *TextEncoding) Encode(_ context.Context, text string, poolingStrategy in
 	}
 
 	response := textencoding.Response{
-		Vector: ag.CopyValue(encoded),
+		Vector: mat.CopyValue(encoded),
 	}
 	return response, nil
 }

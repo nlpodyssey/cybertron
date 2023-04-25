@@ -23,7 +23,7 @@ type Encoder struct {
 	// Embeddings is the embedding layer.
 	Embeddings *Embeddings
 	// Layers is the list of encoder layers.
-	Layers []*EncoderLayer
+	Layers nn.ModuleList[*EncoderLayer]
 	// LayerNorm is the layer normalization module.
 	LayerNorm *layernorm.Model
 	// Config is the configuration of the encoder.
@@ -52,7 +52,7 @@ func NewEncoder[T float.DType](c Config, repo store.Repository, shared embedding
 // Encode performs the Bart encoding.
 func (m *Encoder) Encode(inputIDs []int) []ag.Node {
 	ys := m.Embeddings.Encode(inputIDs, 0)
-	ys = nn.Forward(m.Layers)(ys...)
+	ys = m.Layers.Forward(ys...)
 	if m.Config.FinalLayerNorm {
 		ys = m.LayerNorm.Forward(ys...)
 	}

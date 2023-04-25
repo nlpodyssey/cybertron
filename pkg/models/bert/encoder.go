@@ -17,7 +17,7 @@ var _ nn.Model = &Encoder{}
 // Encoder implements a Bert encoder.
 type Encoder struct {
 	nn.Module
-	Layers []*EncoderLayer
+	Layers nn.ModuleList[*EncoderLayer]
 	Config Config
 }
 
@@ -39,5 +39,5 @@ func NewEncoder[T float.DType](c Config) *Encoder {
 
 // Encode performs the Bert encoding.
 func (e *Encoder) Encode(xs []ag.Node) []ag.Node {
-	return nn.Forward(e.Layers)(xs...)
+	return e.Layers.Forward(xs...)
 }

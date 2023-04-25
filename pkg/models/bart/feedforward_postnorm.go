@@ -24,5 +24,5 @@ func init() {
 
 // Forward performs the forward pass.
 func (m PostNormFeedForwardBlock) Forward(xs []ag.Node) []ag.Node {
-	return m.Norm.Forward(ag.Map2(ag.Add, xs, nn.Forward(m.FFN)(xs...))...)
+	return m.Norm.Forward(ag.Map2(ag.Add, xs, m.FFN.Forward(xs...))...)
 }

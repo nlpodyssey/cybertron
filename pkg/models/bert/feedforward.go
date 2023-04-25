@@ -20,7 +20,7 @@ var _ nn.Model = &FeedForwardBlock{}
 // FeedForwardBlock implements a Bert feed forward block.
 type FeedForwardBlock struct {
 	nn.Module
-	MLP  []nn.StandardModel
+	MLP  nn.ModuleList[nn.StandardModel]
 	Norm *layernorm.Model
 }
 
@@ -49,5 +49,5 @@ func NewFeedForwardBlock[T float.DType](c FeedForwardBlockConfig) *FeedForwardBl
 
 // Forward performs the forward step for each input node and returns the result.
 func (m FeedForwardBlock) Forward(xs []ag.Node) []ag.Node {
-	return m.Norm.Forward(ag.Map2Concurrent(ag.Add, xs, nn.Forward(m.MLP)(xs...))...)
+	return m.Norm.Forward(ag.Map2Concurrent(ag.Add, xs, m.MLP.Forward(xs...))...)
 }

@@ -21,7 +21,7 @@ type Model struct {
 
 // SetEmbeddings sets the embeddings of the model.
 func (m *Model) SetEmbeddings(repo *diskstore.Repository) (err error) {
-	nn.Apply(m, func(model nn.Model, name string) {
+	nn.Apply(m, func(model nn.Model) {
 		if emb, ok := model.(interface {
 			UseRepository(repo store.Repository) error
 		}); ok {

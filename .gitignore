@@ -1,2 +1,5 @@
 .idea
 .env
+.DS_Store
+.run
+

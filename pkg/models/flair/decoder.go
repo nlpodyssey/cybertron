@@ -36,10 +36,6 @@ func NewDecoder(scorer *linear.Model, crf *crf.Model) *Decoder {
 // Decode performs the viterbi decoding.
 func (m *Decoder) Decode(xs []ag.Node) ([]int, []float64) {
 	scores := m.Scorer.Forward(xs...)
-	defer func() {
-		go ag.ReleaseGraph(scores...)
-	}()
-
 	return m.CRF.Decode(scores), bestScores(scores)
 }
 

@@ -18,7 +18,6 @@ import (
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/bpetokenizer"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/sentencepiece"
 	"github.com/nlpodyssey/cybertron/pkg/utils/nullable"
-	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/embeddings/store/diskstore"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
@@ -151,11 +150,6 @@ func (m *Text2Text) Generate(ctx context.Context, text string, opts *text2text.O
 }
 
 func (m *Text2Text) process(ctx context.Context, inputIDs []int, opts text2text.Options) ([][]int, []float64) {
-	nodesToRelease := make([]ag.Node, 0)
-	defer func() {
-		go ag.ReleaseGraph(nodesToRelease...)
-	}()
-
 	next := m.Model.DecodingFunc(inputIDs, m.logProbProcessor(opts), true)
 	cache := make([]bart.Cache, m.Model.Bart.Config.NumBeams)
 
@@ -166,7 +160,6 @@ func (m *Text2Text) process(ctx context.Context, inputIDs []int, opts text2text.
 
 		for i, result := range next(batch) {
 			logProbValues[i], cache[i] = result.LogProbValue, result.NextCache
-			nodesToRelease = append(nodesToRelease, result.LogProbRaw)
 		}
 		return logProbValues
 	}

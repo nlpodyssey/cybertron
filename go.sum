@@ -149,8 +149,12 @@ github.com/nlpodyssey/gotokenizers v0.2.0 h1:CWx/sp9s35XMO5lT1kNXCshFGDCfPuuWdx/
 github.com/nlpodyssey/gotokenizers v0.2.0/go.mod h1:SBLbuSQhpni9M7U+Ie6O46TXYN73T2Cuw/4eeYHYJ+s=
 github.com/nlpodyssey/spago v1.0.2-0.20230425104021-8a128747fb24 h1:wgtb+X+M0oDiOZkYgo1AFatHQkgfgRUberzWsp1ANmI=
 github.com/nlpodyssey/spago v1.0.2-0.20230425104021-8a128747fb24/go.mod h1:qxH9mZ0aznlDHtMHekfV8/rgbRELQWw30kRzAF9gle4=
+github.com/nlpodyssey/spago v1.0.2-0.20230428104549-ea0d79b29845 h1:fMbYq02D/VQ3DBo9gB1pzWoCYyOVbaECWjcDVLbUHNs=
+github.com/nlpodyssey/spago v1.0.2-0.20230428104549-ea0d79b29845/go.mod h1:qxH9mZ0aznlDHtMHekfV8/rgbRELQWw30kRzAF9gle4=
 github.com/nlpodyssey/spago/embeddings/store/diskstore v0.0.0-20230425104021-8a128747fb24 h1:BG4i0DYp2RmOs8b5VxqIaARkmMDxkA2ynIXdrIjHvFs=
 github.com/nlpodyssey/spago/embeddings/store/diskstore v0.0.0-20230425104021-8a128747fb24/go.mod h1:ElJ8F8dMxzuInbNMapI7m625LjE8OdIfGfmU/KwxPzM=
+github.com/nlpodyssey/spago/embeddings/store/diskstore v0.0.0-20230428104549-ea0d79b29845 h1:2vAU+biwYhoyqFYEjThpXKc1jTjGblALZZjZLeIWr3E=
+github.com/nlpodyssey/spago/embeddings/store/diskstore v0.0.0-20230428104549-ea0d79b29845/go.mod h1:NTFTNbw4nL41b7zdIzJ9nJuLNyyFaoFQShD46RZJN+s=
 github.com/pelletier/go-toml v1.2.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=
 github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 h1:KoWmjvw+nsYOo29YJK9vDA65RGE3NrOnUtO7a+RF9HU=
 github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8/go.mod h1:HKlIX3XHQyzLZPlr7++PzdhaXEj94dEiJgZDTsxEqUI=

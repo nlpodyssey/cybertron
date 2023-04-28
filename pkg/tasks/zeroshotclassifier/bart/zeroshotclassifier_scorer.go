@@ -5,7 +5,6 @@
 package bart
 
 import (
-	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 )
 
@@ -16,10 +15,6 @@ func (m *ZeroShotClassifier) score(premise []int, multiClass bool) func(hypothes
 		copy(tokenized[len(premise):], hypothesis)
 
 		logits := m.Model.Forward(tokenized)
-		defer func() {
-			go ag.ReleaseGraph(logits)
-		}()
-
 		if !multiClass {
 			return logits.Value().ScalarAtVec(m.entailmentID).F64()
 		}

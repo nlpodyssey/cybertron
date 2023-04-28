@@ -19,7 +19,6 @@ import (
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/wordpiecetokenizer"
 	"github.com/nlpodyssey/cybertron/pkg/utils/sliceutils"
 	"github.com/nlpodyssey/cybertron/pkg/vocabulary"
-	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/embeddings/store/diskstore"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/rs/zerolog/log"
@@ -104,10 +103,6 @@ func (m *TextClassification) Classify(_ context.Context, text string) (textclass
 		return textclassification.Response{}, fmt.Errorf("%w: %d > %d", textclassification.ErrInputSequenceTooLong, l, max)
 	}
 	logits := m.Model.Classify(tokenized)
-	defer func() {
-		go ag.ReleaseGraph(logits)
-	}()
-
 	probs := logits.Value().Softmax()
 
 	result := sliceutils.NewIndexedSlice[float64](probs.Data().F64())

@@ -17,7 +17,6 @@ import (
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/wordpiecetokenizer"
 	"github.com/nlpodyssey/cybertron/pkg/vocabulary"
-	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/embeddings/store/diskstore"
 	"github.com/nlpodyssey/spago/nn"
 )
@@ -79,9 +78,6 @@ func (m *TextEncoding) Encode(_ context.Context, text string, poolingStrategy in
 		return textencoding.Response{}, fmt.Errorf("%w: %d > %d", textencoding.ErrInputSequenceTooLong, l, max)
 	}
 	encoded, err := m.Model.Encode(tokenized, bert.PoolingStrategyType(poolingStrategy))
-	defer func() {
-		go ag.ReleaseGraph(encoded)
-	}()
 	if err != nil {
 		return textencoding.Response{}, err
 	}

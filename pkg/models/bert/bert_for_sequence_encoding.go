@@ -60,7 +60,7 @@ func (m *ModelForSequenceEncoding) pooling(lastHiddenStates []ag.Node, ps Poolin
 	case MeanMaxPooling:
 		return ag.Concat(ag.Mean(lastHiddenStates), ag.Maximum(lastHiddenStates)), nil
 	case ClsTokenPooling:
-		return m.Bert.Pooler.Forward(lastHiddenStates), nil
+		return m.Bert.Pooler.Forward(lastHiddenStates[0]), nil
 	default:
 		return nil, fmt.Errorf("bert: invalid pooling strategy")
 	}

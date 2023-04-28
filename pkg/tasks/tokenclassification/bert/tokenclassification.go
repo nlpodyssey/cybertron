@@ -103,10 +103,6 @@ func (m *TokenClassification) Classify(_ context.Context, text string, parameter
 	}
 
 	logits := m.Model.Classify(pad(tokenizers.GetStrings(tokenized)))
-	defer func() {
-		go ag.ReleaseGraph(logits...)
-	}()
-
 	tokens := make([]tokenclassification.Token, 0, len(tokenized))
 	for i, token := range wordpiecetokenizer.GroupSubWords(tokenized) {
 		label, score := m.getBestClass(logits[i])

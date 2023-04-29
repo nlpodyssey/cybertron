@@ -49,5 +49,5 @@ func NewFeedForwardBlock[T float.DType](c FeedForwardBlockConfig) *FeedForwardBl
 
 // Forward performs the forward step for each input node and returns the result.
 func (m FeedForwardBlock) Forward(xs []ag.Node) []ag.Node {
-	return m.Norm.Forward(ag.Map2Concurrent(ag.Add, xs, m.MLP.Forward(xs...))...)
+	return m.Norm.Forward(ag.Map2(ag.Add, xs, m.MLP.Forward(xs...))...)
 }

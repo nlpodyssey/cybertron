@@ -57,7 +57,7 @@ func NewEmbeddings[T float.DType](c Config, repo store.Repository, shared embedd
 
 // Encode performs the Bart initial input encoding.
 func (m *Embeddings) Encode(inputIDs []int, offset int) []ag.Node {
-	ys := ag.Map2Concurrent(ag.Add,
+	ys := ag.Map2(ag.Add,
 		m.useScaledEmbeddings(m.SharedEmbeddings.Encode(inputIDs)),
 		m.PositionalEncoder.Encode(makePositions(len(inputIDs), offset)),
 	)

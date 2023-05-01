@@ -38,5 +38,5 @@ func NewModelForTokenClassification[T float.DType](bert *Model) *ModelForTokenCl
 
 // Classify returns the logits for each token.
 func (m *ModelForTokenClassification) Classify(tokens []string) []ag.Node {
-	return m.Classifier.Forward(m.Bert.Encode(tokens)...)
+	return m.Classifier.Forward(m.Bert.EncodeTokens(tokens)...)
 }

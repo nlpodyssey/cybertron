@@ -7,10 +7,9 @@ package bert
 import (
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/wordpiecetokenizer"
 	"github.com/nlpodyssey/spago/ag"
-	emb "github.com/nlpodyssey/spago/embeddings"
-	"github.com/nlpodyssey/spago/embeddings/store"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
+	emb "github.com/nlpodyssey/spago/nn/embedding"
 	"github.com/nlpodyssey/spago/nn/linear"
 	"github.com/nlpodyssey/spago/nn/normalization/layernorm"
 )
@@ -18,48 +17,36 @@ import (
 // Embeddings implements a Bert input embedding module.
 type Embeddings struct {
 	nn.Module
-	Tokens     *emb.Model[string]
-	Positions  *emb.Model[int]
-	TokenTypes *emb.Model[int]
+	Tokens     *emb.Model // string
+	Positions  *emb.Model
+	TokenTypes *emb.Model
 	Norm       *layernorm.Model
 	Projector  *linear.Model
 	Config     Config
 }
 
 // NewEmbeddings returns a new Bert input embedding module.
-func NewEmbeddings[T float.DType](c Config, repo store.Repository) *Embeddings {
+func NewEmbeddings[T float.DType](c Config) *Embeddings {
 	var projector *linear.Model = nil
 	if c.EmbeddingsSize != c.HiddenSize {
 		projector = linear.New[T](c.EmbeddingsSize, c.HiddenSize)
 	}
 
 	return &Embeddings{
-		Tokens: emb.New[T, string](emb.Config{
-			Size:      c.EmbeddingsSize,
-			StoreName: c.Cybertron.TokensStoreName,
-			Trainable: c.Cybertron.Training,
-		}, repo),
-		Positions: emb.New[T, int](emb.Config{
-			Size:      c.EmbeddingsSize,
-			StoreName: c.Cybertron.PositionsStoreName,
-			Trainable: c.Cybertron.Training,
-		}, repo),
-		TokenTypes: emb.New[T, int](emb.Config{
-			Size:      c.EmbeddingsSize,
-			StoreName: c.Cybertron.TokenTypesStoreName,
-			Trainable: c.Cybertron.Training,
-		}, repo),
-		Norm:      layernorm.New[T](c.EmbeddingsSize, 1e-5),
-		Projector: projector,
-		Config:    c,
+		Tokens:     emb.New[T](c.VocabSize, c.EmbeddingsSize),
+		Positions:  emb.New[T](c.MaxPositionEmbeddings, c.EmbeddingsSize),
+		TokenTypes: emb.New[T](c.TypeVocabSize, c.EmbeddingsSize),
+		Norm:       layernorm.New[T](c.EmbeddingsSize, 1e-5),
+		Projector:  projector,
+		Config:     c,
 	}
 }
 
 // Encode performs the Bert input encoding.
-func (m *Embeddings) Encode(tokens []string) []ag.Node {
+func (m *Embeddings) EncodeTokens(tokens []string) []ag.Node {
 	var (
-		encoded      = m.Tokens.Encode(tokens)
-		positions    = m.Positions.Encode(indices(len(tokens)))
+		encoded      = m.Tokens.MustEncode([]int{}) // TODO: temporary []int{} should the tokens be []int?
+		positions    = m.Positions.MustEncode(indices(len(tokens)))
 		tokenType, _ = m.TokenTypes.Embedding(0)
 	)
 

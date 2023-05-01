@@ -8,11 +8,10 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/embeddings"
-	"github.com/nlpodyssey/spago/embeddings/store"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/attention/multiheadattention"
+	"github.com/nlpodyssey/spago/nn/embedding"
 	"github.com/nlpodyssey/spago/nn/normalization/layernorm"
 )
 
@@ -48,13 +47,13 @@ func init() {
 }
 
 // NewDecoder returns a new Decoder.
-func NewDecoder[T float.DType](c Config, repo store.Repository, shared embeddings.Shared[int]) *Decoder {
+func NewDecoder[T float.DType](c Config, shared embedding.Shared) *Decoder {
 	layers := make([]*DecoderLayer, c.DecoderLayers)
 	for i := 0; i < c.DecoderLayers; i++ {
 		layers[i] = NewDecoderLayer[T](c)
 	}
 	return &Decoder{
-		Embeddings: NewEmbeddings[T](c, repo, shared, true),
+		Embeddings: NewEmbeddings[T](c, shared, true),
 		Layers:     layers,
 		LayerNorm:  layernorm.New[T](c.DModel, 1e-5),
 		Config:     c,

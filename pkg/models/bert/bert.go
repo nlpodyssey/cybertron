@@ -8,9 +8,6 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/embeddings"
-	"github.com/nlpodyssey/spago/embeddings/store"
-	"github.com/nlpodyssey/spago/embeddings/store/diskstore"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
@@ -31,34 +28,16 @@ func init() {
 }
 
 // New returns a new Bert model.
-func New[T float.DType](c Config, repo store.Repository) *Model {
+func New[T float.DType](c Config) *Model {
 	return &Model{
-		Embeddings: NewEmbeddings[T](c, repo),
+		Embeddings: NewEmbeddings[T](c),
 		Encoder:    NewEncoder[T](c),
 		Pooler:     NewPooler[T](c),
 		Config:     c,
 	}
 }
 
-// SetEmbeddings sets the embeddings of the model.
-func (m *Model) SetEmbeddings(repo *diskstore.Repository) (err error) {
-	nn.Apply(m, func(model nn.Model) {
-		switch em := model.(type) {
-		case *embeddings.Model[[]byte], *embeddings.Model[int], *embeddings.Model[string]:
-			// In order to avoid setting the repository to shared embeddings,
-			// it is essential to perform the check on the concrete types.
-			// However, use duck-typing to avoid having to do a separate case per key type.
-			if e := em.(interface {
-				UseRepository(repo store.Repository) error
-			}).UseRepository(repo); e != nil && err == nil {
-				err = e
-			}
-		}
-	})
-	return err
-}
-
 // Encode produce the encoded representation for the input tokens
-func (m *Model) Encode(tokens []string) []ag.Node {
-	return m.Encoder.Encode(m.Embeddings.Encode(tokens))
+func (m *Model) EncodeTokens(tokens []string) []ag.Node {
+	return m.Encoder.Encode(m.Embeddings.EncodeTokens(tokens))
 }

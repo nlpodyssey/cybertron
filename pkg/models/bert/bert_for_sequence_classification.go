@@ -38,5 +38,5 @@ func NewModelForSequenceClassification[T float.DType](bert *Model) *ModelForSequ
 
 // Classify returns the logits for the sequence classification.
 func (m *ModelForSequenceClassification) Classify(tokens []string) ag.Node {
-	return m.Classifier.Forward(m.Bert.Pooler.Forward(m.Bert.Encode(tokens)[0]))[0]
+	return m.Classifier.Forward(m.Bert.Pooler.Forward(m.Bert.EncodeTokens(tokens)[0]))[0]
 }

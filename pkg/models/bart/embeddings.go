@@ -8,17 +8,16 @@ import (
 	"math"
 
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/embeddings"
-	"github.com/nlpodyssey/spago/embeddings/store"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
+	"github.com/nlpodyssey/spago/nn/embedding"
 	"github.com/nlpodyssey/spago/nn/normalization/layernorm"
 )
 
 type Embeddings struct {
 	nn.Module
 	// SharedEmbeddings is the shared embedding module.
-	SharedEmbeddings embeddings.Shared[int]
+	SharedEmbeddings embedding.Shared
 	// PositionalEncoder is the positional encoder module.
 	PositionalEncoder *PositionalEncoder
 	// Norm is the normalization module.
@@ -30,7 +29,7 @@ type Embeddings struct {
 }
 
 // NewEmbeddings returns a new Embeddings.
-func NewEmbeddings[T float.DType](c Config, repo store.Repository, shared embeddings.Shared[int], isDecoder bool) *Embeddings {
+func NewEmbeddings[T float.DType](c Config, shared embedding.Shared, isDecoder bool) *Embeddings {
 	storeName := c.Cybertron.EncoderPositionalEncodingStoreName
 	if isDecoder {
 		storeName = c.Cybertron.DecoderPositionalEncodingStoreName
@@ -48,7 +47,7 @@ func NewEmbeddings[T float.DType](c Config, repo store.Repository, shared embedd
 			Offset:        c.Cybertron.PositionalEncoderOffset,
 			StoreName:     storeName,
 			Trainable:     c.Cybertron.Training,
-		}, repo),
+		}),
 		Norm:        layernorm.New[T](c.DModel, 1e-5),
 		ScaleFactor: scaleFactor,
 		Config:      c,
@@ -58,7 +57,7 @@ func NewEmbeddings[T float.DType](c Config, repo store.Repository, shared embedd
 // Encode performs the Bart initial input encoding.
 func (m *Embeddings) Encode(inputIDs []int, offset int) []ag.Node {
 	ys := ag.Map2(ag.Add,
-		m.useScaledEmbeddings(m.SharedEmbeddings.Encode(inputIDs)),
+		m.useScaledEmbeddings(m.SharedEmbeddings.MustEncode(inputIDs)),
 		m.PositionalEncoder.Encode(makePositions(len(inputIDs), offset)),
 	)
 	if m.Config.NormalizeEmbedding {

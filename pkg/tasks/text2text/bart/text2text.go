@@ -14,14 +14,13 @@ import (
 
 	"github.com/nlpodyssey/cybertron/pkg/generationutils"
 	"github.com/nlpodyssey/cybertron/pkg/models/bart"
-	"github.com/nlpodyssey/cybertron/pkg/tasks/diskstoremode"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/bpetokenizer"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/sentencepiece"
 	"github.com/nlpodyssey/cybertron/pkg/utils/nullable"
-	"github.com/nlpodyssey/spago/embeddings/store/diskstore"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
+	"github.com/nlpodyssey/spago/nn/embedding"
 )
 
 var _ text2text.Interface = &Text2Text{}
@@ -34,8 +33,6 @@ type Text2Text struct {
 	Model *bart.ModelForConditionalGeneration
 	// Tokenizer is the tokenizer used for conditional generation.
 	Tokenizer Tokenizer
-	// embeddingsRepo is the repository used for loading embeddings.
-	embeddingsRepo *diskstore.Repository
 }
 
 type Tokenizer interface {
@@ -45,20 +42,13 @@ type Tokenizer interface {
 
 // LoadText2Text returns a Text2Text loading the model, the embeddings and the tokenizer from a directory.
 func LoadText2Text(modelPath string) (*Text2Text, error) {
-	embeddingsRepo, err := diskstore.NewRepository(filepath.Join(modelPath, "repo"), diskstoremode.DefaultDiskStoreMode)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load embeddings repository for text2text: %w", err)
-	}
-
 	m, err := nn.LoadFromFile[*bart.ModelForConditionalGeneration](path.Join(modelPath, "spago_model.bin"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to load bart model: %w", err)
 	}
 
-	err = m.Bart.SetEmbeddings(embeddingsRepo)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load embeddings: %w", err)
-	}
+	m.Bart.Encoder.Embeddings.SharedEmbeddings = embedding.Shared{Model: m.Bart.Embeddings}
+	m.Bart.Decoder.Embeddings.SharedEmbeddings = embedding.Shared{Model: m.Bart.Embeddings}
 
 	tok, err := resolveTokenizer(modelPath, m.Bart.Config)
 	if err != nil {
@@ -66,9 +56,8 @@ func LoadText2Text(modelPath string) (*Text2Text, error) {
 	}
 
 	return &Text2Text{
-		Model:          m,
-		Tokenizer:      tok,
-		embeddingsRepo: embeddingsRepo,
+		Model:     m,
+		Tokenizer: tok,
 	}, nil
 }
 
@@ -113,12 +102,6 @@ func loadBPETokenizer(path string, config bart.Config) (Tokenizer, error) {
 func doesFileExist(fileName string) bool {
 	_, err := os.Stat(fileName)
 	return !os.IsNotExist(err)
-}
-
-// Close finalizes the Text2Text resources.
-// It satisfies the interface io.Closer.
-func (m *Text2Text) Close() error {
-	return m.embeddingsRepo.Close()
 }
 
 // Generate generates a text from the input.

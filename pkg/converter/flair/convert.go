@@ -19,14 +19,12 @@ import (
 	"github.com/nlpodyssey/cybertron/pkg/models/flair/charlm"
 	"github.com/nlpodyssey/cybertron/pkg/vocabulary"
 	"github.com/nlpodyssey/gopickle/pytorch"
-	"github.com/nlpodyssey/spago/embeddings"
-	"github.com/nlpodyssey/spago/embeddings/store"
-	"github.com/nlpodyssey/spago/embeddings/store/diskstore"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/birnn"
 	"github.com/nlpodyssey/spago/nn/crf"
+	"github.com/nlpodyssey/spago/nn/embedding"
 	"github.com/nlpodyssey/spago/nn/linear"
 	"github.com/nlpodyssey/spago/nn/recurrent/lstm"
 	"github.com/rs/zerolog/log"
@@ -57,23 +55,8 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) (err error) 
 		return fmt.Errorf("failed to load sequence tagger: %w", err)
 	}
 
-	// TODO: "repo" is not such a good name... maybe "embeddings" or "embeddings_repository"?
-	repo, err := diskstore.NewRepository(filepath.Join(modelDir, "repo"), diskstore.ReadWriteMode)
-	if err != nil {
-		return fmt.Errorf("failed to create or open embeddings repository: %w", err)
-	}
-	defer func() {
-		if e := repo.Close(); e != nil {
-			err = fmt.Errorf("failed to close embeddings repository: %w", e)
-		}
-	}()
-	if err := repo.DropAll(); err != nil {
-		return fmt.Errorf("failed to drop embeddings repository content: %w", err)
-	}
-
 	conv := &converter[T]{
-		st:   st,
-		repo: repo,
+		st: st,
 	}
 
 	err = createConfigFile(conv.config(), configFilename)
@@ -118,8 +101,7 @@ func createConfigFile(conf flair.Config, filename string) (err error) {
 }
 
 type converter[T float.DType] struct {
-	st   *convflair.SequenceTagger
-	repo store.Repository
+	st *convflair.SequenceTagger
 }
 
 func (conv *converter[T]) flairModel() (m *flair.Model, err error) {
@@ -202,17 +184,13 @@ func (conv *converter[T]) encoderEmbeddingsTokensEncoder() ([]flair.TokensEncode
 	tEnc := make([]flair.TokensEncoder, 0)
 
 	{ // --- Word embeddings ---
-		for i, item := range flairWe {
-			st, err := conv.repo.Store(fmt.Sprintf("word_%d", i))
-			if err != nil {
-				return nil, fmt.Errorf("failed to get embeddings store for word embeddings: %w", err)
-			}
-
-			we, err := conv.encoderEmbeddingsTokensEncoderWordEmbeddings(st, item)
+		for _, item := range flairWe {
+			we, err := conv.encoderEmbeddingsTokensEncoderWordEmbeddings(item)
 			if err != nil {
 				return nil, fmt.Errorf("failed to convert WordEmbeddings: %w", err)
 			}
-			tEnc = append(tEnc, we)
+			_ = we
+			//tEnc = append(tEnc, we) // TODO: create a wrapper of embedding.Model adding vocabulary and implement TokensEncoder
 		}
 	}
 
@@ -222,20 +200,11 @@ func (conv *converter[T]) encoderEmbeddingsTokensEncoder() ([]flair.TokensEncode
 			return nil, fmt.Errorf("failed to convert FlairEmbeddings CharLM vocabulary: %w", err)
 		}
 
-		storeL2R, err := conv.repo.Store("charlm_l2r")
-		if err != nil {
-			return nil, fmt.Errorf("failed to get embeddings store for charlm left-to-right: %w", err)
-		}
-		storeR2L, err := conv.repo.Store("charlm_r2l")
-		if err != nil {
-			return nil, fmt.Errorf("failed to get embeddings store for charlm right-to-left: %w", err)
-		}
-
-		l2r, err := conv.encoderEmbeddingsTokensEncoderCharLM(storeL2R, voc, flairEmbForward)
+		l2r, err := conv.encoderEmbeddingsTokensEncoderCharLM(voc, flairEmbForward)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert FlairEmbeddings-forward: %w", err)
 		}
-		r2l, err := conv.encoderEmbeddingsTokensEncoderCharLM(storeR2L, voc, flairEmbBackward)
+		r2l, err := conv.encoderEmbeddingsTokensEncoderCharLM(voc, flairEmbBackward)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert FlairEmbeddings-backward: %w", err)
 		}
@@ -251,18 +220,14 @@ func (conv *converter[T]) encoderEmbeddingsTokensEncoder() ([]flair.TokensEncode
 	return tEnc, nil
 }
 
-func (conv *converter[T]) encoderEmbeddingsTokensEncoderWordEmbeddings(st store.Store, we *convflair.WordEmbeddings) (*flair.WordEmbeddings, error) {
-	conf := embeddings.Config{
-		Size:             we.Embedding.EmbeddingDim,
-		UseZeroEmbedding: true,
-		StoreName:        st.Name(),
-		Trainable:        false,
-	}
-	emb := embeddings.New[T, string](conf, conv.repo)
+func (conv *converter[T]) encoderEmbeddingsTokensEncoderWordEmbeddings(we *convflair.WordEmbeddings) (*flair.WordEmbeddings, error) {
+
+	emb := embedding.New[T](len(we.Vocab), we.Embedding.EmbeddingDim)
 
 	weights := we.Embedding.Weight
 	for key, index := range we.Vocab {
-		emb.EmbeddingFast(key).ReplaceValue(weights[index])
+		_ = key // TODO: use key
+		emb.Weights[index].ReplaceValue(weights[index])
 	}
 
 	return &flair.WordEmbeddings{Model: emb}, nil
@@ -277,7 +242,7 @@ func (conv *converter[T]) encoderEmbeddingsTokensEncoderCharLMVocabulary(forward
 	return vocabulary.New(d1.Idx2Item), nil
 }
 
-func (conv *converter[T]) encoderEmbeddingsTokensEncoderCharLM(st store.Store, voc *vocabulary.Vocabulary, fe *convflair.FlairEmbeddings) (*charlm.Model, error) {
+func (conv *converter[T]) encoderEmbeddingsTokensEncoderCharLM(voc *vocabulary.Vocabulary, fe *convflair.FlairEmbeddings) (*charlm.Model, error) {
 	decoder, err := conv.convertLinear(fe.LM.Decoder)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert CharLM decoder: %w", err)
@@ -288,7 +253,7 @@ func (conv *converter[T]) encoderEmbeddingsTokensEncoderCharLM(st store.Store, v
 		return nil, fmt.Errorf("failed to convert CharLM RNN: %w", err)
 	}
 
-	emb, err := conv.encoderEmbeddingsTokensEncoderCharLMEmbeddings(st, voc, fe)
+	emb, err := conv.encoderEmbeddingsTokensEncoderCharLMEmbeddings(voc, fe)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert CharLM embeddings: %w", err)
 	}
@@ -320,19 +285,16 @@ func (conv *converter[T]) encoderEmbeddingsTokensEncoderCharLM(st store.Store, v
 	}, nil
 }
 
-func (conv *converter[T]) encoderEmbeddingsTokensEncoderCharLMEmbeddings(st store.Store, voc *vocabulary.Vocabulary, fe *convflair.FlairEmbeddings) (*embeddings.Model[string], error) {
+func (conv *converter[T]) encoderEmbeddingsTokensEncoderCharLMEmbeddings(voc *vocabulary.Vocabulary, fe *convflair.FlairEmbeddings) (*embedding.Model, error) {
 	enc := fe.LM.Encoder
-	conf := embeddings.Config{
-		Size:             enc.EmbeddingDim,
-		UseZeroEmbedding: true,
-		StoreName:        st.Name(),
-		Trainable:        false,
-	}
-	emb := embeddings.New[T, string](conf, conv.repo)
+
+	emb := embedding.New[T](voc.Size(), enc.EmbeddingDim)
 
 	weights := enc.Weight
 	for key, index := range voc.Map() {
-		emb.EmbeddingFast(key).ReplaceValue(weights[index])
+		_ = key
+		// TODO: key
+		emb.Weights[index].ReplaceValue(weights[index])
 	}
 
 	return emb, nil

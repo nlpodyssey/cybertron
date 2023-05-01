@@ -13,13 +13,11 @@ import (
 	"strings"
 
 	"github.com/nlpodyssey/cybertron/pkg/models/bert"
-	"github.com/nlpodyssey/cybertron/pkg/tasks/diskstoremode"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/tokenclassification"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/wordpiecetokenizer"
 	"github.com/nlpodyssey/cybertron/pkg/vocabulary"
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/embeddings/store/diskstore"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/rs/zerolog/log"
 )
@@ -34,8 +32,6 @@ type TokenClassification struct {
 	Labels []string
 	// doLowerCase is a flag indicating if the model should lowercase the input before tokenization.
 	doLowerCase bool
-	// embeddingsRepo is the repository used for loading embeddings.
-	embeddingsRepo *diskstore.Repository
 }
 
 // LoadTokenClassification returns a TokenClassification loading the model, the embeddings and the tokenizer from a directory.
@@ -57,27 +53,16 @@ func LoadTokenClassification(modelPath string) (*TokenClassification, error) {
 	}
 	labels := ID2Label(config.ID2Label)
 
-	embeddingsRepo, err := diskstore.NewRepository(filepath.Join(modelPath, "repo"), diskstoremode.DefaultDiskStoreMode)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load embeddings repository for text classification: %w", err)
-	}
-
 	m, err := nn.LoadFromFile[*bert.ModelForTokenClassification](path.Join(modelPath, "spago_model.bin"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to load bart model: %w", err)
 	}
 
-	err = m.Bert.SetEmbeddings(embeddingsRepo)
-	if err != nil {
-		return nil, fmt.Errorf("failed to set embeddings: %w", err)
-	}
-
 	return &TokenClassification{
-		Model:          &ModelForTokenClassification{ModelForTokenClassification: m},
-		Tokenizer:      tokenizer,
-		Labels:         labels,
-		doLowerCase:    tokenizerConfig.DoLowerCase,
-		embeddingsRepo: embeddingsRepo,
+		Model:       &ModelForTokenClassification{ModelForTokenClassification: m},
+		Tokenizer:   tokenizer,
+		Labels:      labels,
+		doLowerCase: tokenizerConfig.DoLowerCase,
 	}, nil
 }
 
@@ -94,12 +79,6 @@ func ID2Label(value map[string]string) []string {
 		y[i] = v
 	}
 	return y
-}
-
-// Close finalizes the TokenClassification resources.
-// It satisfies the interface io.Closer.
-func (m *TokenClassification) Close() error {
-	return m.embeddingsRepo.Close()
 }
 
 // Classify returns the classification of the given text.

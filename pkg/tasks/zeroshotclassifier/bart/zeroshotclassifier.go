@@ -8,17 +8,14 @@ import (
 	"context"
 	"fmt"
 	"path"
-	"path/filepath"
 	"runtime"
 	"sort"
 	"strings"
 
 	"github.com/nlpodyssey/cybertron/pkg/models/bart"
-	"github.com/nlpodyssey/cybertron/pkg/tasks/diskstoremode"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/bpetokenizer"
 	"github.com/nlpodyssey/cybertron/pkg/utils/sliceutils"
-	"github.com/nlpodyssey/spago/embeddings/store/diskstore"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
@@ -39,7 +36,6 @@ type ZeroShotClassifier struct {
 	Model *bart.ModelForSequenceClassification
 	// Tokenizer is the tokenizer.
 	Tokenizer                     *bpetokenizer.BPETokenizer
-	embeddingsRepo                *diskstore.Repository
 	entailmentID, contradictionID int
 }
 
@@ -50,19 +46,9 @@ func LoadZeroShotClassifier(modelPath string) (*ZeroShotClassifier, error) {
 		return nil, fmt.Errorf("failed to load sentencepiece tokenizer for zero-shot: %w", err)
 	}
 
-	embeddingsRepo, err := diskstore.NewRepository(filepath.Join(modelPath, "repo"), diskstoremode.DefaultDiskStoreMode)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load embeddings repository for zero-shot: %w", err)
-	}
-
 	m, err := nn.LoadFromFile[*bart.ModelForSequenceClassification](path.Join(modelPath, "spago_model.bin"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to load bart model: %w", err)
-	}
-
-	err = m.Bart.SetEmbeddings(embeddingsRepo)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load embeddings: %w", err)
 	}
 
 	entailmentID, err := m.Bart.Config.EntailmentID()
@@ -77,16 +63,9 @@ func LoadZeroShotClassifier(modelPath string) (*ZeroShotClassifier, error) {
 	return &ZeroShotClassifier{
 		Model:           m,
 		Tokenizer:       tok,
-		embeddingsRepo:  embeddingsRepo,
 		entailmentID:    entailmentID,
 		contradictionID: contradictionID,
 	}, nil
-}
-
-// Close finalizes the ZeroShotClassifier resources.
-// It satisfies the interface io.Closer.
-func (m *ZeroShotClassifier) Close() error {
-	return m.embeddingsRepo.Close()
 }
 
 // Classify classifies the input.

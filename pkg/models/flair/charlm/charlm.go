@@ -6,13 +6,13 @@ package charlm
 
 import (
 	"encoding/gob"
+	"fmt"
 
 	"github.com/nlpodyssey/cybertron/pkg/vocabulary"
 	"github.com/nlpodyssey/spago/ag"
-	emb "github.com/nlpodyssey/spago/embeddings"
-	"github.com/nlpodyssey/spago/embeddings/store"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
+	emb "github.com/nlpodyssey/spago/nn/embedding"
 	"github.com/nlpodyssey/spago/nn/linear"
 	"github.com/nlpodyssey/spago/nn/recurrent/lstm"
 )
@@ -31,7 +31,7 @@ type Model struct {
 	Decoder    *linear.Model
 	Projection *linear.Model
 	RNN        *lstm.Model
-	Embeddings *emb.Model[string]
+	Embeddings *emb.Model
 	Vocabulary *vocabulary.Vocabulary
 }
 
@@ -41,7 +41,7 @@ func init() {
 
 // NewCharLM returns a new character-level language Model, initialized according to
 // the given configuration.
-func NewCharLM[T float.DType](c Config, repo store.Repository) *Model {
+func NewCharLM[T float.DType](c Config) *Model {
 	if c.SequenceSeparator == "" {
 		c.SequenceSeparator = defaultSequenceSeparator
 	}
@@ -53,16 +53,16 @@ func NewCharLM[T float.DType](c Config, repo store.Repository) *Model {
 		Decoder:    linear.New[T](c.OutputSize, c.VocabularySize),
 		Projection: linear.New[T](c.HiddenSize, c.OutputSize),
 		RNN:        lstm.New[T](c.EmbeddingSize, c.HiddenSize),
-		Embeddings: emb.New[T, string](emb.Config{
-			Size:      c.EmbeddingSize,
-			StoreName: c.Name,
-			Trainable: c.Trainable,
-		}, repo),
+		Embeddings: emb.New[T](c.VocabularySize, c.EmbeddingSize),
 	}
 }
 
-func (m *Model) Encode(xs []string) []ag.Node {
-	return m.UseProjection(m.RNN.Forward(m.Embeddings.Encode(xs)...))
+func (m *Model) EncodeTokens(xs []string) []ag.Node {
+	indices, err := m.convertStringsToInts(xs)
+	if err != nil {
+		panic(err) // TODO: return error
+	}
+	return m.UseProjection(m.RNN.Forward(m.Embeddings.MustEncode(indices)...))
 }
 
 func (m *Model) UseProjection(xs []ag.Node) []ag.Node {
@@ -70,4 +70,16 @@ func (m *Model) UseProjection(xs []ag.Node) []ag.Node {
 		return m.Projection.Forward(xs...)
 	}
 	return xs
+}
+
+func (m *Model) convertStringsToInts(strings []string) ([]int, error) {
+	ints := make([]int, len(strings))
+	for i, str := range strings {
+		value, found := m.Vocabulary.ID(str)
+		if !found {
+			return nil, fmt.Errorf("word '%s' not found in vocab", str)
+		}
+		ints[i] = value
+	}
+	return ints, nil
 }

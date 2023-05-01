@@ -13,14 +13,12 @@ import (
 	"strings"
 
 	"github.com/nlpodyssey/cybertron/pkg/models/bert"
-	"github.com/nlpodyssey/cybertron/pkg/tasks/diskstoremode"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/wordpiecetokenizer"
 	"github.com/nlpodyssey/cybertron/pkg/utils/sliceutils"
 	"github.com/nlpodyssey/cybertron/pkg/vocabulary"
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/embeddings/store/diskstore"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 )
@@ -38,8 +36,6 @@ type QuestionAnswering struct {
 	Model *bert.ModelForQuestionAnswering
 	// Tokenizer is the tokenizer used to tokenize questions and passages.
 	Tokenizer *wordpiecetokenizer.WordPieceTokenizer
-	// embeddingsRepo is the repository used for loading embeddings.
-	embeddingsRepo *diskstore.Repository
 }
 
 // LoadQuestionAnswering returns a QuestionAnswering loading the model, the embeddings and the tokenizer from a directory.
@@ -50,32 +46,15 @@ func LoadQuestionAnswering(modelPath string) (*QuestionAnswering, error) {
 	}
 	tokenizer := wordpiecetokenizer.New(vocab)
 
-	embeddingsRepo, err := diskstore.NewRepository(filepath.Join(modelPath, "repo"), diskstoremode.DefaultDiskStoreMode)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load embeddings repository for question-answering: %w", err)
-	}
-
 	m, err := nn.LoadFromFile[*bert.ModelForQuestionAnswering](path.Join(modelPath, "spago_model.bin"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to load bart model: %w", err)
 	}
 
-	err = m.Bert.SetEmbeddings(embeddingsRepo)
-	if err != nil {
-		return nil, fmt.Errorf("failed to set embeddings: %w", err)
-	}
-
 	return &QuestionAnswering{
-		Model:          m,
-		Tokenizer:      tokenizer,
-		embeddingsRepo: embeddingsRepo,
+		Model:     m,
+		Tokenizer: tokenizer,
 	}, nil
-}
-
-// Close finalizes the QuestionAnswering resources.
-// It satisfies the interface io.Closer.
-func (qa *QuestionAnswering) Close() error {
-	return qa.embeddingsRepo.Close()
 }
 
 // Answer returns the answers for the given question and passage.

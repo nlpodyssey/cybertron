@@ -60,7 +60,7 @@ type text struct {
 }
 
 // Encode performs the forward step for each input and returns the result.
-func (m *ContextualStringEmbeddings) Encode(tokens []string) []ag.Node {
+func (m *ContextualStringEmbeddings) EncodeTokens(tokens []string) []ag.Node {
 	t := text{
 		string: strings.Join(tokens, " "),
 		tokens: tokens,
@@ -79,12 +79,12 @@ func (m *ContextualStringEmbeddings) computeHiddenStates(sequence []string) (hid
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
-		hiddenStates = m.LeftToRight.Encode(pad(sequence, m.StartMarker, m.EndMarker))
+		hiddenStates = m.LeftToRight.EncodeTokens(pad(sequence, m.StartMarker, m.EndMarker))
 		wg.Done()
 	}()
 
 	go func() {
-		rHiddenStates = m.RightToLeft.Encode(pad(reversed(sequence), m.StartMarker, m.EndMarker))
+		rHiddenStates = m.RightToLeft.EncodeTokens(pad(reversed(sequence), m.StartMarker, m.EndMarker))
 		wg.Done()
 	}()
 	wg.Wait()

@@ -48,7 +48,7 @@ func NewModelForSequenceEncoding(bert *Model) *ModelForSequenceEncoding {
 
 // Encode returns the vector representation for the input sequence.
 func (m *ModelForSequenceEncoding) Encode(tokens []string, poolingStrategy PoolingStrategyType) (ag.Node, error) {
-	return m.pooling(m.Bert.Encode(tokens), poolingStrategy)
+	return m.pooling(m.Bert.EncodeTokens(tokens), poolingStrategy)
 }
 
 func (m *ModelForSequenceEncoding) pooling(lastHiddenStates []ag.Node, ps PoolingStrategyType) (ag.Node, error) {

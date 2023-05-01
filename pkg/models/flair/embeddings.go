@@ -18,13 +18,13 @@ type Embeddings struct {
 
 type TokensEncoder interface {
 	nn.Model
-	Encode(tokens []string) []ag.Node
+	EncodeTokens(tokens []string) []ag.Node
 }
 
-func (m *Embeddings) Encode(tokens []string) []ag.Node {
+func (m *Embeddings) EncodeTokens(tokens []string) []ag.Node {
 	encoded := make([][]ag.Node, len(tokens))
 	for _, encoder := range m.TokensEncoder {
-		for i, encoding := range encoder.Encode(tokens) {
+		for i, encoding := range encoder.EncodeTokens(tokens) {
 			encoded[i] = append(encoded[i], encoding)
 		}
 	}

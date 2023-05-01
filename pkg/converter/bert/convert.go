@@ -13,7 +13,6 @@ import (
 	"github.com/nlpodyssey/cybertron/pkg/converter/pytorch"
 	"github.com/nlpodyssey/cybertron/pkg/models/bert"
 	"github.com/nlpodyssey/cybertron/pkg/vocabulary"
-	"github.com/nlpodyssey/spago/embeddings/store/diskstore"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
@@ -62,27 +61,10 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 		return err
 	}
 
-	repo, err := diskstore.NewRepository(filepath.Join(modelDir, "repo"), diskstore.ReadWriteMode)
-	if err != nil {
-		panic(err)
-	}
-	defer func() {
-		err = repo.Close()
-		if err != nil {
-			panic(err)
-		}
-	}()
-	if err := repo.DropAll(); err != nil {
-		panic(err)
-	}
-
 	{
 		// Enable training mode, so that we have writing permissions
 		// (for example, for embeddings storage files).
 		config.Cybertron.Training = true
-		config.Cybertron.TokensStoreName = "tokens"
-		config.Cybertron.PositionsStoreName = "positions"
-		config.Cybertron.TokenTypesStoreName = "token_types"
 
 		if config.ModelType == "bert" || config.EmbeddingsSize == 0 {
 			config.EmbeddingsSize = config.HiddenSize
@@ -98,7 +80,7 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 	}
 
 	params := make(paramsMap)
-	baseModel := mapBaseModel[T](config, repo, pyParams, params, vocab)
+	baseModel := mapBaseModel[T](config, pyParams, params, vocab)
 	finalModel := mapSpecificArchitecture[T](baseModel, config.Architectures, params)
 
 	mapping := make(map[string]*mappingParam)
@@ -151,18 +133,18 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 	return nil
 }
 
-func mapBaseModel[T float.DType](config bert.Config, repo *diskstore.Repository, pyParams *pytorch.ParamsProvider[T], params paramsMap, vocab *vocabulary.Vocabulary) *bert.Model {
-	baseModel := bert.New[T](config, repo)
+func mapBaseModel[T float.DType](config bert.Config, pyParams *pytorch.ParamsProvider[T], params paramsMap, vocab *vocabulary.Vocabulary) *bert.Model {
+	baseModel := bert.New[T](config)
 
 	{
 		source := pyParams.Pop("bert.embeddings.word_embeddings.weight")
-		size := baseModel.Embeddings.Tokens.Config.Size
+		size := baseModel.Embeddings.Tokens.Dim
 		for i := 0; i < config.VocabSize; i++ {
 			key, _ := vocab.Term(i)
 			if len(key) == 0 {
 				continue // skip empty key
 			}
-			item, _ := baseModel.Embeddings.Tokens.Embedding(key)
+			item, _ := baseModel.Embeddings.Tokens.Embedding(i)
 			item.ReplaceValue(mat.NewVecDense[T](source[i*size : (i+1)*size]))
 		}
 	}

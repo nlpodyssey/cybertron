@@ -8,10 +8,9 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/embeddings"
-	"github.com/nlpodyssey/spago/embeddings/store"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
+	"github.com/nlpodyssey/spago/nn/embedding"
 	"github.com/nlpodyssey/spago/nn/normalization/layernorm"
 )
 
@@ -35,14 +34,14 @@ func init() {
 }
 
 // NewEncoder returns a new Encoder.
-func NewEncoder[T float.DType](c Config, repo store.Repository, shared embeddings.Shared[int]) *Encoder {
+func NewEncoder[T float.DType](c Config, shared embedding.Shared) *Encoder {
 	layers := make([]*EncoderLayer, c.EncoderLayers)
 	for i := 0; i < c.EncoderLayers; i++ {
 		layers[i] = NewEncoderLayer[T](c)
 	}
 
 	return &Encoder{
-		Embeddings: NewEmbeddings[T](c, repo, shared, false),
+		Embeddings: NewEmbeddings[T](c, shared, false),
 		Layers:     layers,
 		LayerNorm:  layernorm.New[T](c.DModel, 1e-5),
 		Config:     c,

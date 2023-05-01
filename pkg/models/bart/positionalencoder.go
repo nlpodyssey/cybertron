@@ -8,11 +8,10 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/embeddings"
-	"github.com/nlpodyssey/spago/embeddings/store"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
+	"github.com/nlpodyssey/spago/nn/embedding"
 )
 
 var _ nn.Model = &PositionalEncoder{}
@@ -32,7 +31,7 @@ type PositionalEncoderConfig struct {
 type PositionalEncoder struct {
 	nn.Module
 	// Embeddings contains the embeddings for each position.
-	Embeddings *embeddings.Model[int]
+	Embeddings *embedding.Model
 	// Config contains the configuration settings.
 	Config PositionalEncoderConfig
 }
@@ -42,12 +41,8 @@ func init() {
 }
 
 // NewPositionalEncoder returns a new PositionalEncoder.
-func NewPositionalEncoder[T float.DType](config PositionalEncoderConfig, repo store.Repository) *PositionalEncoder {
-	e := embeddings.New[T, int](embeddings.Config{
-		Size:      config.EmbeddingDim,
-		StoreName: config.StoreName,
-		Trainable: config.Trainable,
-	}, repo)
+func NewPositionalEncoder[T float.DType](config PositionalEncoderConfig) *PositionalEncoder {
+	e := embedding.New[T](config.NumEmbeddings, config.EmbeddingDim)
 
 	size := config.EmbeddingDim
 	half := (size + (size % 2)) / 2
@@ -73,7 +68,7 @@ func NewPositionalEncoder[T float.DType](config PositionalEncoderConfig, repo st
 
 // Encode performs the forward step for each input and returns the result.
 func (m *PositionalEncoder) Encode(positions []int) []ag.Node {
-	return m.Embeddings.Encode(m.shift(positions))
+	return m.Embeddings.MustEncode(m.shift(positions))
 }
 
 // shift returns the shifted positions by the offset.

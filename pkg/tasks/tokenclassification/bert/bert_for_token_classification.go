@@ -22,7 +22,7 @@ func (m *ModelForTokenClassification) Classify(tokens []string) []ag.Node {
 }
 
 func (m *ModelForTokenClassification) EncodeAndReduce(tokens []string) []ag.Node {
-	encoded := m.Bert.Encode(tokens)
+	encoded := m.Bert.EncodeTokens(tokens)
 
 	result := make([]ag.Node, 0, len(tokens))
 	for i, token := range tokens {

@@ -12,7 +12,6 @@ import (
 
 	"github.com/nlpodyssey/cybertron/pkg/converter/pytorch"
 	"github.com/nlpodyssey/cybertron/pkg/models/bart"
-	"github.com/nlpodyssey/spago/embeddings/store/diskstore"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
@@ -62,10 +61,6 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 		config.Cybertron.PositionalEncoderOffset = 2
 	}
 
-	config.Cybertron.SharedEmbeddingsStoreName = "shared"
-	config.Cybertron.EncoderPositionalEncodingStoreName = "encoder_positional_encoding"
-	config.Cybertron.DecoderPositionalEncodingStoreName = "decoder_positional_encoding"
-
 	pyParams := pytorch.NewParamsProvider[T]().
 		WithNameMapping(fixParamsName).
 		WithPreProcessing(fixAttentionLayers[T](config))
@@ -74,26 +69,12 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 		return err
 	}
 
-	repo, err := diskstore.NewRepository(filepath.Join(modelDir, "repo"), diskstore.ReadWriteMode)
-	if err != nil {
-		panic(err)
-	}
-	defer func() {
-		err = repo.Close()
-		if err != nil {
-			panic(err)
-		}
-	}()
-	if err := repo.DropAll(); err != nil {
-		panic(err)
-	}
-
-	m := bart.New[T](config, repo)
+	m := bart.New[T](config)
 	bartForConditionalGenertion := bart.NewModelForConditionalGeneration[T](m)
 	bartForSequenceClassification := bart.NewModelForSequenceClassification[T](m)
 	{
 		source := pyParams.Get("model.shared.weight")
-		size := m.Embeddings.Config.Size
+		size := m.Embeddings.Dim
 		for i := 0; i < config.VocabSize; i++ {
 			item, _ := m.Embeddings.Embedding(i)
 			item.ReplaceValue(mat.NewVecDense[T](source[i*size : (i+1)*size]))

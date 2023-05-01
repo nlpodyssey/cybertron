@@ -47,7 +47,7 @@ func NewModelForMaskedLM[T float.DType](bert *Model) *ModelForMaskedLM {
 
 // Predict returns the predictions for the token associated to the masked nodes.
 func (m *ModelForMaskedLM) Predict(tokens []string) map[int]ag.Node {
-	encoded := evaluate(m.Bert.Encode(tokens)...)
+	encoded := evaluate(m.Bert.EncodeTokens(tokens)...)
 	result := make(map[int]ag.Node)
 	for _, id := range masked(tokens) {
 		result[id] = m.Layers.Forward(encoded[id])[0]

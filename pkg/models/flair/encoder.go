@@ -33,6 +33,6 @@ func NewEncoder(embeddings *Embeddings, biRNN *birnn.Model) *Encoder {
 }
 
 // Encode encodes the sequence of tokens.
-func (m *Encoder) Encode(tokens []string) []ag.Node {
-	return m.BiRNN.Forward(m.Embeddings.Encode(tokens)...)
+func (m *Encoder) EncodeTokens(tokens []string) []ag.Node {
+	return m.BiRNN.Forward(m.Embeddings.EncodeTokens(tokens)...)
 }

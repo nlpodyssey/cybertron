@@ -39,7 +39,7 @@ func NewModelForQuestionAnswering[T float.DType](bert *Model) *ModelForQuestionA
 
 // Answer returns the "span start logits" and "span end logits".
 func (m *ModelForQuestionAnswering) Answer(tokens []string) (starts, ends []ag.Node) {
-	for _, y := range m.Classifier.Forward(m.Bert.Encode(tokens)...) {
+	for _, y := range m.Classifier.Forward(m.Bert.EncodeTokens(tokens)...) {
 		starts = append(starts, ag.AtVec(y, 0))
 		ends = append(ends, ag.AtVec(y, 1))
 	}

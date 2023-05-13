@@ -14,6 +14,7 @@ import (
 
 	"github.com/nlpodyssey/cybertron/pkg/generationutils"
 	"github.com/nlpodyssey/cybertron/pkg/models/bart"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/diskstoremode"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/bpetokenizer"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/sentencepiece"
@@ -44,7 +45,7 @@ type Tokenizer interface {
 
 // LoadText2Text returns a Text2Text loading the model, the embeddings and the tokenizer from a directory.
 func LoadText2Text(modelPath string) (*Text2Text, error) {
-	embeddingsRepo, err := diskstore.NewRepository(filepath.Join(modelPath, "repo"), diskstore.ReadOnlyMode)
+	embeddingsRepo, err := diskstore.NewRepository(filepath.Join(modelPath, "repo"), diskstoremode.DefaultDiskStoreMode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load embeddings repository for text2text: %w", err)
 	}

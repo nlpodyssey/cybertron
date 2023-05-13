@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/nlpodyssey/cybertron/pkg/models/bert"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/diskstoremode"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/wordpiecetokenizer"
@@ -49,7 +50,7 @@ func LoadQuestionAnswering(modelPath string) (*QuestionAnswering, error) {
 	}
 	tokenizer := wordpiecetokenizer.New(vocab)
 
-	embeddingsRepo, err := diskstore.NewRepository(filepath.Join(modelPath, "repo"), diskstore.ReadOnlyMode)
+	embeddingsRepo, err := diskstore.NewRepository(filepath.Join(modelPath, "repo"), diskstoremode.DefaultDiskStoreMode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load embeddings repository for question-answering: %w", err)
 	}

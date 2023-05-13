@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/nlpodyssey/cybertron/pkg/models/bart"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/diskstoremode"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/bpetokenizer"
 	"github.com/nlpodyssey/cybertron/pkg/utils/sliceutils"
@@ -49,7 +50,7 @@ func LoadZeroShotClassifier(modelPath string) (*ZeroShotClassifier, error) {
 		return nil, fmt.Errorf("failed to load sentencepiece tokenizer for zero-shot: %w", err)
 	}
 
-	embeddingsRepo, err := diskstore.NewRepository(filepath.Join(modelPath, "repo"), diskstore.ReadOnlyMode)
+	embeddingsRepo, err := diskstore.NewRepository(filepath.Join(modelPath, "repo"), diskstoremode.DefaultDiskStoreMode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load embeddings repository for zero-shot: %w", err)
 	}

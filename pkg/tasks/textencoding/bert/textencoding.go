@@ -7,12 +7,14 @@ package bert
 import (
 	"context"
 	"fmt"
-	"github.com/nlpodyssey/spago/mat"
 	"path"
 	"path/filepath"
 	"strings"
 
+	"github.com/nlpodyssey/spago/mat"
+
 	"github.com/nlpodyssey/cybertron/pkg/models/bert"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/diskstoremode"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/textencoding"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/wordpiecetokenizer"
@@ -48,7 +50,7 @@ func LoadTextEncoding(modelPath string) (*TextEncoding, error) {
 		return nil, fmt.Errorf("failed to load tokenizer config for text encoding: %w", err)
 	}
 
-	embeddingsRepo, err := diskstore.NewRepository(filepath.Join(modelPath, "repo"), diskstore.ReadOnlyMode)
+	embeddingsRepo, err := diskstore.NewRepository(filepath.Join(modelPath, "repo"), diskstoremode.DefaultDiskStoreMode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load embeddings repository for text encoding: %w", err)
 	}

@@ -73,6 +73,12 @@ func LoadTextEncoding(modelPath string) (*TextEncoding, error) {
 	}, nil
 }
 
+// Close finalizes the TextEncoding resources.
+// It satisfies the interface io.Closer.
+func (m *TextEncoding) Close() error {
+	return m.embeddingsRepo.Close()
+}
+
 // Encode returns the dense encoded representation of the given text.
 func (m *TextEncoding) Encode(_ context.Context, text string, poolingStrategy int) (textencoding.Response, error) {
 	tokenized := m.tokenize(text)

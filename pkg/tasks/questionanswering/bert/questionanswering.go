@@ -72,6 +72,12 @@ func LoadQuestionAnswering(modelPath string) (*QuestionAnswering, error) {
 	}, nil
 }
 
+// Close finalizes the QuestionAnswering resources.
+// It satisfies the interface io.Closer.
+func (qa *QuestionAnswering) Close() error {
+	return qa.embeddingsRepo.Close()
+}
+
 // Answer returns the answers for the given question and passage.
 // The options may assume default values if those are not set.
 func (qa *QuestionAnswering) Answer(_ context.Context, question string, passage string, opts *questionanswering.Options) (questionanswering.Response, error) {

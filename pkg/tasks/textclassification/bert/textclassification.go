@@ -97,6 +97,12 @@ func ID2Label(value map[string]string) []string {
 	return y
 }
 
+// Close finalizes the TextClassification resources.
+// It satisfies the interface io.Closer.
+func (m *TextClassification) Close() error {
+	return m.embeddingsRepo.Close()
+}
+
 // Classify returns the classification of the given text.
 func (m *TextClassification) Classify(_ context.Context, text string) (textclassification.Response, error) {
 	tokenized := m.tokenize(text)

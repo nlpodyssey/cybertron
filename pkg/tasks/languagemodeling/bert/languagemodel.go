@@ -77,6 +77,12 @@ func LoadMaskedLanguageModel(modelPath string) (*LanguageModel, error) {
 	}, nil
 }
 
+// Close finalizes the LanguageModel resources.
+// It satisfies the interface io.Closer.
+func (m *LanguageModel) Close() error {
+	return m.embeddingsRepo.Close()
+}
+
 // Predict returns the predicted tokens
 func (m *LanguageModel) Predict(_ context.Context, text string, parameters languagemodeling.Parameters) (languagemodeling.Response, error) {
 	if parameters.K == 0 {

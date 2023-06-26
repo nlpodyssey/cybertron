@@ -27,12 +27,13 @@ const (
 // supportedModelsFiles contains the set of all supported model types as keys,
 // mapped with the set of all related files to download.
 var supportedModelsFiles = map[string][]string{
-	"bart":    {"pytorch_model.bin", "vocab.json", "merges.txt"},
-	"pegasus": {"pytorch_model.bin", "spiece.model"},
-	"marian":  {"pytorch_model.bin", "vocab.json", "source.spm", "target.spm"},
-	"bert":    {"pytorch_model.bin", "vocab.txt", "tokenizer_config.json"},
-	"electra": {"pytorch_model.bin", "vocab.txt", "tokenizer_config.json"},
-	"flair":   {"pytorch_model.bin"},
+	"bart":       {"pytorch_model.bin", "vocab.json", "merges.txt"},
+	"pegasus":    {"pytorch_model.bin", "spiece.model"},
+	"marian":     {"pytorch_model.bin", "vocab.json", "source.spm", "target.spm"},
+	"bert":       {"pytorch_model.bin", "vocab.txt", "tokenizer_config.json"},
+	"distilbert": {"pytorch_model.bin", "vocab.txt", "tokenizer_config.json"},
+	"electra":    {"pytorch_model.bin", "vocab.txt", "tokenizer_config.json"},
+	"flair":      {"pytorch_model.bin"},
 }
 
 // Download downloads a supported pre-trained model from huggingface.co

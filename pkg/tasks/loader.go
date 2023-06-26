@@ -14,6 +14,7 @@ import (
 	"github.com/nlpodyssey/cybertron/pkg/models"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/languagemodeling"
 	bert_for_language_modeling "github.com/nlpodyssey/cybertron/pkg/tasks/languagemodeling/bert"
+	distilbert_for_language_modeling "github.com/nlpodyssey/cybertron/pkg/tasks/languagemodeling/distilbert"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering"
 	bert_for_question_answering "github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering/bert"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
@@ -22,6 +23,7 @@ import (
 	bert_for_text_classification "github.com/nlpodyssey/cybertron/pkg/tasks/textclassification/bert"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/textencoding"
 	bert_for_text_encoding "github.com/nlpodyssey/cybertron/pkg/tasks/textencoding/bert"
+	distilbert_for_text_encoding "github.com/nlpodyssey/cybertron/pkg/tasks/textencoding/distilbert"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/tokenclassification"
 	bert_for_token_classification "github.com/nlpodyssey/cybertron/pkg/tasks/tokenclassification/bert"
 	flair_for_token_classification "github.com/nlpodyssey/cybertron/pkg/tasks/tokenclassification/flair"
@@ -211,6 +213,8 @@ func (l loader[T]) resolveModelForTextEncoding() (obj T, _ error) {
 	switch modelConfig.ModelType {
 	case "bert":
 		return typeCheck[T](bert_for_text_encoding.LoadTextEncoding(modelDir))
+	case "distilbert":
+		return typeCheck[T](distilbert_for_text_encoding.LoadTextEncoding(modelDir))
 	default:
 		return obj, fmt.Errorf("model type %#v doesn't support the text encoding task", modelConfig.ModelType)
 	}
@@ -226,6 +230,8 @@ func (l loader[T]) resolveModelForLanguageModeling() (obj T, _ error) {
 	switch modelConfig.ModelType {
 	case "bert":
 		return typeCheck[T](bert_for_language_modeling.LoadMaskedLanguageModel(modelDir))
+	case "distilbert":
+		return typeCheck[T](distilbert_for_language_modeling.LoadMaskedLanguageModel(modelDir))
 	default:
 		return obj, fmt.Errorf("model type %#v doesn't support the language modeling task", modelConfig.ModelType)
 	}

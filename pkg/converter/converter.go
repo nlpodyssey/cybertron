@@ -10,6 +10,7 @@ import (
 
 	"github.com/nlpodyssey/cybertron/pkg/converter/bart"
 	"github.com/nlpodyssey/cybertron/pkg/converter/bert"
+	"github.com/nlpodyssey/cybertron/pkg/converter/distilbert"
 	"github.com/nlpodyssey/cybertron/pkg/converter/flair"
 	"github.com/nlpodyssey/cybertron/pkg/models"
 	"github.com/nlpodyssey/spago/mat/float"
@@ -29,6 +30,8 @@ func Convert[T float.DType](modelPath string, overwriteIfExists bool) error {
 	switch modelType {
 	case "bert", "electra":
 		return bert.Convert[T](modelPath, overwriteIfExists)
+	case "distilbert":
+		return distilbert.Convert[T](modelPath, overwriteIfExists)
 	case "bart", "marian", "pegasus":
 		return bart.Convert[T](modelPath, overwriteIfExists)
 	case "flair":

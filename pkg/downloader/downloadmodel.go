@@ -6,14 +6,12 @@ package downloader
 
 import (
 	"fmt"
+	"github.com/nlpodyssey/cybertron/pkg/models"
+	"github.com/rs/zerolog/log"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
-
-	"github.com/nlpodyssey/cybertron/pkg/models"
-	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -32,7 +30,6 @@ var supportedModelsFiles = map[string][]string{
 	"marian":  {"pytorch_model.bin", "vocab.json", "source.spm", "target.spm"},
 	"bert":    {"pytorch_model.bin", "vocab.txt", "tokenizer_config.json"},
 	"electra": {"pytorch_model.bin", "vocab.txt", "tokenizer_config.json"},
-	"flair":   {"pytorch_model.bin"},
 }
 
 // Download downloads a supported pre-trained model from huggingface.co
@@ -71,11 +68,6 @@ type downloader struct {
 func (d downloader) download() error {
 	if err := d.ensureModelPath(); err != nil {
 		return err
-	}
-
-	if strings.Contains(d.modelPath, "flair") {
-		// Handling the case where there is no configuration file
-		return d.downloadModelSpecificFiles("flair")
 	}
 
 	if err := d.downloadFile(models.DefaultModelConfigFilename); err != nil {

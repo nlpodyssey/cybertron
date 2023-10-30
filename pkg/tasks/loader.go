@@ -24,7 +24,6 @@ import (
 	bart_for_text_to_text "github.com/nlpodyssey/cybertron/pkg/tasks/textgeneration/bart"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/tokenclassification"
 	bert_for_token_classification "github.com/nlpodyssey/cybertron/pkg/tasks/tokenclassification/bert"
-	flair_for_token_classification "github.com/nlpodyssey/cybertron/pkg/tasks/tokenclassification/flair"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier"
 	bart_for_zero_shot_classification "github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier/bart"
 )
@@ -194,8 +193,6 @@ func (l loader[T]) resolveModelForTokenClassification() (obj T, _ error) {
 	switch modelConfig.ModelType {
 	case "bert":
 		return typeCheck[T](bert_for_token_classification.LoadTokenClassification(modelDir))
-	case "flair":
-		return typeCheck[T](flair_for_token_classification.LoadTokenClassification(modelDir))
 	default:
 		return obj, fmt.Errorf("model type %#v doesn't support the token classification task", modelConfig.ModelType)
 	}

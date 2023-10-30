@@ -18,13 +18,15 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Example of content to be used as context for the question answering task.
+const content = `Cloud computing is a technology that allows individuals and businesses to access computing resources over the Internet. It enables users to utilize hardware and software that are managed by third parties at remote locations. Services provided by cloud computing include storage solutions, databases, and computing power, which can be used on a pay-per-use basis. This model offers flexibility and scalability, reducing the need for large upfront investments in infrastructure. Major providers of cloud computing services include Amazon Web Services (AWS), Microsoft Azure, and Google Cloud Platform (GCP).`
+
 func main() {
 	zerolog.SetGlobalLevel(zerolog.TraceLevel)
 	LoadDotenv()
 
-	modelsDir := HasEnvVar("CYBERTRON_MODELS_DIR")
-	modelName := HasEnvVar("CYBERTRON_MODEL")
-	paragraph := HasEnvVar("CYBERTRON_QA_PARAGRAPH")
+	modelsDir := HasEnvVarOr("CYBERTRON_MODELS_DIR", "models")
+	modelName := HasEnvVarOr("CYBERTRON_MODEL", questionanswering.DefaultEnglishModel)
 
 	m, err := tasks.Load[questionanswering.Interface](&tasks.Config{ModelsDir: modelsDir, ModelName: modelName})
 	if err != nil {
@@ -36,7 +38,7 @@ func main() {
 
 	fn := func(text string) error {
 		start := time.Now()
-		result, err := m.Answer(context.Background(), text, paragraph, opts)
+		result, err := m.Answer(context.Background(), text, content, opts)
 		if err != nil {
 			return err
 		}
@@ -45,7 +47,7 @@ func main() {
 		return nil
 	}
 
-	fmt.Println(paragraph)
+	fmt.Println(content)
 
 	err = ForEachInput(os.Stdin, fn)
 	if err != nil {

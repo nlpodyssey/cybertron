@@ -27,7 +27,7 @@ func main() {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	LoadDotenv()
 
-	modelsDir := HasEnvVar("CYBERTRON_MODELS_DIR")
+	modelsDir := HasEnvVarOr("CYBERTRON_MODELS_DIR", "models")
 
 	m, err := tasks.LoadModelForTextGeneration(&tasks.Config{
 		ModelsDir: modelsDir,

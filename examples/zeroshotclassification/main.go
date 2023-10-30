@@ -23,9 +23,13 @@ func main() {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	LoadDotenv()
 
-	modelsDir := HasEnvVar("CYBERTRON_MODELS_DIR")
-	modelName := HasEnvVar("CYBERTRON_MODEL")
-	possibleClasses := HasEnvVar("CYBERTRON_ZERO_SHOT_POSSIBLE_CLASSES")
+	modelsDir := HasEnvVarOr("CYBERTRON_MODELS_DIR", "models")
+	modelName := HasEnvVarOr("CYBERTRON_MODEL", zeroshotclassifier.DefaultModel)
+
+	if len(os.Args) < 2 {
+		log.Fatal().Msg("missing possible classes (comma separated)")
+	}
+	possibleClasses := os.Args[1]
 
 	m, err := tasks.Load[zeroshotclassifier.Interface](&tasks.Config{ModelsDir: modelsDir, ModelName: modelName})
 	if err != nil {
@@ -46,7 +50,10 @@ func main() {
 			return err
 		}
 		fmt.Println(time.Since(start).Seconds())
-		fmt.Println(result)
+
+		for i := range result.Labels {
+			fmt.Printf("%s\t%0.3f\n", result.Labels[i], result.Scores[i])
+		}
 		return nil
 	}
 

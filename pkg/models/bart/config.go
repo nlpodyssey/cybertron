@@ -85,6 +85,9 @@ func ConfigFromFile(file string) (Config, error) {
 	if config.MaxLength == 0 {
 		config.MaxLength = config.MaxPositionEmbeddings
 	}
+	if config.NumBeams == 0 {
+		config.NumBeams = 4 // TODO: check if this is the default value?
+	}
 	return config, nil
 }
 

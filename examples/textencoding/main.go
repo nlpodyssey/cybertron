@@ -18,14 +18,14 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-const limit = 10
+const limit = 10 // number of dimensions to show
 
 func main() {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	LoadDotenv()
 
-	modelsDir := HasEnvVar("CYBERTRON_MODELS_DIR")
-	modelName := HasEnvVar("CYBERTRON_MODEL")
+	modelsDir := HasEnvVarOr("CYBERTRON_MODELS_DIR", "models")
+	modelName := HasEnvVarOr("CYBERTRON_MODEL", textencoding.DefaultModelMulti)
 
 	m, err := tasks.Load[textencoding.Interface](&tasks.Config{ModelsDir: modelsDir, ModelName: modelName})
 	if err != nil {

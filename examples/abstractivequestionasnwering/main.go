@@ -33,7 +33,7 @@ func main() {
 	zerolog.SetGlobalLevel(zerolog.TraceLevel)
 	LoadDotenv()
 
-	modelsDir := HasEnvVar("CYBERTRON_MODELS_DIR")
+	modelsDir := HasEnvVarOr("CYBERTRON_MODELS_DIR", "models")
 
 	m, err := tasks.Load[*bart.TextGeneration](&tasks.Config{
 		ModelsDir: modelsDir,

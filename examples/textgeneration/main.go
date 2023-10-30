@@ -26,8 +26,8 @@ func main() {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	LoadDotenv()
 
-	modelsDir := "/Users/mg/Projects/nlpodyssey/cybertron/models" //HasEnvVar("CYBERTRON_MODELS_DIR")
-	modelName := "Helsinki-NLP/opus-mt-it-en"
+	modelsDir := HasEnvVarOr("CYBERTRON_MODELS_DIR", "models")
+	modelName := HasEnvVarOr("CYBERTRON_MODEL", textgeneration.DefaultModelForMachineTranslation("en", "it"))
 
 	start := time.Now()
 	m, err := tasks.Load[textgeneration.Interface](&tasks.Config{ModelsDir: modelsDir, ModelName: modelName})

@@ -11,10 +11,15 @@ import (
 
 const (
 	// DefaultEnglishModel is a model for Named Entities Recognition for the English language.
+	// It supports the following entities (CoNLL-2003 NER dataset):
+	// LOC, MISC, ORG, PER
+	DefaultEnglishModel = "dbmdz/bert-large-cased-finetuned-conll03-english"
+
+	// DefaultEnglishModelOntonotes is a model for Named Entities Recognition for the English language.
 	// It supports the following entities:
 	// CARDINAL, DATE, EVENT, FAC, GPE, LANGUAGE, LAW, LOC, MONEY, NORP, ORDINAL, PERCENT, PERSON, PRODUCT, QUANTITY, TIME, WORK_OF_ART
 	// Model card: https://huggingface.co/djagatiya/ner-bert-base-cased-ontonotesv5-englishv4
-	DefaultEnglishModel = "djagatiya/ner-bert-base-cased-ontonotesv5-englishv4"
+	DefaultEnglishModelOntonotes = "djagatiya/ner-bert-base-cased-ontonotesv5-englishv4"
 
 	// DefaultModelMulti is a multilingual model for Named Entities Recognition supporting 9 languages:
 	// de, en, es, fr, it, nl, pl, pt, ru.

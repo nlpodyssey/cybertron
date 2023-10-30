@@ -43,6 +43,16 @@ func HasEnvVar(key string) string {
 	return value
 }
 
+// HasEnvVarOr returns the value of the environment variable with the given key.
+// It returns the alternative value if the environment variable is not set.
+func HasEnvVarOr(key string, alt string) string {
+	value := os.Getenv(key)
+	if value == "" || len(strings.Trim(value, " ")) == 0 {
+		return alt
+	}
+	return value
+}
+
 // MarshalJSON returns the JSON string representation of the input data
 func MarshalJSON(data any) string {
 	m, _ := json.MarshalIndent(data, "", "  ")

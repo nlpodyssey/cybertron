@@ -22,8 +22,8 @@ func main() {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	LoadDotenv()
 
-	modelsDir := HasEnvVar("CYBERTRON_MODELS_DIR")
-	modelName := HasEnvVar("CYBERTRON_MODEL")
+	modelsDir := HasEnvVarOr("CYBERTRON_MODELS_DIR", "models")
+	modelName := HasEnvVarOr("CYBERTRON_MODEL", tokenclassification.DefaultEnglishModel)
 
 	m, err := tasks.Load[tokenclassification.Interface](&tasks.Config{ModelsDir: modelsDir, ModelName: modelName})
 	if err != nil {

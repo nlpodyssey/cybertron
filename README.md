@@ -1,19 +1,27 @@
 # Cybertron
 
-Cybertron is a Go package designed for developers to easily implement NLP using Transformer models, such as BERT and BART. 
-It's tailored for inference tasks and allows for simple server deployment with a single executable. 
-This tool leverages pre-trained models from the [HuggingFace models repository](https://huggingface.co/models), converting models for use with the Go-based [Spago](https://github.com/nlpodyssey/spago) framework. While spaGO is a complete ML framework that may eventually allow for model fine-tuning, Cybertron's current focus is on **inference**. 
+Cybertron is a package in pure Go built upon [spaGO](https://github.com/nlpodyssey/spago) that provides Go developers with an easy interface to use NLP technologies, without needing other programming languages or complex frameworks. It's designed for using pre-trained Transformer models available on the [HuggingFace models repository](https://huggingface.co/models).
 
-The project is open for collaboration to expand its development further.
+The package is primarily aimed at running **inference** with the possibility of adding fine-tuning in the future.
+
+The team is open to contributors to expedite its growth.
+
+## Supported models
+
+- BERT
+- ELECTRA
+- BART
+- PEGASUS
+- MarianMT
 
 ## Supported tasks
 
-- Language Modeling (Masked)
-- Text Classification (Supervised, Zero-Shot)
-- Token Classification (NER, POS-Tagging)
-- Question-Answering (Extractive, Abstractive)
-- Text Encoding (Text Similarity)
-- Text Generation (Translation, Paraphrasing)
+- Masked Language Modeling
+- Supervised and Zero-Shot Text Classification (Sentiment Analysis, Topic Classification, Intent Detection, ...)
+- Token Classification (Named Entity Recognition, Part-of-Speech Tagging, ...)
+- Extractive and Abstractive Question-Answering
+- Text Encoding (Text Embedding, Semantic Search, ...)
+- Text Generation (Translation, Paraphrasing, Summarization, ...)
 - Relation Extraction
 
 # Usage

@@ -1,14 +1,10 @@
 # Cybertron
 
-Cybertron is a pure Go package that provides a simple and easy-to-use interface for cutting-edge Natural Language Processing (NLP) technologies.
+Cybertron is a Go package designed for developers to easily implement NLP using Transformer models, such as BERT and BART. 
+It's tailored for inference tasks and allows for simple server deployment with a single executable. 
+This tool leverages pre-trained models from the [HuggingFace models repository](https://huggingface.co/models), converting models for use with the Go-based [Spago](https://github.com/nlpodyssey/spago) framework. While spaGO is a complete ML framework that may eventually allow for model fine-tuning, Cybertron's current focus is on **inference**. 
 
-It enables Go developers to use state-of-the-art neural technologies i.e. Transformers, without having to learn other languages or worry about heavy deep learning frameworks (thus, the deployment is just a single executable for your server!).
-
-Luckily, pre-trained /fine-tuned Transformer models exist for several languages and are publicly hosted on the [HuggingFace models repository](https://huggingface.co/models).
-
-A unique feature of Cybertron is its compatibility with [HuggingFace Transformers](https://github.com/huggingface/transformers): it can run **inference** on PyTorch pre-trained models after they have been automatically downloaded and converted to the [Spago](https://github.com/nlpodyssey/spago) format.
-
-> Cybertron currently supports a few architectures (BERT, BART, and derivatives), and we're seeking collaborators to speed up its development!
+The project is open for collaboration to expand its development further.
 
 ## Supported tasks
 

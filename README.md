@@ -108,16 +108,18 @@ curl -X 'POST' \
 
 Several examples can be leveraged to tour the current NLP capabilities in Cybertron. A list of the demos now follows.
 
-### Machine Translation
+### Machine Translation (En -> It)
 
 ```
-GOARCH=amd64 CYBERTRON_MODEL=Helsinki-NLP/opus-mt-en-it CYBERTRON_MODELS_DIR=models go run ./examples/textgeneration
+
+```
+GOARCH=amd64 go run ./examples/textgeneration
 ```
 
 ### Zero-Shot Text Classification
 
 ```
-GOARCH=amd64 CYBERTRON_MODEL=valhalla/distilbart-mnli-12-1 CYBERTRON_MODELS_DIR=models go run ./examples/zeroshotclassification
+GOARCH=amd64 go run ./examples/zeroshotclassification politics,business,science,technology,health,culture,sports
 ```
 
 # Dependencies

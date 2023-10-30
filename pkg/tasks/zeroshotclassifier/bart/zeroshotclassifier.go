@@ -19,6 +19,7 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
+	"github.com/nlpodyssey/spago/nn/embedding"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -50,6 +51,9 @@ func LoadZeroShotClassifier(modelPath string) (*ZeroShotClassifier, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to load bart model: %w", err)
 	}
+
+	m.Bart.Encoder.Embeddings.SharedEmbeddings = embedding.Shared{Model: m.Bart.Embeddings}
+	m.Bart.Decoder.Embeddings.SharedEmbeddings = embedding.Shared{Model: m.Bart.Embeddings}
 
 	entailmentID, err := m.Bart.Config.EntailmentID()
 	if err != nil {

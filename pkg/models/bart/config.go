@@ -80,6 +80,11 @@ func ConfigFromFile(file string) (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
+
+	// Set default values
+	if config.MaxLength == 0 {
+		config.MaxLength = config.MaxPositionEmbeddings
+	}
 	return config, nil
 }
 

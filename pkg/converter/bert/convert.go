@@ -136,6 +136,8 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 func mapBaseModel[T float.DType](config bert.Config, pyParams *pytorch.ParamsProvider[T], params paramsMap, vocab *vocabulary.Vocabulary) *bert.Model {
 	baseModel := bert.New[T](config)
 
+	baseModel.Embeddings.Vocab = vocab
+
 	{
 		source := pyParams.Pop("bert.embeddings.word_embeddings.weight")
 		size := baseModel.Embeddings.Tokens.Dim

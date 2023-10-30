@@ -6,6 +6,7 @@ package bert
 
 import (
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/wordpiecetokenizer"
+	"github.com/nlpodyssey/cybertron/pkg/vocabulary"
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
@@ -18,6 +19,7 @@ import (
 // Embeddings implements a Bert input embedding module.
 type Embeddings struct {
 	nn.Module
+	Vocab      *vocabulary.Vocabulary
 	Tokens     *emb.Model // string
 	Positions  *emb.Model
 	TokenTypes *emb.Model
@@ -46,7 +48,7 @@ func NewEmbeddings[T float.DType](c Config) *Embeddings {
 // EncodeTokens performs the Bert input encoding.
 func (m *Embeddings) EncodeTokens(tokens []string) []mat.Tensor {
 	var (
-		encoded      = m.Tokens.MustEncode([]int{}) // TODO: temporary []int{} should the tokens be []int?
+		encoded      = m.Tokens.MustEncode(m.tokensToIDs(tokens))
 		positions    = m.Positions.MustEncode(indices(len(tokens)))
 		tokenType, _ = m.TokenTypes.Embedding(0)
 	)
@@ -60,6 +62,15 @@ func (m *Embeddings) EncodeTokens(tokens []string) []mat.Tensor {
 		}
 	}
 	return m.useProjection(m.Norm.Forward(encoded...))
+}
+
+// tokensToIDs returns the IDs of the given tokens.
+func (m *Embeddings) tokensToIDs(tokens []string) []int {
+	IDs := make([]int, len(tokens))
+	for i, token := range tokens {
+		IDs[i] = m.Vocab.MustID(token)
+	}
+	return IDs
 }
 
 // useProjection returns the output of the projector if it is not nil, otherwise the input.

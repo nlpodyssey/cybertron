@@ -6,6 +6,7 @@ package bart
 
 import (
 	"encoding/gob"
+	"log"
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
@@ -41,7 +42,7 @@ func init() {
 
 // NewPositionalEncoder returns a new PositionalEncoder.
 func NewPositionalEncoder[T float.DType](config PositionalEncoderConfig) *PositionalEncoder {
-	e := embedding.New[T](config.NumEmbeddings, config.EmbeddingDim)
+	e := embedding.New[T](config.NumEmbeddings+config.Offset, config.EmbeddingDim)
 
 	size := config.EmbeddingDim
 	half := (size + (size % 2)) / 2
@@ -56,7 +57,10 @@ func NewPositionalEncoder[T float.DType](config PositionalEncoderConfig) *Positi
 				data[half+j/2] = mat.Cos(v)
 			}
 		}
-		item, _ := e.Embedding(i)
+		item, err := e.Embedding(i)
+		if err != nil {
+			log.Fatalf("positional encoder: error getting embedding: %s", err)
+		}
 		item.ReplaceValue(mat.NewDense[T](mat.WithBacking(data)))
 	}
 	return &PositionalEncoder{

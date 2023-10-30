@@ -57,10 +57,10 @@ func NewEmbeddings[T float.DType](c Config, shared embedding.Shared, isDecoder b
 
 // Encode performs the Bart initial input encoding.
 func (m *Embeddings) Encode(inputIDs []int, offset int) []mat.Tensor {
-	ys := ag.Map2(ag.Add,
-		m.useScaledEmbeddings(m.SharedEmbeddings.MustEncode(inputIDs)),
-		m.PositionalEncoder.Encode(makePositions(len(inputIDs), offset)),
-	)
+	scaled := m.useScaledEmbeddings(m.SharedEmbeddings.MustEncode(inputIDs))
+	positions := m.PositionalEncoder.Encode(makePositions(len(inputIDs), offset))
+	ys := ag.Map2(ag.Add, scaled, positions)
+
 	if m.Config.NormalizeEmbedding {
 		ys = m.Norm.Forward(ys...)
 	}

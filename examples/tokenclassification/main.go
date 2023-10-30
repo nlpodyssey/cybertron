@@ -29,7 +29,6 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
-	defer tasks.Finalize(m)
 
 	params := tokenclassification.Parameters{
 		AggregationStrategy: tokenclassification.AggregationStrategySimple,

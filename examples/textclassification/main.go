@@ -31,7 +31,6 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
-	defer tasks.Finalize(m)
 
 	fn := func(text string) error {
 		start := time.Now()

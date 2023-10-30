@@ -28,7 +28,6 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
-	defer tasks.Finalize(m)
 
 	fn := func(text string) error {
 		result, err := m.Predict(context.Background(), text, languagemodeling.Parameters{K: 10})

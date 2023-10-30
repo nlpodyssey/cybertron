@@ -35,7 +35,6 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
-	defer tasks.Finalize(m)
 
 	params := zeroshotclassifier.Parameters{
 		CandidateLabels:    strings.Split(possibleClasses, ","),

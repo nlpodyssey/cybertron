@@ -34,7 +34,6 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
-	defer tasks.Finalize(m)
 
 	log.Debug().Msgf("Loaded model %q in %v", modelName, time.Since(start))
 

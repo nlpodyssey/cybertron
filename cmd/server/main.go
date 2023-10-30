@@ -72,7 +72,6 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	defer tasks.Finalize(m)
 
 	logMetrics()
 

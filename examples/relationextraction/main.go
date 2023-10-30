@@ -36,7 +36,6 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
-	defer tasks.Finalize(m)
 
 	opts := textgeneration.DefaultOptions()
 

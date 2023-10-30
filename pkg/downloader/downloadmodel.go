@@ -6,12 +6,13 @@ package downloader
 
 import (
 	"fmt"
-	"github.com/nlpodyssey/cybertron/pkg/models"
-	"github.com/rs/zerolog/log"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/nlpodyssey/cybertron/pkg/models"
+	"github.com/rs/zerolog/log"
 )
 
 const (

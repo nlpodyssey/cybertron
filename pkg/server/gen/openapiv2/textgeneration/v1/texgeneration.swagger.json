@@ -1,0 +1,131 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "textgeneration/v1/texgeneration.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "TextGenerationService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/generate": {
+      "post": {
+        "operationId": "TextGenerationService_Generate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GenerateResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GenerateRequest"
+            }
+          }
+        ],
+        "tags": [
+          "TextGenerationService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1GenerateRequest": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "string"
+        },
+        "parameters": {
+          "$ref": "#/definitions/v1TextGenerationParameters"
+        }
+      }
+    },
+    "v1GenerateResponse": {
+      "type": "object",
+      "properties": {
+        "texts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "scores": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      }
+    },
+    "v1TextGenerationParameters": {
+      "type": "object",
+      "properties": {
+        "topK": {
+          "type": "string",
+          "format": "int64"
+        },
+        "topP": {
+          "type": "number",
+          "format": "double"
+        },
+        "temperature": {
+          "type": "number",
+          "format": "double"
+        },
+        "doSample": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

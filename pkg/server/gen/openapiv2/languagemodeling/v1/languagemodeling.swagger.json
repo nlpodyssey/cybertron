@@ -1,0 +1,140 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "languagemodeling/v1/languagemodeling.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "LanguageModelingService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/predict": {
+      "post": {
+        "operationId": "LanguageModelingService_Predict",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1LanguageModelingResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1LanguageModelingRequest"
+            }
+          }
+        ],
+        "tags": [
+          "LanguageModelingService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1LanguageModelingParameters": {
+      "type": "object",
+      "properties": {
+        "k": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1LanguageModelingRequest": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "string"
+        },
+        "parameters": {
+          "$ref": "#/definitions/v1LanguageModelingParameters"
+        }
+      }
+    },
+    "v1LanguageModelingResponse": {
+      "type": "object",
+      "properties": {
+        "tokens": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Token"
+          }
+        }
+      }
+    },
+    "v1Token": {
+      "type": "object",
+      "properties": {
+        "start": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "end": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "words": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "scores": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      }
+    }
+  }
+}

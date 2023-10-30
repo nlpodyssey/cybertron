@@ -1,0 +1,129 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "zeroshot/v1/zeroshot.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "ZeroShotService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/classify": {
+      "post": {
+        "operationId": "ZeroShotService_Classify",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ClassifyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ClassifyRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ZeroShotService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1ClassifyRequest": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "string"
+        },
+        "parameters": {
+          "$ref": "#/definitions/v1ZeroShotParameters"
+        }
+      }
+    },
+    "v1ClassifyResponse": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "TODO: string sequence = ...; ?"
+        },
+        "scores": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      }
+    },
+    "v1ZeroShotParameters": {
+      "type": "object",
+      "properties": {
+        "hypothesisTemplate": {
+          "type": "string"
+        },
+        "candidateLabels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "multiLabel": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

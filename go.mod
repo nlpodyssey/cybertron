@@ -10,7 +10,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/nlpodyssey/gopickle v0.2.0
 	github.com/nlpodyssey/gotokenizers v0.2.0
-	github.com/nlpodyssey/spago v1.0.2-0.20231029222829-dea27c85cd66
+	github.com/nlpodyssey/spago v1.1.0
 	github.com/rs/cors v1.10.1
 	github.com/rs/zerolog v1.31.0
 	github.com/shirou/gopsutil/v3 v3.23.9

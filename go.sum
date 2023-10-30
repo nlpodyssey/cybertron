@@ -113,8 +113,8 @@ github.com/nlpodyssey/gopickle v0.2.0 h1:4naD2DVylYJupQLbCQFdwo6yiXEmPyp+0xf5MVl
 github.com/nlpodyssey/gopickle v0.2.0/go.mod h1:YIUwjJ2O7+vnBsxUN+MHAAI3N+adqEGiw+nDpwW95bY=
 github.com/nlpodyssey/gotokenizers v0.2.0 h1:CWx/sp9s35XMO5lT1kNXCshFGDCfPuuWdx/9JiQBsVc=
 github.com/nlpodyssey/gotokenizers v0.2.0/go.mod h1:SBLbuSQhpni9M7U+Ie6O46TXYN73T2Cuw/4eeYHYJ+s=
-github.com/nlpodyssey/spago v1.0.2-0.20231029222829-dea27c85cd66 h1:D92Fp2N4WhQcH/f7sgRS3ZyttRRpiM7siLs72hogFTo=
-github.com/nlpodyssey/spago v1.0.2-0.20231029222829-dea27c85cd66/go.mod h1:jDWGZwrB4B61U6Tf3/+MVlWOtNsk3EUA7G13UDHlnjQ=
+github.com/nlpodyssey/spago v1.1.0 h1:DGUdGfeGR7TxwkYRdSEzbSvunVWN5heNSksmERmj97w=
+github.com/nlpodyssey/spago v1.1.0/go.mod h1:jDWGZwrB4B61U6Tf3/+MVlWOtNsk3EUA7G13UDHlnjQ=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.1.0-rc5 h1:Ygwkfw9bpDvs+c9E34SdgGOj41dX/cbdlwvlWt0pnFI=

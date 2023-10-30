@@ -24,7 +24,7 @@ A unique feature of Cybertron is its compatibility with [HuggingFace Transformer
 
 Requirements:
 
-* [Go 1.19](https://golang.org/dl/)
+* [Go 1.21](https://golang.org/dl/)
 
 Clone this repo or get the library:
 
@@ -109,8 +109,6 @@ curl -X 'POST' \
 Several examples can be leveraged to tour the current NLP capabilities in Cybertron. A list of the demos now follows.
 
 ### Machine Translation (En -> It)
-
-```
 
 ```
 GOARCH=amd64 go run ./examples/textgeneration

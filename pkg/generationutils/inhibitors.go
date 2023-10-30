@@ -54,7 +54,7 @@ func (b *BeamSearchDecoder) processBadWordsScores(inputIDs [][]int, scores []mat
 	// Set scores to -Inf for banned tokens
 	for idx, batchBannedTokens := range bannedTokens {
 		for _, tokenID := range batchBannedTokens {
-			scores[idx].SetVecScalar(tokenID, floatNegInf)
+			scores[idx].SetScalar(floatNegInf, tokenID)
 		}
 	}
 
@@ -81,7 +81,7 @@ func (b *BeamSearchDecoder) processMinLengthScores(inputIDs [][]int, scores []ma
 
 	eosTokenID := b.Config.EOSTokenID
 	for _, n := range scores {
-		n.SetVecScalar(eosTokenID, floatNegInf)
+		n.SetScalar(floatNegInf, eosTokenID)
 	}
 
 	return scores
@@ -98,7 +98,7 @@ func (b *BeamSearchDecoder) processNoRepeatNGramScores(inputIDs [][]int, scores 
 	for i, bannedTokens := range bannedBatchTokens {
 		sc := scores[i]
 		for _, j := range bannedTokens {
-			sc.SetVecScalar(j, floatNegInf)
+			sc.SetScalar(floatNegInf, j)
 		}
 	}
 	return scores

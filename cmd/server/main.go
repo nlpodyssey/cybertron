@@ -18,13 +18,16 @@ import (
 	"github.com/nlpodyssey/cybertron/pkg/tasks"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/languagemodeling"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering"
-	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/textclassification"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/textencoding"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/textgeneration"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/tokenclassification"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/mem"
+	"github.com/shirou/gopsutil/v3/process"
 )
 
 const defaultModelsDir = "models"
@@ -71,6 +74,8 @@ func run() error {
 	}
 	defer tasks.Finalize(m)
 
+	logMetrics()
+
 	requestHandler, err := server.ResolveRequestHandler(m)
 	if err != nil {
 		return err
@@ -84,12 +89,39 @@ func run() error {
 	return s.Start(ctx)
 }
 
+func logMetrics() {
+	// Set up zerolog to print with human-readable timestamps
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
+	// Get total CPU count
+	totalCpu, _ := cpu.Counts(false)
+	// Get process CPU percentage
+	p, _ := process.NewProcess(int32(os.Getpid()))
+	percent, _ := p.CPUPercent()
+
+	log.Info().
+		Int("total_cpus", totalCpu).
+		Float64("cpu_used_by_process_percent", percent).
+		Msg("CPU Metrics")
+
+	// Get total available RAM
+	vmStat, _ := mem.VirtualMemory()
+	// Get process RAM usage
+	memInfo, _ := p.MemoryInfo()
+
+	log.Info().
+		Uint64("total_RAM_available", vmStat.Total).
+		Uint64("RAM_used_by_process", memInfo.RSS).
+		Msg("RAM Metrics")
+}
+
 func loadModelForTask(conf *config) (m any, err error) {
 	switch conf.task {
 	case ZeroShotClassificationTask:
 		return tasks.Load[zeroshotclassifier.Interface](conf.loaderConfig)
-	case Text2TextTask:
-		return tasks.Load[text2text.Interface](conf.loaderConfig)
+	case TextGenerationTask:
+		return tasks.Load[textgeneration.Interface](conf.loaderConfig)
 	case QuestionAnsweringTask:
 		return tasks.Load[questionanswering.Interface](conf.loaderConfig)
 	case TextClassificationTask:

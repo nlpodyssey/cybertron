@@ -7,7 +7,7 @@ package bert
 import (
 	"encoding/gob"
 
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
@@ -37,7 +37,7 @@ func New[T float.DType](c Config) *Model {
 	}
 }
 
-// Encode produce the encoded representation for the input tokens
-func (m *Model) EncodeTokens(tokens []string) []ag.Node {
+// EncodeTokens produce the encoded representation for the input tokens
+func (m *Model) EncodeTokens(tokens []string) []mat.Tensor {
 	return m.Encoder.Encode(m.Embeddings.EncodeTokens(tokens))
 }

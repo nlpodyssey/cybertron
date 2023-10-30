@@ -88,7 +88,7 @@ func (w *WordEmbeddings) setPrecomputedWordEmbeddings(kv *gensim.KeyedVectors) e
 	if len(vectors) > 0 && kv.VectorSize != vectors[0].Size() {
 		return fmt.Errorf("VectorSize %d does not match actual vectors size %d", kv.VectorSize, vectors[0].Size())
 	}
-	vectors = append(vectors, mat.NewEmptyVecDense[float64](kv.VectorSize))
+	vectors = append(vectors, mat.NewDense[float64](mat.WithShape(kv.VectorSize)))
 	w.Embedding = torch.EmbeddingFromPretrained(vectors, kv.VectorSize)
 
 	w.Vocab = make(map[string]int, len(kv.Vocab))

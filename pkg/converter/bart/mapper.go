@@ -13,7 +13,7 @@ import (
 )
 
 // paramsMap is a map of parameters.
-type paramsMap map[string]mat.Matrix
+type paramsMap map[string]mat.Tensor
 
 // mapClassifier maps the classifier parameters.
 func mapClassifier(classifier *bart.Classifier, params paramsMap) {

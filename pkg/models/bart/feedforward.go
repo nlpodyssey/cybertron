@@ -7,7 +7,7 @@ package bart
 import (
 	"encoding/gob"
 
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
@@ -17,7 +17,7 @@ import (
 
 // ResidualNormFeedForward is a feed-forward block with normalization and residual connection.
 type ResidualNormFeedForward interface {
-	Forward(xs []ag.Node) []ag.Node
+	Forward(xs []mat.Tensor) []mat.Tensor
 }
 
 var _ nn.Model = &FeedForwardBlock{}
@@ -40,7 +40,7 @@ type NewFeedForwardBlockConfig struct {
 	// HiddenDim is the dimension of the hidden layer.
 	HiddenDim int
 	// ActivationFunction is the activation function.
-	Activation activation.Name
+	Activation activation.Activation
 	// NormalizeBefore is whether to normalize the input before the MLP.
 	NormalizeBefore bool
 }

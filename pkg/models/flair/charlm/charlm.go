@@ -9,7 +9,7 @@ import (
 	"fmt"
 
 	"github.com/nlpodyssey/cybertron/pkg/vocabulary"
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	emb "github.com/nlpodyssey/spago/nn/embedding"
@@ -57,7 +57,7 @@ func NewCharLM[T float.DType](c Config) *Model {
 	}
 }
 
-func (m *Model) EncodeTokens(xs []string) []ag.Node {
+func (m *Model) EncodeTokens(xs []string) []mat.Tensor {
 	indices, err := m.convertStringsToInts(xs)
 	if err != nil {
 		panic(err) // TODO: return error
@@ -65,7 +65,7 @@ func (m *Model) EncodeTokens(xs []string) []ag.Node {
 	return m.UseProjection(m.RNN.Forward(m.Embeddings.MustEncode(indices)...))
 }
 
-func (m *Model) UseProjection(xs []ag.Node) []ag.Node {
+func (m *Model) UseProjection(xs []mat.Tensor) []mat.Tensor {
 	if m.Projection != nil {
 		return m.Projection.Forward(xs...)
 	}

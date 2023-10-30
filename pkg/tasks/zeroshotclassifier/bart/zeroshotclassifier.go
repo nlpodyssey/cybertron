@@ -74,8 +74,8 @@ func (m *ZeroShotClassifier) Classify(_ context.Context, text string, parameters
 	if err != nil {
 		return zeroshotclassifier.Response{}, err
 	}
-	if l, max := len(premise), m.Model.Bart.Config.MaxLength; l > max {
-		return zeroshotclassifier.Response{}, fmt.Errorf("%w: %d > %d", zeroshotclassifier.ErrInputSequenceTooLong, l, max)
+	if l, k := len(premise), m.Model.Bart.Config.MaxLength; l > k {
+		return zeroshotclassifier.Response{}, fmt.Errorf("%w: %d > %d", zeroshotclassifier.ErrInputSequenceTooLong, l, k)
 	}
 
 	multiClass := parameters.MultiLabel || len(parameters.CandidateLabels) == 1
@@ -84,7 +84,7 @@ func (m *ZeroShotClassifier) Classify(_ context.Context, text string, parameters
 	ch := make(chan struct{}, runtime.NumCPU())
 	eg, _ := errgroup.WithContext(context.Background())
 
-	var scores mat.Matrix = mat.NewEmptyVecDense[float64](len(parameters.CandidateLabels))
+	var scores mat.Matrix = mat.NewDense[float64](mat.WithShape(len(parameters.CandidateLabels)))
 
 	for i := range parameters.CandidateLabels {
 		ch <- struct{}{}
@@ -97,7 +97,7 @@ func (m *ZeroShotClassifier) Classify(_ context.Context, text string, parameters
 			)
 			if err == nil {
 				score := scoreFn(hypothesis)
-				scores.SetVecScalar(i, float.Interface(score))
+				scores.SetScalar(float.Interface(score), i)
 			}
 			<-ch
 			return err

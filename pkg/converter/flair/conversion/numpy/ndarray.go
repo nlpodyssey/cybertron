@@ -116,7 +116,7 @@ func (n *NDArray) SliceOfVectors() ([]mat.Matrix, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to read raw data for vector at index %d: %w", i, err)
 		}
-		vectors[i] = mat.NewVecDense[float32](buf)
+		vectors[i] = mat.NewDense[float32](mat.WithBacking(buf))
 	}
 
 	if _, e := r.ReadByte(); e != io.EOF {

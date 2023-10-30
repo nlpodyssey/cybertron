@@ -7,7 +7,7 @@ package bart
 import (
 	"encoding/gob"
 
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/attention/multiheadattention"
@@ -61,7 +61,7 @@ func NewDecoder[T float.DType](c Config, shared embedding.Shared) *Decoder {
 }
 
 // Decode performs the decoding considering the encoder output and the decoder input.
-func (m *Decoder) Decode(encoderStates []ag.Node, inputIDs []int, cache Cache, curLen int) ([]ag.Node, Cache) {
+func (m *Decoder) Decode(encoderStates []mat.Tensor, inputIDs []int, cache Cache, curLen int) ([]mat.Tensor, Cache) {
 	nextCache := make(Cache, len(m.Layers))
 	ys := m.Embeddings.Encode(inputIDs, curLen-1)
 	for i, layer := range m.Layers {

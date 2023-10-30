@@ -30,7 +30,7 @@ const (
 
 // mappingParam is a mapping between a Hugging Face Transformers parameters and Cybertron parameters.
 type mappingParam struct {
-	value   mat.Matrix
+	value   mat.Tensor
 	matched bool
 }
 
@@ -77,7 +77,7 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 		size := m.Embeddings.Dim
 		for i := 0; i < config.VocabSize; i++ {
 			item, _ := m.Embeddings.Embedding(i)
-			item.ReplaceValue(mat.NewVecDense[T](source[i*size : (i+1)*size]))
+			item.ReplaceValue(mat.NewDense[T](mat.WithBacking(source[i*size : (i+1)*size])))
 		}
 	}
 
@@ -90,7 +90,7 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 			dest := m.Encoder.Embeddings.PositionalEncoder.Embeddings
 			for i := 0; i < rows; i++ {
 				item, _ := dest.Embedding(i)
-				item.ReplaceValue(mat.NewVecDense[T](source[i*cols : (i+1)*cols]))
+				item.ReplaceValue(mat.NewDense[T](mat.WithBacking(source[i*cols : (i+1)*cols])))
 			}
 		}
 
@@ -99,7 +99,7 @@ func Convert[T float.DType](modelDir string, overwriteIfExist bool) error {
 			dest := m.Decoder.Embeddings.PositionalEncoder.Embeddings
 			for i := 0; i < rows; i++ {
 				item, _ := dest.Embedding(i)
-				item.ReplaceValue(mat.NewVecDense[T](source[i*cols : (i+1)*cols]))
+				item.ReplaceValue(mat.NewDense[T](mat.WithBacking(source[i*cols : (i+1)*cols])))
 			}
 		}
 	}

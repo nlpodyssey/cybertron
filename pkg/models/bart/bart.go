@@ -10,7 +10,7 @@ package bart
 import (
 	"encoding/gob"
 
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/embedding"
@@ -47,7 +47,7 @@ func New[T float.DType](c Config) *Model {
 }
 
 // Forward performs encoding-decoding over the same input sequence producing the final encoded sequence.
-func (m *Model) Forward(inputIDs []int) []ag.Node {
+func (m *Model) Forward(inputIDs []int) []mat.Tensor {
 	encoded := m.Encoder.Encode(inputIDs)
 	decoded, _ := m.Decoder.Decode(encoded, shiftR(inputIDs, 1), nil, 1)
 	return decoded

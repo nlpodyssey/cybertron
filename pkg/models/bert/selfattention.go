@@ -8,6 +8,7 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/attention/multiheadattention"
@@ -20,7 +21,7 @@ var _ nn.Model = &SelfAttentionBlock{}
 type SelfAttentionBlock struct {
 	nn.Module
 	// Attention is the multi-head attention module.
-	Attention *multiheadattention.SelfAttention
+	Attention *multiheadattention.Model
 	// Norm is the layer normalization module.
 	Norm *layernorm.Model
 }
@@ -38,16 +39,14 @@ type SelfAttentionBlockConfig struct {
 // NewSelfAttentionBlock creates a new SelfAttentionBlock.
 func NewSelfAttentionBlock[T float.DType](c SelfAttentionBlockConfig) *SelfAttentionBlock {
 	return &SelfAttentionBlock{
-		Attention: &multiheadattention.SelfAttention{
-			Model: multiheadattention.New[T](c.Dim, c.NumOfHeads, false, false),
-		},
-		Norm: layernorm.New[T](c.Dim, 1e-5),
+		Attention: multiheadattention.New[T](c.Dim, c.NumOfHeads, false, false),
+		Norm:      layernorm.New[T](c.Dim, 1e-5),
 	}
 }
 
 // Forward returns the output of the model.
-func (m SelfAttentionBlock) Forward(xs []ag.Node) []ag.Node {
-	att, _, _ := m.Attention.Forward(nil, xs)
+func (m SelfAttentionBlock) Forward(xs []mat.Tensor) []mat.Tensor {
+	att, _, _ := m.Attention.Forward(nil, xs, xs)
 
 	residual := att // reuse the same slice to avoid allocation
 	for i := range residual {

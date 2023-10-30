@@ -14,7 +14,7 @@ import (
 
 	"github.com/nlpodyssey/cybertron/pkg/generationutils"
 	"github.com/nlpodyssey/cybertron/pkg/models/bart"
-	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/textgeneration"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/bpetokenizer"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/sentencepiece"
 	"github.com/nlpodyssey/cybertron/pkg/utils/nullable"
@@ -23,12 +23,12 @@ import (
 	"github.com/nlpodyssey/spago/nn/embedding"
 )
 
-var _ text2text.Interface = &Text2Text{}
+var _ textgeneration.Interface = &TextGeneration{}
 
-// Text2Text contains the ModelForConditionalGeneration and the Tokenizer
+// TextGeneration contains the ModelForConditionalGeneration and the Tokenizer
 // used for conditional generation tasks.
 // For example, Machine Translation and Summarization.
-type Text2Text struct {
+type TextGeneration struct {
 	// Model is the model used for conditional generation.
 	Model *bart.ModelForConditionalGeneration
 	// Tokenizer is the tokenizer used for conditional generation.
@@ -40,8 +40,8 @@ type Tokenizer interface {
 	Detokenize(tokenIds []int, stripPaddingTokens bool) string
 }
 
-// LoadText2Text returns a Text2Text loading the model, the embeddings and the tokenizer from a directory.
-func LoadText2Text(modelPath string) (*Text2Text, error) {
+// LoadTextGeneration returns a TextGeneration loading the model, the embeddings and the tokenizer from a directory.
+func LoadTextGeneration(modelPath string) (*TextGeneration, error) {
 	m, err := nn.LoadFromFile[*bart.ModelForConditionalGeneration](path.Join(modelPath, "spago_model.bin"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to load bart model: %w", err)
@@ -55,7 +55,7 @@ func LoadText2Text(modelPath string) (*Text2Text, error) {
 		return nil, err
 	}
 
-	return &Text2Text{
+	return &TextGeneration{
 		Model:     m,
 		Tokenizer: tok,
 	}, nil
@@ -71,7 +71,7 @@ func resolveTokenizer(path string, config bart.Config) (Tokenizer, error) {
 func loadSentencePieceTokenizer(path string, config bart.Config) (Tokenizer, error) {
 	tok, err := sentencepiece.NewFromModelFolder(path, false)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load sentencepiece tokenizer for text2text: %w", err)
+		return nil, fmt.Errorf("failed to load sentencepiece tokenizer for text generation: %w", err)
 	}
 	return &SentencePieceTokenizer{
 		Tokenizer:           tok,
@@ -105,9 +105,9 @@ func doesFileExist(fileName string) bool {
 }
 
 // Generate generates a text from the input.
-func (m *Text2Text) Generate(ctx context.Context, text string, opts *text2text.Options) (text2text.Response, error) {
+func (m *TextGeneration) Generate(ctx context.Context, text string, opts *textgeneration.Options) (textgeneration.Response, error) {
 	if opts == nil {
-		opts = &text2text.Options{
+		opts = &textgeneration.Options{
 			Temperature: nullable.Type[float64]{Value: 1.0, Valid: true},
 			Sample:      nullable.Type[bool]{Value: false, Valid: true},
 			TopK:        nullable.Type[int]{Valid: false},
@@ -116,14 +116,14 @@ func (m *Text2Text) Generate(ctx context.Context, text string, opts *text2text.O
 	}
 	tokenized, err := m.Tokenizer.Tokenize(text)
 	if err != nil {
-		return text2text.Response{}, err
+		return textgeneration.Response{}, err
 	}
-	if l, max := len(tokenized), m.Model.Bart.Config.MaxLength; l > max {
-		return text2text.Response{}, fmt.Errorf("%w: %d > %d", text2text.ErrInputSequenceTooLong, l, max)
+	if l, k := len(tokenized), m.Model.Bart.Config.MaxLength; l > k {
+		return textgeneration.Response{}, fmt.Errorf("%w: %d > %d", textgeneration.ErrInputSequenceTooLong, l, k)
 	}
 
 	sequences, scores := m.process(ctx, tokenized, *opts)
-	result := text2text.Response{
+	result := textgeneration.Response{
 		Texts:  make([]string, len(sequences)),
 		Scores: make([]float64, len(scores)),
 	}
@@ -133,7 +133,7 @@ func (m *Text2Text) Generate(ctx context.Context, text string, opts *text2text.O
 	return result, nil
 }
 
-func (m *Text2Text) process(ctx context.Context, inputIDs []int, opts text2text.Options) ([][]int, []float64) {
+func (m *TextGeneration) process(ctx context.Context, inputIDs []int, opts textgeneration.Options) ([][]int, []float64) {
 	next := m.Model.DecodingFunc(inputIDs, m.logProbProcessor(opts), true)
 	cache := make([]bart.Cache, m.Model.Bart.Config.NumBeams)
 
@@ -165,7 +165,7 @@ func reorderCache(cache []bart.Cache, lastBeamIndices []int) []bart.Cache {
 	return tmpCache
 }
 
-func (m *Text2Text) batch(sequences [][]int, cache []bart.Cache) []*bart.DecodingInput {
+func (m *TextGeneration) batch(sequences [][]int, cache []bart.Cache) []*bart.DecodingInput {
 	batch := make([]*bart.DecodingInput, len(sequences))
 	for i, sequence := range sequences {
 		batch[i] = &bart.DecodingInput{
@@ -177,7 +177,7 @@ func (m *Text2Text) batch(sequences [][]int, cache []bart.Cache) []*bart.Decodin
 	return batch
 }
 
-func decodingStrategy(opts text2text.Options) generationutils.DecodingStrategyFunc {
+func decodingStrategy(opts textgeneration.Options) generationutils.DecodingStrategyFunc {
 	if opts.Sample.Valid && opts.Sample.Value {
 		return generationutils.SelectNextMultinomial
 	}
@@ -185,7 +185,7 @@ func decodingStrategy(opts text2text.Options) generationutils.DecodingStrategyFu
 }
 
 // logProbProcessor returns a function that processes the log-probabilities.
-func (m *Text2Text) logProbProcessor(opts text2text.Options) generationutils.ScoreProcessor {
+func (m *TextGeneration) logProbProcessor(opts textgeneration.Options) generationutils.ScoreProcessor {
 	procs := make([]generationutils.ScoreProcessor, 0, 3)
 	if opts.Temperature.Valid {
 		procs = append(procs, generationutils.TemperatureProcessor(opts.Temperature.Value))

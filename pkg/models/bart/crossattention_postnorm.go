@@ -8,6 +8,7 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/attention/multiheadattention"
 )
@@ -24,7 +25,7 @@ func init() {
 }
 
 // Forward performs the forward pass.
-func (m PostNormCrossAttentionBlock) Forward(cache multiheadattention.Cache, seq1 []ag.Node, seq2 []ag.Node) ([]ag.Node, multiheadattention.Cache) {
+func (m PostNormCrossAttentionBlock) Forward(cache multiheadattention.Cache, seq1 []mat.Tensor, seq2 []mat.Tensor) ([]mat.Tensor, multiheadattention.Cache) {
 	att, _, nextCache := m.Attention.Forward(cache, seq1, seq2)
 
 	residual := att // reuse the same slice to avoid allocation

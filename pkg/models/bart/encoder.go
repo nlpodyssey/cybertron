@@ -7,7 +7,7 @@ package bart
 import (
 	"encoding/gob"
 
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/embedding"
@@ -49,7 +49,7 @@ func NewEncoder[T float.DType](c Config, shared embedding.Shared) *Encoder {
 }
 
 // Encode performs the Bart encoding.
-func (m *Encoder) Encode(inputIDs []int) []ag.Node {
+func (m *Encoder) Encode(inputIDs []int) []mat.Tensor {
 	ys := m.Embeddings.Encode(inputIDs, 0)
 	ys = m.Layers.Forward(ys...)
 	if m.Config.FinalLayerNorm {

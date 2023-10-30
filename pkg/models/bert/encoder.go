@@ -7,7 +7,7 @@ package bert
 import (
 	"encoding/gob"
 
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
@@ -38,6 +38,6 @@ func NewEncoder[T float.DType](c Config) *Encoder {
 }
 
 // Encode performs the Bert encoding.
-func (e *Encoder) Encode(xs []ag.Node) []ag.Node {
+func (e *Encoder) Encode(xs []mat.Tensor) []mat.Tensor {
 	return e.Layers.Forward(xs...)
 }

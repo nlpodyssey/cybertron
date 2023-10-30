@@ -99,7 +99,7 @@ func SelectNextMultinomial(tokensScores []mat.Matrix, resultSize int) []*ScoredT
 				BeamIndex:  beamIndex,
 				TokenIndex: nextIndex,
 				// FIXME: avoid casting to specific type
-				Score: m.ScalarAtVec(nextIndex).F64(),
+				Score: m.ScalarAt(nextIndex).F64(),
 			})
 		}
 	}

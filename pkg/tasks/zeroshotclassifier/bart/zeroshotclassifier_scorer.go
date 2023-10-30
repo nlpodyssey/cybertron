@@ -16,13 +16,13 @@ func (m *ZeroShotClassifier) score(premise []int, multiClass bool) func(hypothes
 
 		logits := m.Model.Forward(tokenized)
 		if !multiClass {
-			return logits.Value().ScalarAtVec(m.entailmentID).F64()
+			return logits.Value().(mat.Matrix).ScalarAt(m.entailmentID).F64()
 		}
 
 		// softmax over the entailment vs. contradiction for each label independently
-		return mat.NewVecDense(sliceFromIndices(logits.Value(), m.entailmentID, m.contradictionID)).
+		return mat.NewDense[float64](mat.WithBacking(sliceFromIndices(logits.Value().(mat.Matrix), m.entailmentID, m.contradictionID))).
 			Softmax().
-			ScalarAtVec(0).
+			ScalarAt(0).
 			F64()
 	}
 }
@@ -31,7 +31,7 @@ func (m *ZeroShotClassifier) score(premise []int, multiClass bool) func(hypothes
 func sliceFromIndices(v mat.Matrix, indices ...int) []float64 {
 	result := make([]float64, len(indices))
 	for i, idx := range indices {
-		result[i] = v.ScalarAtVec(idx).F64()
+		result[i] = v.ScalarAt(idx).F64()
 	}
 	return result
 }

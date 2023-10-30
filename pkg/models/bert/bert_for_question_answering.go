@@ -8,6 +8,7 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/linear"
@@ -38,10 +39,10 @@ func NewModelForQuestionAnswering[T float.DType](bert *Model) *ModelForQuestionA
 }
 
 // Answer returns the "span start logits" and "span end logits".
-func (m *ModelForQuestionAnswering) Answer(tokens []string) (starts, ends []ag.Node) {
+func (m *ModelForQuestionAnswering) Answer(tokens []string) (starts, ends []mat.Tensor) {
 	for _, y := range m.Classifier.Forward(m.Bert.EncodeTokens(tokens)...) {
-		starts = append(starts, ag.AtVec(y, 0))
-		ends = append(ends, ag.AtVec(y, 1))
+		starts = append(starts, ag.At(y, 0))
+		ends = append(ends, ag.At(y, 1))
 	}
 	return
 }

@@ -7,7 +7,7 @@ package bart
 import (
 	"encoding/gob"
 
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
@@ -42,7 +42,7 @@ func NewEncoderLayer[T float.DType](c Config) *EncoderLayer {
 		FF: NewFeedForwardBlock[T](NewFeedForwardBlockConfig{
 			Dim:             c.DModel,
 			HiddenDim:       c.EncoderFFNDim,
-			Activation:      activation.MustActivation(c.ActivationFunction),
+			Activation:      activation.MustParseActivation(c.ActivationFunction),
 			NormalizeBefore: c.NormalizeBefore,
 		}),
 		Config: c,
@@ -50,7 +50,7 @@ func NewEncoderLayer[T float.DType](c Config) *EncoderLayer {
 }
 
 // Forward performs the forward pass.
-func (m *EncoderLayer) Forward(xs ...ag.Node) []ag.Node {
+func (m *EncoderLayer) Forward(xs ...mat.Tensor) []mat.Tensor {
 	attention, _ := m.SelfAttention.Forward(nil, xs)
 	return m.FF.Forward(attention)
 }

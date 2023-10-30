@@ -49,15 +49,15 @@ func NewModelForConditionalGeneration[T float.DType](bart *Model) *ModelForCondi
 
 // makePadMask returns a mask for padding.
 func makePadMask[T float.DType](padTokenID int, vocabSize int) *nn.Buffer {
-	mask := mat.NewInitVecDense[T](vocabSize, 0)
-	mask.SetVecScalar(padTokenID, float.Interface(mat.Inf[T](-1)))
+	mask := mat.NewDense[T](mat.WithBacking(mat.CreateInitializedSlice(vocabSize, 0.)))
+	mask.SetScalar(float.Interface(mat.Inf[T](-1)), padTokenID)
 	return nn.Buf(mask)
 }
 
 // makeEosMask returns a mask for EOS.
 func makeEosMask[T float.DType](eosTokenID int, vocabSize int) *nn.Buffer {
-	mask := mat.NewInitVecDense[T](vocabSize, mat.Inf[T](-1))
-	mask.SetVecScalar(eosTokenID, float.Interface(T(0)))
+	mask := mat.NewDense[T](mat.WithBacking(mat.CreateInitializedSlice(vocabSize, mat.Inf[T](-1))))
+	mask.SetScalar(float.Interface(T(0)), eosTokenID)
 	return nn.Buf(mask)
 }
 
@@ -74,7 +74,7 @@ type DecodingInput struct {
 // DecodingOutput is the output of the decoding function of the model for conditional generation.
 type DecodingOutput struct {
 	// LogProbRaw is the raw (not processed) log probability of the generated token.
-	LogProbRaw ag.Node
+	LogProbRaw mat.Tensor
 	// LogProbValue is the post-processed log probability of the generated token.
 	LogProbValue mat.Matrix
 	// NextCache is the next cache.
@@ -111,7 +111,7 @@ func (m *ModelForConditionalGeneration) DecodingFunc(encoderInputIDs []int, scor
 
 // decodingState is a state for the decoding function.
 type decodingState struct {
-	encoderStates []ag.Node
+	encoderStates []mat.Tensor
 	decodingInput *DecodingInput
 	scoreProc     generationutils.ScoreProcessor
 	inference     bool
@@ -135,13 +135,13 @@ func (m *ModelForConditionalGeneration) next(state decodingState) *DecodingOutpu
 
 	return &DecodingOutput{
 		LogProbRaw:   logProb,
-		LogProbValue: state.scoreProc(logProb.Value()),
+		LogProbValue: state.scoreProc(logProb.Value().(mat.Matrix)),
 		NextCache:    nextCache,
 	}
 }
 
 // adjustLogits applies the mask to the logits to avoid impossible token from being generated during inference.
-func (m *ModelForConditionalGeneration) adjustLogits(xs ag.Node, curLen int) ag.Node {
+func (m *ModelForConditionalGeneration) adjustLogits(xs mat.Tensor, curLen int) mat.Tensor {
 	ys := ag.Add(xs, m.PadMask) // Don't generate pad token
 	if curLen == m.Bart.Config.MaxLength-1 && m.Bart.Config.EosTokenID >= 0 {
 		ys = ag.Add(ys, m.EosMask) // Force EOS to be generated

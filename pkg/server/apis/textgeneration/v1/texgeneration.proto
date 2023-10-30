@@ -1,12 +1,12 @@
 syntax = "proto3";
 
-package text2text.v1;
+package textgeneration.v1;
 
 import "google/api/annotations.proto";
 
-option go_package = "github.com/nlpodyssey/cybertron/pkg/server/apis/text2text/v1;text2textv1";
+option go_package = "github.com/nlpodyssey/cybertron/pkg/server/apis/textgeneration/v1;textgenerationv1";
 
-service Text2TextService {
+service TextGenerationService {
   rpc Generate(GenerateRequest) returns (GenerateResponse) {
     option (google.api.http) = {
       post: "/v1/generate"
@@ -17,10 +17,10 @@ service Text2TextService {
 
 message GenerateRequest {
   string input = 1;
-  optional Text2TextParameters parameters = 2;
+  optional TextGenerationParameters parameters = 2;
 }
 
-message Text2TextParameters {
+message TextGenerationParameters {
   optional int64 top_k = 1;
   optional double top_p = 2;
   optional double temperature = 3;

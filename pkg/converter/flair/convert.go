@@ -416,7 +416,8 @@ func (conv *converter[T]) extractLSTMParam(tl *torch.LSTM, name string, reverse 
 }
 
 func splitMatrixInto4(m mat.Matrix) (parts [4]mat.Matrix, _ error) {
-	rows, cols := m.Dims()
+	shape := m.Shape()
+	rows, cols := shape[0], shape[1]
 
 	if rows == 0 || rows%4 != 0 {
 		return parts, fmt.Errorf("cannot split matrix with %d rows into 4 parts", rows)
@@ -524,7 +525,7 @@ func (conv *converter[T]) convTransitions() (mat.Matrix, error) {
 		i++
 	}
 
-	return mat.NewDense(length, length, out), nil
+	return mat.NewDense[T](mat.WithShape(length, length), mat.WithBacking(out)), nil
 }
 
 func (conv *converter[T]) config() flair.Config {
@@ -546,7 +547,7 @@ func (conv *converter[T]) TensorToMatrix(t *pytorch.Tensor) (*mat.Dense[T], erro
 	if err != nil {
 		return nil, err
 	}
-	return mat.NewDense[T](t.Size[0], t.Size[1], float.SliceValueOf[T](float.SliceInterface(data))), nil
+	return mat.NewDense[T](mat.WithShape(t.Size[0], t.Size[1]), mat.WithBacking(data)), nil
 }
 
 func (conv *converter[T]) TensorToVector(t *pytorch.Tensor) (*mat.Dense[T], error) {
@@ -557,5 +558,5 @@ func (conv *converter[T]) TensorToVector(t *pytorch.Tensor) (*mat.Dense[T], erro
 	if err != nil {
 		return nil, err
 	}
-	return mat.NewVecDense[T](float.SliceValueOf[T](float.SliceInterface(data))), nil
+	return mat.NewDense[T](mat.WithBacking(data)), nil
 }

@@ -24,7 +24,7 @@ type clientForTextEncoding struct {
 	opts Options
 }
 
-// NewClientForTextClassification creates a new client for text classification.
+// NewClientForTextEncoding creates a new client for text classification.
 func NewClientForTextEncoding(target string, opts Options) textencoding.Interface {
 	return &clientForTextEncoding{
 		target: target,
@@ -51,6 +51,6 @@ func (c *clientForTextEncoding) Encode(ctx context.Context, text string, pooling
 		return textencoding.Response{}, err
 	}
 	return textencoding.Response{
-		Vector: mat.NewVecDense(response.Vector),
+		Vector: mat.NewDense[float32](mat.WithBacking(response.Vector)),
 	}, nil
 }

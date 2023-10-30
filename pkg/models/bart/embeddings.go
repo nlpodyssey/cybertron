@@ -8,6 +8,7 @@ import (
 	"math"
 
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/embedding"
@@ -36,7 +37,7 @@ func NewEmbeddings[T float.DType](c Config, shared embedding.Shared, isDecoder b
 	}
 	var scaleFactor *nn.Buffer
 	if c.ScaleEmbedding {
-		scaleFactor = nn.Const(T(math.Sqrt(float64(c.DModel))))
+		scaleFactor = nn.Buf(mat.Scalar(math.Sqrt(float64(c.DModel))))
 	}
 	return &Embeddings{
 		SharedEmbeddings: shared,
@@ -55,7 +56,7 @@ func NewEmbeddings[T float.DType](c Config, shared embedding.Shared, isDecoder b
 }
 
 // Encode performs the Bart initial input encoding.
-func (m *Embeddings) Encode(inputIDs []int, offset int) []ag.Node {
+func (m *Embeddings) Encode(inputIDs []int, offset int) []mat.Tensor {
 	ys := ag.Map2(ag.Add,
 		m.useScaledEmbeddings(m.SharedEmbeddings.MustEncode(inputIDs)),
 		m.PositionalEncoder.Encode(makePositions(len(inputIDs), offset)),
@@ -67,12 +68,12 @@ func (m *Embeddings) Encode(inputIDs []int, offset int) []ag.Node {
 }
 
 // useScaledEmbeddings returns the scaled embeddings.
-func (m *Embeddings) useScaledEmbeddings(xs []ag.Node) []ag.Node {
+func (m *Embeddings) useScaledEmbeddings(xs []mat.Tensor) []mat.Tensor {
 	if !m.Config.ScaleEmbedding {
 		return xs
 	}
 
-	ys := make([]ag.Node, len(xs))
+	ys := make([]mat.Tensor, len(xs))
 	for i, x := range xs {
 		ys[i] = ag.ProdScalar(x, m.ScaleFactor)
 	}

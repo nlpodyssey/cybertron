@@ -8,38 +8,38 @@ import (
 	"context"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	text2textv1 "github.com/nlpodyssey/cybertron/pkg/server/gen/proto/go/text2text/v1"
-	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
+	textgenerationv1 "github.com/nlpodyssey/cybertron/pkg/server/gen/proto/go/textgeneration/v1"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/textgeneration"
 	"github.com/nlpodyssey/cybertron/pkg/utils/nullable"
 	"google.golang.org/grpc"
 )
 
 // serverForTextGeneration is a server that provides gRPC and HTTP/2 APIs for Interface task.
 type serverForTextGeneration struct {
-	text2textv1.UnimplementedText2TextServiceServer
-	generator text2text.Interface
+	textgenerationv1.UnimplementedTextGenerationServiceServer
+	generator textgeneration.Interface
 }
 
-func NewServerForTextGeneration(generator text2text.Interface) RequestHandler {
+func NewServerForTextGeneration(generator textgeneration.Interface) RequestHandler {
 	return &serverForTextGeneration{generator: generator}
 }
 
 func (s *serverForTextGeneration) RegisterServer(r grpc.ServiceRegistrar) error {
-	text2textv1.RegisterText2TextServiceServer(r, s)
+	textgenerationv1.RegisterTextGenerationServiceServer(r, s)
 	return nil
 }
 
 func (s *serverForTextGeneration) RegisterHandlerServer(ctx context.Context, mux *runtime.ServeMux) error {
-	return text2textv1.RegisterText2TextServiceHandlerServer(ctx, mux, s)
+	return textgenerationv1.RegisterTextGenerationServiceHandlerServer(ctx, mux, s)
 }
 
 // Generate handles the Generate request.
-func (s *serverForTextGeneration) Generate(ctx context.Context, req *text2textv1.GenerateRequest) (*text2textv1.GenerateResponse, error) {
+func (s *serverForTextGeneration) Generate(ctx context.Context, req *textgenerationv1.GenerateRequest) (*textgenerationv1.GenerateResponse, error) {
 	opts := req.GetParameters()
 	if opts == nil {
-		opts = &text2textv1.Text2TextParameters{}
+		opts = &textgenerationv1.TextGenerationParameters{}
 	}
-	result, err := s.generator.Generate(ctx, req.GetInput(), &text2text.Options{
+	result, err := s.generator.Generate(ctx, req.GetInput(), &textgeneration.Options{
 		Temperature: nullable.Any(opts.Temperature),
 		Sample:      nullable.Any(opts.DoSample),
 		TopK:        nullable.Int(opts.TopK),
@@ -48,7 +48,7 @@ func (s *serverForTextGeneration) Generate(ctx context.Context, req *text2textv1
 	if err != nil {
 		return nil, err
 	}
-	resp := &text2textv1.GenerateResponse{
+	resp := &textgenerationv1.GenerateResponse{
 		Texts:  result.Texts,
 		Scores: result.Scores,
 	}

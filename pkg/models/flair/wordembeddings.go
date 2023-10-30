@@ -7,7 +7,7 @@ package flair
 import (
 	"encoding/gob"
 
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn/embedding"
 )
@@ -30,10 +30,10 @@ func NewWordEmbeddings[T float.DType](vocab map[string]int, embeddingSize int) *
 	}
 }
 
-// EncodeTokens returns a slice of ag.Node representing the embeddings of the given tokens.
+// EncodeTokens returns a slice of mat.Tensor representing the embeddings of the given tokens.
 // It first looks up the tokens in the Vocab and then returns the corresponding embeddings.
-func (m *WordEmbeddings) EncodeTokens(tokens []string) []ag.Node {
-	embeddings := make([]ag.Node, len(tokens))
+func (m *WordEmbeddings) EncodeTokens(tokens []string) []mat.Tensor {
+	embeddings := make([]mat.Tensor, len(tokens))
 	for i, token := range tokens {
 		idx, ok := m.Vocab[token]
 		if !ok {

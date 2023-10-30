@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package text2text
+package textgeneration
 
 import (
 	"context"
@@ -51,7 +51,7 @@ func DefaultModelForMachineTranslation(source, target string) string {
 	return fmt.Sprintf(DefaultModelTemplateForMachineTranslation, source, target)
 }
 
-// Interface defines the main functions for the Text2Text task.
+// Interface defines the main functions for the TextGeneration task.
 type Interface interface {
 	// Generate generates text (e.g. translation, summarization, paraphrase) from the given input.
 	Generate(ctx context.Context, text string, opts *Options) (Response, error)

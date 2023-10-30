@@ -6,7 +6,7 @@ package bert
 
 import (
 	"encoding/gob"
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
@@ -34,6 +34,6 @@ func NewPooler[T float.DType](c Config) *Pooler {
 }
 
 // Forward applies a linear transformation followed by a Tanh activation to the first `[CLS]` encoded token.
-func (m *Pooler) Forward(encoded ag.Node) ag.Node {
+func (m *Pooler) Forward(encoded mat.Tensor) mat.Tensor {
 	return m.Model.Forward(encoded)[0]
 }

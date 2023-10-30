@@ -7,7 +7,7 @@ package bert
 import (
 	"encoding/gob"
 
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
@@ -37,13 +37,13 @@ func NewEncoderLayer[T float.DType](c Config) *EncoderLayer {
 		FF: NewFeedForwardBlock[T](FeedForwardBlockConfig{
 			Dim:        c.HiddenSize,
 			HiddenDim:  c.IntermediateSize,
-			Activation: activation.MustActivation(c.HiddenAct),
+			Activation: activation.MustParseActivation(c.HiddenAct),
 		}),
 		Config: c,
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *EncoderLayer) Forward(xs ...ag.Node) []ag.Node {
+func (m *EncoderLayer) Forward(xs ...mat.Tensor) []mat.Tensor {
 	return m.FF.Forward(m.SelfAttention.Forward(xs))
 }

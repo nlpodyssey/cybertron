@@ -9,7 +9,7 @@ import (
 
 	"github.com/nlpodyssey/cybertron/pkg/models/bert"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/wordpiecetokenizer"
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 )
 
 type ModelForTokenClassification struct {
@@ -17,14 +17,14 @@ type ModelForTokenClassification struct {
 }
 
 // Classify returns the logits for each token.
-func (m *ModelForTokenClassification) Classify(tokens []string) []ag.Node {
+func (m *ModelForTokenClassification) Classify(tokens []string) []mat.Tensor {
 	return m.Classifier.Forward(m.EncodeAndReduce(tokens)...)
 }
 
-func (m *ModelForTokenClassification) EncodeAndReduce(tokens []string) []ag.Node {
+func (m *ModelForTokenClassification) EncodeAndReduce(tokens []string) []mat.Tensor {
 	encoded := m.Bert.EncodeTokens(tokens)
 
-	result := make([]ag.Node, 0, len(tokens))
+	result := make([]mat.Tensor, 0, len(tokens))
 	for i, token := range tokens {
 		if isSpecialToken(token) {
 			encoded[i].Value() // important

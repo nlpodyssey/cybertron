@@ -17,7 +17,7 @@ import (
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers"
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/wordpiecetokenizer"
 	"github.com/nlpodyssey/cybertron/pkg/vocabulary"
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/rs/zerolog/log"
 )
@@ -84,8 +84,8 @@ func ID2Label(value map[string]string) []string {
 // Classify returns the classification of the given text.
 func (m *TokenClassification) Classify(_ context.Context, text string, parameters tokenclassification.Parameters) (tokenclassification.Response, error) {
 	tokenized := m.tokenize(text)
-	if l, max := len(tokenized), m.Model.Bert.Config.MaxPositionEmbeddings; l > max {
-		return tokenclassification.Response{}, fmt.Errorf("%w: %d > %d", tokenclassification.ErrInputSequenceTooLong, l, max)
+	if l, k := len(tokenized), m.Model.Bert.Config.MaxPositionEmbeddings; l > k {
+		return tokenclassification.Response{}, fmt.Errorf("%w: %d > %d", tokenclassification.ErrInputSequenceTooLong, l, k)
 	}
 
 	logits := m.Model.Classify(pad(tokenizers.GetStrings(tokenized)))
@@ -112,10 +112,10 @@ func (m *TokenClassification) Classify(_ context.Context, text string, parameter
 	return response, nil
 }
 
-func (m *TokenClassification) getBestClass(logits ag.Node) (label string, score float64) {
-	probs := logits.Value().Softmax()
+func (m *TokenClassification) getBestClass(logits mat.Tensor) (label string, score float64) {
+	probs := logits.Value().(mat.Matrix).Softmax()
 	argmax := probs.ArgMax()
-	score = probs.AtVec(argmax).Scalar().F64()
+	score = probs.At(argmax).Item().F64()
 	label = m.Labels[argmax]
 	return
 }

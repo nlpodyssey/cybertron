@@ -7,7 +7,7 @@ package flair
 import (
 	"encoding/gob"
 
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/birnn"
 )
@@ -32,7 +32,7 @@ func NewEncoder(embeddings *Embeddings, biRNN *birnn.Model) *Encoder {
 	}
 }
 
-// Encode encodes the sequence of tokens.
-func (m *Encoder) EncodeTokens(tokens []string) []ag.Node {
+// EncodeTokens encodes the sequence of tokens.
+func (m *Encoder) EncodeTokens(tokens []string) []mat.Tensor {
 	return m.BiRNN.Forward(m.Embeddings.EncodeTokens(tokens)...)
 }

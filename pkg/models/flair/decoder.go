@@ -7,7 +7,7 @@ package flair
 import (
 	"encoding/gob"
 
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/crf"
 	"github.com/nlpodyssey/spago/nn/linear"
@@ -34,15 +34,15 @@ func NewDecoder(scorer *linear.Model, crf *crf.Model) *Decoder {
 }
 
 // Decode performs the viterbi decoding.
-func (m *Decoder) Decode(xs []ag.Node) ([]int, []float64) {
+func (m *Decoder) Decode(xs []mat.Tensor) ([]int, []float64) {
 	scores := m.Scorer.Forward(xs...)
 	return m.CRF.Decode(scores), bestScores(scores)
 }
 
-func bestScores(scores []ag.Node) []float64 {
+func bestScores(scores []mat.Tensor) []float64 {
 	bests := make([]float64, len(scores))
 	for i, item := range scores {
-		bests[i] = item.Value().Softmax().Max().Scalar().F64()
+		bests[i] = item.Value().(mat.Matrix).Softmax().Max().Item().F64()
 	}
 	return bests
 }

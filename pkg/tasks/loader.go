@@ -16,12 +16,12 @@ import (
 	bert_for_language_modeling "github.com/nlpodyssey/cybertron/pkg/tasks/languagemodeling/bert"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering"
 	bert_for_question_answering "github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering/bert"
-	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
-	bart_for_text_to_text "github.com/nlpodyssey/cybertron/pkg/tasks/text2text/bart"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/textclassification"
 	bert_for_text_classification "github.com/nlpodyssey/cybertron/pkg/tasks/textclassification/bert"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/textencoding"
 	bert_for_text_encoding "github.com/nlpodyssey/cybertron/pkg/tasks/textencoding/bert"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/textgeneration"
+	bart_for_text_to_text "github.com/nlpodyssey/cybertron/pkg/tasks/textgeneration/bart"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/tokenclassification"
 	bert_for_token_classification "github.com/nlpodyssey/cybertron/pkg/tasks/tokenclassification/bert"
 	flair_for_token_classification "github.com/nlpodyssey/cybertron/pkg/tasks/tokenclassification/flair"
@@ -30,7 +30,7 @@ import (
 )
 
 var (
-	text2textInterface           = reflect.TypeOf((*text2text.Interface)(nil)).Elem()
+	textGenerationInterface      = reflect.TypeOf((*textgeneration.Interface)(nil)).Elem()
 	zeroshotclassifierInterface  = reflect.TypeOf((*zeroshotclassifier.Interface)(nil)).Elem()
 	questionansweringInterface   = reflect.TypeOf((*questionanswering.Interface)(nil)).Elem()
 	textclassificationInterface  = reflect.TypeOf((*textclassification.Interface)(nil)).Elem()
@@ -44,8 +44,8 @@ func Load[T any](conf *Config) (T, error) {
 	return loader[T]{conf: *conf}.load()
 }
 
-func LoadModelForTextGeneration(conf *Config) (text2text.Interface, error) {
-	return Load[text2text.Interface](conf)
+func LoadModelForTextGeneration(conf *Config) (textgeneration.Interface, error) {
+	return Load[textgeneration.Interface](conf)
 }
 
 func LoadModelForQuestionAnswering(conf *Config) (questionanswering.Interface, error) {
@@ -98,8 +98,8 @@ func (l loader[T]) load() (obj T, _ error) {
 func (l loader[T]) resolveLoadingFunc() (func() (T, error), error) {
 	obj, t := l.reflectType()
 	switch {
-	case t.Implements(text2textInterface):
-		return l.resolveModelForText2Text, nil
+	case t.Implements(textGenerationInterface):
+		return l.resolveModelForTextGeneration, nil
 	case t.Implements(zeroshotclassifierInterface):
 		return l.resolveModelForZeroShotClassification, nil
 	case t.Implements(questionansweringInterface):
@@ -124,7 +124,7 @@ func (l loader[T]) reflectType() (obj T, t reflect.Type) {
 	return obj, reflect.ValueOf(obj).Type()
 }
 
-func (l loader[T]) resolveModelForText2Text() (obj T, _ error) {
+func (l loader[T]) resolveModelForTextGeneration() (obj T, _ error) {
 	modelDir := l.conf.FullModelPath()
 	modelConfig, err := models.ReadCommonModelConfig(modelDir, "")
 	if err != nil {
@@ -133,7 +133,7 @@ func (l loader[T]) resolveModelForText2Text() (obj T, _ error) {
 
 	switch modelConfig.ModelType {
 	case "bart", "marian", "pegasus":
-		return typeCheck[T](bart_for_text_to_text.LoadText2Text(modelDir))
+		return typeCheck[T](bart_for_text_to_text.LoadTextGeneration(modelDir))
 	default:
 		return obj, fmt.Errorf("model type %#v doesn't support the text generation task", modelConfig.ModelType)
 	}

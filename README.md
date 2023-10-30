@@ -67,7 +67,7 @@ Usage of server:
   -network value
         network type for server listening
   -task value
-        type of inference/computation that the model can fulfill ("text2text"|"zero-shot-classification"|"question-answering"|"text-classification"|"token-classification"|"text-encoding")
+        type of inference/computation that the model can fulfill ("textgeneration"|"zero-shot-classification"|"question-answering"|"text-classification"|"token-classification"|"text-encoding")
   -tls value
         whether to enable TLS ("true"|"false")
   -tls-cert value
@@ -82,7 +82,7 @@ For example, to run Cybertron in server mode for Machine Translation (e.g. `en` 
 ```console
 echo "CYBERTRON_MODEL=Helsinki-NLP/opus-mt-en-it" > .env
 echo "CYBERTRON_MODELS_DIR=models" >> .env
-echo "CYBERTRON_MODEL_TASK=text2text" >> .env
+echo "CYBERTRON_MODEL_TASK=text-generation" >> .env
 ```
 
 and execute the following command:

@@ -68,15 +68,15 @@ func (m *LanguageModel) Predict(_ context.Context, text string, parameters langu
 	}
 
 	tokenized := pad(m.tokenize(text))
-	if l, max := len(tokenized), m.Model.Bert.Config.MaxPositionEmbeddings; l > max {
-		return languagemodeling.Response{}, fmt.Errorf("%w: %d > %d", languagemodeling.ErrInputSequenceTooLong, l, max)
+	if l, k := len(tokenized), m.Model.Bert.Config.MaxPositionEmbeddings; l > k {
+		return languagemodeling.Response{}, fmt.Errorf("%w: %d > %d", languagemodeling.ErrInputSequenceTooLong, l, k)
 	}
 
 	prediction := m.Model.Predict(tokenizers.GetStrings(tokenized))
 
 	result := make([]languagemodeling.Token, 0, len(prediction))
 	for i, logits := range prediction {
-		probs := logits.Value().Softmax()
+		probs := logits.Value().(mat.Matrix).Softmax()
 
 		scores := make([]float64, 0)
 		words := make([]string, 0)
@@ -136,7 +136,7 @@ func selectTopK(scores mat.Matrix, resultSize int) []*IndexScorePair {
 		return []*IndexScorePair{
 			{
 				Index: argmax,
-				Score: scores.ScalarAtVec(argmax).F64(),
+				Score: scores.ScalarAt(argmax).F64(),
 			},
 		}
 	}

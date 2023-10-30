@@ -144,7 +144,7 @@ func Tensor2DToSliceOfVectors(t *pytorch.Tensor) ([]mat.Matrix, error) {
 
 	for i := range vectors {
 		from := vecSize * i
-		vectors[i] = mat.NewVecDense[float32](data[from : from+vecSize])
+		vectors[i] = mat.NewDense[float32](mat.WithBacking(data[from : from+vecSize]))
 	}
 
 	return vectors, nil

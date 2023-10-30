@@ -79,7 +79,7 @@ func TopPProcessor[T float.DType](topP, filterValue T, minSize int) ScoreProcess
 		sortedData := sliceutils.NewIndexedSlice[T](dataCopy)
 		sort.Stable(sort.Reverse(sortedData))
 
-		cumulativeProbs := mat.NewVecDense(sortedData.Slice).Softmax().CumSum()
+		cumulativeProbs := mat.NewDense[T](mat.WithBacking(sortedData.Slice)).Softmax().CumSum()
 		cumProbData := mat.Data[T](cumulativeProbs)
 
 		indicesToRemove := make([]bool, len(cumProbData))
@@ -110,6 +110,6 @@ func TopPProcessor[T float.DType](topP, filterValue T, minSize int) ScoreProcess
 			outData[index] = filterValue
 		}
 
-		return mat.NewVecDense[T](outData)
+		return mat.NewDense[T](mat.WithBacking(outData))
 	}
 }

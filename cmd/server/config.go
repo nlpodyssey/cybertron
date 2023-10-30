@@ -20,7 +20,7 @@ import (
 type TaskType string
 
 const (
-	Text2TextTask              TaskType = "text2text"
+	TextGenerationTask         TaskType = "text-generation"
 	ZeroShotClassificationTask TaskType = "zero-shot-classification"
 	QuestionAnsweringTask      TaskType = "question-answering"
 	TextClassificationTask     TaskType = "text-classification"
@@ -31,7 +31,7 @@ const (
 
 // TaskTypeValues is the list of supported task types.
 var TaskTypeValues = []TaskType{
-	Text2TextTask,
+	TextGenerationTask,
 	ZeroShotClassificationTask,
 	QuestionAnsweringTask,
 	TextClassificationTask,
@@ -124,7 +124,7 @@ func (conf *config) bindFlagSet(fs *flag.FlagSet) {
 		flagParseFunc(tasks.ParseConversionPolicy, &mm.ConversionPolicy))
 	fs.Func("model-conversion-precision", `floating-point bits of precision to use if the model is converted ("32"|"64")`,
 		flagParseFunc(tasks.ParseFloatPrecision, &mm.ConversionPrecision))
-	fs.Func("task", `type of inference/computation that the model can fulfill ("text2text"|"zero-shot-classification"|"question-answering"|"text-classification"|"token-classification"|"text-encoding"|"language-modeling")`,
+	fs.Func("task", `type of inference/computation that the model can fulfill ("text-generation"|"zero-shot-classification"|"question-answering"|"text-classification"|"token-classification"|"text-encoding"|"language-modeling")`,
 		flagParseFunc(ParseTaskType, &conf.task))
 
 	s := conf.serverConfig

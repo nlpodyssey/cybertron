@@ -12,8 +12,8 @@ import (
 	//lint:ignore ST1001 allow dot import just to make the example more readable
 	. "github.com/nlpodyssey/cybertron/examples"
 	"github.com/nlpodyssey/cybertron/pkg/tasks"
-	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
-	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text/bart"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/textgeneration"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/textgeneration/bart"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -35,19 +35,19 @@ func main() {
 
 	modelsDir := HasEnvVar("CYBERTRON_MODELS_DIR")
 
-	m, err := tasks.Load[*bart.Text2Text](&tasks.Config{
+	m, err := tasks.Load[*bart.TextGeneration](&tasks.Config{
 		ModelsDir: modelsDir,
-		ModelName: text2text.DefaultModelForAbstractiveQuestionAnswering,
+		ModelName: textgeneration.DefaultModelForAbstractiveQuestionAnswering,
 	})
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
 	defer tasks.Finalize(m)
 
-	opts := text2text.DefaultOptions()
+	opts := textgeneration.DefaultOptions()
 
 	start := time.Now()
-	result, err := m.Generate(context.Background(), text2text.PrepareInputForAbstractiveQuestionAnswering(query, passages), opts)
+	result, err := m.Generate(context.Background(), textgeneration.PrepareInputForAbstractiveQuestionAnswering(query, passages), opts)
 	if err != nil {
 		panic(err)
 	}

@@ -8,6 +8,7 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/attention/multiheadattention"
 )
@@ -23,7 +24,7 @@ func init() {
 	gob.Register(&PreNormCrossAttentionBlock{})
 }
 
-func (m PreNormCrossAttentionBlock) Forward(cache multiheadattention.Cache, seq1 []ag.Node, seq2 []ag.Node) ([]ag.Node, multiheadattention.Cache) {
+func (m PreNormCrossAttentionBlock) Forward(cache multiheadattention.Cache, seq1 []mat.Tensor, seq2 []mat.Tensor) ([]mat.Tensor, multiheadattention.Cache) {
 	norm := m.Norm.Forward(seq1...)
 	att, _, nextCache := m.Attention.Forward(cache, norm, seq2)
 

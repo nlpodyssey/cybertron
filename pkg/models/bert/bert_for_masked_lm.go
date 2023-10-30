@@ -8,7 +8,7 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/wordpiecetokenizer"
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
@@ -38,7 +38,7 @@ func NewModelForMaskedLM[T float.DType](bert *Model) *ModelForMaskedLM {
 		Bert: bert,
 		Layers: []nn.StandardModel{
 			linear.New[T](c.HiddenSize, c.HiddenSize),
-			activation.New(activation.MustActivation(c.HiddenAct)),
+			activation.New(activation.MustParseActivation(c.HiddenAct)),
 			layernorm.New[T](c.HiddenSize, 1e-5),
 			linear.New[T](c.HiddenSize, c.VocabSize),
 		},
@@ -46,16 +46,16 @@ func NewModelForMaskedLM[T float.DType](bert *Model) *ModelForMaskedLM {
 }
 
 // Predict returns the predictions for the token associated to the masked nodes.
-func (m *ModelForMaskedLM) Predict(tokens []string) map[int]ag.Node {
+func (m *ModelForMaskedLM) Predict(tokens []string) map[int]mat.Tensor {
 	encoded := evaluate(m.Bert.EncodeTokens(tokens)...)
-	result := make(map[int]ag.Node)
+	result := make(map[int]mat.Tensor)
 	for _, id := range masked(tokens) {
 		result[id] = m.Layers.Forward(encoded[id])[0]
 	}
 	return result
 }
 
-func evaluate(xs ...ag.Node) []ag.Node {
+func evaluate(xs ...mat.Tensor) []mat.Tensor {
 	for _, x := range xs {
 		x.Value()
 	}

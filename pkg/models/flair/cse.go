@@ -6,12 +6,12 @@ package flair
 
 import (
 	"encoding/gob"
-	"github.com/nlpodyssey/spago/mat"
 	"strings"
 	"sync"
 
 	"github.com/nlpodyssey/cybertron/pkg/models/flair/charlm"
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -59,8 +59,8 @@ type text struct {
 	tokens []string
 }
 
-// Encode performs the forward step for each input and returns the result.
-func (m *ContextualStringEmbeddings) EncodeTokens(tokens []string) []ag.Node {
+// EncodeTokens performs the forward step for each input and returns the result.
+func (m *ContextualStringEmbeddings) EncodeTokens(tokens []string) []mat.Tensor {
 	t := text{
 		string: strings.Join(tokens, " "),
 		tokens: tokens,
@@ -68,14 +68,14 @@ func (m *ContextualStringEmbeddings) EncodeTokens(tokens []string) []ag.Node {
 
 	h, rh := m.computeHiddenStates(chars(t.string))
 
-	result := make([]ag.Node, len(t.tokens))
+	result := make([]mat.Tensor, len(t.tokens))
 	for i, boundary := range t.boundaries() {
 		result[i] = m.merge(rh[boundary[1]], h[boundary[0]])
 	}
 	return result
 }
 
-func (m *ContextualStringEmbeddings) computeHiddenStates(sequence []string) (hiddenStates, rHiddenStates []ag.Node) {
+func (m *ContextualStringEmbeddings) computeHiddenStates(sequence []string) (hiddenStates, rHiddenStates []mat.Tensor) {
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
@@ -91,7 +91,7 @@ func (m *ContextualStringEmbeddings) computeHiddenStates(sequence []string) (hid
 	return
 }
 
-func (m *ContextualStringEmbeddings) merge(a, b ag.Node) ag.Node {
+func (m *ContextualStringEmbeddings) merge(a, b mat.Tensor) mat.Tensor {
 	switch m.MergeMode {
 	case Concat:
 		return ag.Concat(a, b)
@@ -100,7 +100,7 @@ func (m *ContextualStringEmbeddings) merge(a, b ag.Node) ag.Node {
 	case Prod:
 		return ag.Prod(a, b)
 	case Avg:
-		return ag.ProdScalar(ag.Add(a, b), mat.NewScalar(0.5))
+		return ag.ProdScalar(ag.Add(a, b), mat.Scalar(0.5))
 	default:
 		panic("flair: invalid merge mode for the ContextualStringEmbeddings")
 	}

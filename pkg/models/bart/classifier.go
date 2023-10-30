@@ -7,7 +7,7 @@ package bart
 import (
 	"encoding/gob"
 
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
@@ -57,6 +57,6 @@ func NewClassifier[T float.DType](c ClassifierConfig) *Classifier {
 }
 
 // Forward implements the forward pass of the Classifier.
-func (m *Classifier) Forward(xs ag.Node) ag.Node {
+func (m *Classifier) Forward(xs mat.Tensor) mat.Tensor {
 	return m.Layers.Forward(xs)[0]
 }

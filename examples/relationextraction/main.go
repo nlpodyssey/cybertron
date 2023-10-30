@@ -13,7 +13,7 @@ import (
 	//lint:ignore ST1001 allow dot import just to make the example more readable
 	. "github.com/nlpodyssey/cybertron/examples"
 	"github.com/nlpodyssey/cybertron/pkg/tasks"
-	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/textgeneration"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -38,7 +38,7 @@ func main() {
 	}
 	defer tasks.Finalize(m)
 
-	opts := text2text.DefaultOptions()
+	opts := textgeneration.DefaultOptions()
 
 	fn := func(text string) error {
 		start := time.Now()

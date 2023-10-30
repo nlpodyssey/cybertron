@@ -33,7 +33,7 @@ const (
 
 // mappingParam is a mapping between a Hugging Face Transformers parameters and Cybertron parameters.
 type mappingParam struct {
-	value   mat.Matrix
+	value   mat.Tensor
 	matched bool
 }
 
@@ -145,7 +145,7 @@ func mapBaseModel[T float.DType](config bert.Config, pyParams *pytorch.ParamsPro
 				continue // skip empty key
 			}
 			item, _ := baseModel.Embeddings.Tokens.Embedding(i)
-			item.ReplaceValue(mat.NewVecDense[T](source[i*size : (i+1)*size]))
+			item.ReplaceValue(mat.NewDense[T](mat.WithBacking(source[i*size : (i+1)*size])))
 		}
 	}
 
@@ -156,7 +156,7 @@ func mapBaseModel[T float.DType](config bert.Config, pyParams *pytorch.ParamsPro
 		dest := baseModel.Embeddings.Positions
 		for i := 0; i < config.MaxPositionEmbeddings; i++ {
 			item, _ := dest.Embedding(i)
-			item.ReplaceValue(mat.NewVecDense[T](source[i*cols : (i+1)*cols]))
+			item.ReplaceValue(mat.NewDense[T](mat.WithBacking(source[i*cols : (i+1)*cols])))
 		}
 	}
 
@@ -165,7 +165,7 @@ func mapBaseModel[T float.DType](config bert.Config, pyParams *pytorch.ParamsPro
 		dest := baseModel.Embeddings.TokenTypes
 		for i := 0; i < config.TypeVocabSize; i++ {
 			item, _ := dest.Embedding(i)
-			item.ReplaceValue(mat.NewVecDense[T](source[i*cols : (i+1)*cols]))
+			item.ReplaceValue(mat.NewDense[T](mat.WithBacking(source[i*cols : (i+1)*cols])))
 		}
 	}
 

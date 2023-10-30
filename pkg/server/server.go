@@ -17,9 +17,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/languagemodeling"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/questionanswering"
-	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/textclassification"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/textencoding"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/textgeneration"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/tokenclassification"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/zeroshotclassifier"
 	"github.com/rs/cors"
@@ -65,7 +65,7 @@ type RequestHandler interface {
 // ResolveRequestHandler instantiates a new task-server based on the model.
 func ResolveRequestHandler(model any) (RequestHandler, error) {
 	switch m := model.(type) {
-	case text2text.Interface:
+	case textgeneration.Interface:
 		return NewServerForTextGeneration(m), nil
 	case zeroshotclassifier.Interface:
 		return NewServerForZeroShotClassification(m), nil

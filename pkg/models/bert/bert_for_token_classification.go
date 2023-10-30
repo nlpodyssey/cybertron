@@ -7,7 +7,7 @@ package bert
 import (
 	"encoding/gob"
 
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/linear"
@@ -37,6 +37,6 @@ func NewModelForTokenClassification[T float.DType](bert *Model) *ModelForTokenCl
 }
 
 // Classify returns the logits for each token.
-func (m *ModelForTokenClassification) Classify(tokens []string) []ag.Node {
+func (m *ModelForTokenClassification) Classify(tokens []string) []mat.Tensor {
 	return m.Classifier.Forward(m.Bert.EncodeTokens(tokens)...)
 }

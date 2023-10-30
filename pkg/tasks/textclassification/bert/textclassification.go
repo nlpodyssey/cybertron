@@ -7,6 +7,7 @@ package bert
 import (
 	"context"
 	"fmt"
+	"github.com/nlpodyssey/spago/mat"
 	"path"
 	"path/filepath"
 	"sort"
@@ -85,11 +86,11 @@ func ID2Label(value map[string]string) []string {
 // Classify returns the classification of the given text.
 func (m *TextClassification) Classify(_ context.Context, text string) (textclassification.Response, error) {
 	tokenized := m.tokenize(text)
-	if l, max := len(tokenized), m.Model.Bert.Config.MaxPositionEmbeddings; l > max {
-		return textclassification.Response{}, fmt.Errorf("%w: %d > %d", textclassification.ErrInputSequenceTooLong, l, max)
+	if l, k := len(tokenized), m.Model.Bert.Config.MaxPositionEmbeddings; l > k {
+		return textclassification.Response{}, fmt.Errorf("%w: %d > %d", textclassification.ErrInputSequenceTooLong, l, k)
 	}
 	logits := m.Model.Classify(tokenized)
-	probs := logits.Value().Softmax()
+	probs := logits.Value().(mat.Matrix).Softmax()
 
 	result := sliceutils.NewIndexedSlice[float64](probs.Data().F64())
 	sort.Stable(sort.Reverse(result))

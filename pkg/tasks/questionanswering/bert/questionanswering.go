@@ -63,8 +63,8 @@ func (qa *QuestionAnswering) Answer(_ context.Context, question string, passage 
 	checkOptions(opts)
 
 	qt, pt := qa.tokenize(question, passage)
-	if l, max := len(qt)+len(pt), qa.Model.Bert.Config.MaxPositionEmbeddings; l > max {
-		return questionanswering.Response{}, fmt.Errorf("%w: %d > %d", questionanswering.ErrInputSequenceTooLong, l, max)
+	if l, k := len(qt)+len(pt), qa.Model.Bert.Config.MaxPositionEmbeddings; l > k {
+		return questionanswering.Response{}, fmt.Errorf("%w: %d > %d", questionanswering.ErrInputSequenceTooLong, l, k)
 	}
 
 	starts, ends := qa.Model.Answer(concat(qt, pt))
@@ -123,17 +123,17 @@ func concat(question, passage []tokenizers.StringOffsetsPair) []string {
 }
 
 // adjustLogitsForInference adjusts the logits for inference.
-func adjustLogitsForInference(starts, ends []ag.Node, question, passage []tokenizers.StringOffsetsPair) ([]ag.Node, []ag.Node) {
+func adjustLogitsForInference(starts, ends []mat.Tensor, question, passage []tokenizers.StringOffsetsPair) ([]mat.Tensor, []mat.Tensor) {
 	passageStartIndex := len(question) + 2 // the offset is for [CLS] and [SEP] tokens
 	passageEndIndex := passageStartIndex + len(passage)
 	return starts[passageStartIndex:passageEndIndex], ends[passageStartIndex:passageEndIndex]
 }
 
 // extractScores extracts the scores from the logits.
-func extractScores(logits []ag.Node) []float64 {
+func extractScores(logits []mat.Tensor) []float64 {
 	scores := make([]float64, len(logits))
 	for i, node := range logits {
-		scores[i] = node.Value().Scalar().F64()
+		scores[i] = node.Value().Item().F64()
 	}
 	return scores
 }
@@ -149,7 +149,7 @@ func getBestIndices(logits []float64, size int) []int {
 }
 
 // searchCandidates searches the candidates from the given starts and ends logits.
-func searchCandidates(startsIdx, endsIdx []int, starts, ends []ag.Node, pt []tokenizers.StringOffsetsPair, passage string, maxLen int) []questionanswering.Answer {
+func searchCandidates(startsIdx, endsIdx []int, starts, ends []mat.Tensor, pt []tokenizers.StringOffsetsPair, passage string, maxLen int) []questionanswering.Answer {
 	candidates := make([]questionanswering.Answer, 0)
 	scores := make([]float64, 0) // the scores are aligned with the candidate answers
 	for _, startIndex := range startsIdx {
@@ -162,7 +162,7 @@ func searchCandidates(startsIdx, endsIdx []int, starts, ends []ag.Node, pt []tok
 			default:
 				startOffset := pt[startIndex].Offsets.Start
 				endOffset := pt[endIndex].Offsets.End
-				scores = append(scores, ag.Add(starts[startIndex], ends[endIndex]).Value().Scalar().F64())
+				scores = append(scores, ag.Add(starts[startIndex], ends[endIndex]).Value().Item().F64())
 				candidates = append(candidates, questionanswering.Answer{
 					Text:  strings.Trim(string([]rune(passage)[startOffset:endOffset]), " "),
 					Start: startOffset,
@@ -171,7 +171,7 @@ func searchCandidates(startsIdx, endsIdx []int, starts, ends []ag.Node, pt []tok
 			}
 		}
 	}
-	for i, prob := range mat.NewVecDense(scores).Softmax().Data().F64() {
+	for i, prob := range mat.NewDense[float64](mat.WithBacking(scores)).Softmax().Data().F64() {
 		candidates[i].Score = prob
 	}
 	return candidates

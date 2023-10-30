@@ -60,8 +60,8 @@ func LoadTextEncoding(modelPath string) (*TextEncoding, error) {
 // Encode returns the dense encoded representation of the given text.
 func (m *TextEncoding) Encode(_ context.Context, text string, poolingStrategy int) (textencoding.Response, error) {
 	tokenized := m.tokenize(text)
-	if l, max := len(tokenized), m.Model.Bert.Config.MaxPositionEmbeddings; l > max {
-		return textencoding.Response{}, fmt.Errorf("%w: %d > %d", textencoding.ErrInputSequenceTooLong, l, max)
+	if l, k := len(tokenized), m.Model.Bert.Config.MaxPositionEmbeddings; l > k {
+		return textencoding.Response{}, fmt.Errorf("%w: %d > %d", textencoding.ErrInputSequenceTooLong, l, k)
 	}
 	encoded, err := m.Model.Encode(tokenized, bert.PoolingStrategyType(poolingStrategy))
 	if err != nil {
@@ -69,7 +69,7 @@ func (m *TextEncoding) Encode(_ context.Context, text string, poolingStrategy in
 	}
 
 	response := textencoding.Response{
-		Vector: mat.CopyValue(encoded),
+		Vector: encoded.Value().(mat.Matrix),
 	}
 	return response, nil
 }

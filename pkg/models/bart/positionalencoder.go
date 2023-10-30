@@ -7,7 +7,6 @@ package bart
 import (
 	"encoding/gob"
 
-	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
@@ -58,7 +57,7 @@ func NewPositionalEncoder[T float.DType](config PositionalEncoderConfig) *Positi
 			}
 		}
 		item, _ := e.Embedding(i)
-		item.ReplaceValue(mat.NewVecDense[T](data))
+		item.ReplaceValue(mat.NewDense[T](mat.WithBacking(data)))
 	}
 	return &PositionalEncoder{
 		Config:     config,
@@ -67,7 +66,7 @@ func NewPositionalEncoder[T float.DType](config PositionalEncoderConfig) *Positi
 }
 
 // Encode performs the forward step for each input and returns the result.
-func (m *PositionalEncoder) Encode(positions []int) []ag.Node {
+func (m *PositionalEncoder) Encode(positions []int) []mat.Tensor {
 	return m.Embeddings.MustEncode(m.shift(positions))
 }
 

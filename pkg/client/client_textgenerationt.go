@@ -9,14 +9,14 @@ import (
 	"fmt"
 	"time"
 
-	text2textv1 "github.com/nlpodyssey/cybertron/pkg/server/gen/proto/go/text2text/v1"
-	"github.com/nlpodyssey/cybertron/pkg/tasks/text2text"
+	textgenerationv1 "github.com/nlpodyssey/cybertron/pkg/server/gen/proto/go/textgeneration/v1"
+	"github.com/nlpodyssey/cybertron/pkg/tasks/textgeneration"
 	"github.com/nlpodyssey/cybertron/pkg/utils/nullable"
 )
 
-var _ text2text.Interface = &clientForTextGeneration{}
+var _ textgeneration.Interface = &clientForTextGeneration{}
 
-// clientForTextGeneration is a client for text generation implementing text2text.Interface
+// clientForTextGeneration is a client for text generation implementing textgeneration.Interface
 type clientForTextGeneration struct {
 	// target is the server endpoint.
 	target string
@@ -25,7 +25,7 @@ type clientForTextGeneration struct {
 }
 
 // NewClientForTextGeneration creates a new client for text generation.
-func NewClientForTextGeneration(target string, opts Options) text2text.Interface {
+func NewClientForTextGeneration(target string, opts Options) textgeneration.Interface {
 	return &clientForTextGeneration{
 		target: target,
 		opts:   opts,
@@ -33,9 +33,9 @@ func NewClientForTextGeneration(target string, opts Options) text2text.Interface
 }
 
 // Generate generates text (e.g. translation, summarization, paraphrase) from the given input.
-func (c *clientForTextGeneration) Generate(ctx context.Context, text string, opts *text2text.Options) (text2text.Response, error) {
+func (c *clientForTextGeneration) Generate(ctx context.Context, text string, opts *textgeneration.Options) (textgeneration.Response, error) {
 	if opts == nil {
-		opts = text2text.DefaultOptions()
+		opts = textgeneration.DefaultOptions()
 	}
 	topK64 := nullable.Type[int64]{
 		Value: int64(opts.TopK.Value),
@@ -44,16 +44,16 @@ func (c *clientForTextGeneration) Generate(ctx context.Context, text string, opt
 
 	conn, err := Dial(ctx, c.target, c.opts)
 	if err != nil {
-		return text2text.Response{}, fmt.Errorf("failed to dial %q: %w", c.target, err)
+		return textgeneration.Response{}, fmt.Errorf("failed to dial %q: %w", c.target, err)
 	}
-	cc := text2textv1.NewText2TextServiceClient(conn)
+	cc := textgenerationv1.NewTextGenerationServiceClient(conn)
 
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	response, err := cc.Generate(ctx, &text2textv1.GenerateRequest{
+	response, err := cc.Generate(ctx, &textgenerationv1.GenerateRequest{
 		Input: text,
-		Parameters: &text2textv1.Text2TextParameters{
+		Parameters: &textgenerationv1.TextGenerationParameters{
 			Temperature: opts.Temperature.ValuePtr(),
 			DoSample:    opts.Sample.ValuePtr(),
 			TopK:        topK64.ValuePtr(),
@@ -61,9 +61,9 @@ func (c *clientForTextGeneration) Generate(ctx context.Context, text string, opt
 		},
 	})
 	if err != nil {
-		return text2text.Response{}, err
+		return textgeneration.Response{}, err
 	}
-	return text2text.Response{
+	return textgeneration.Response{
 		Texts:  response.Texts,
 		Scores: response.Scores,
 	}, nil

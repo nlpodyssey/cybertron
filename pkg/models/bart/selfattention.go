@@ -7,7 +7,7 @@ package bart
 import (
 	"encoding/gob"
 
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/attention/multiheadattention"
@@ -18,14 +18,14 @@ var _ nn.Model = &SelfAttentionBlock{}
 
 // ResidualNormSelfAttention is a self-attention block with residual normalization.
 type ResidualNormSelfAttention interface {
-	Forward(cache multiheadattention.Cache, xs []ag.Node) ([]ag.Node, multiheadattention.Cache)
+	Forward(cache multiheadattention.Cache, xs []mat.Tensor) ([]mat.Tensor, multiheadattention.Cache)
 }
 
 // SelfAttentionBlock implements a self-attention block.
 type SelfAttentionBlock struct {
 	nn.Module
 	// Attention is the multi-head attention module.
-	Attention *multiheadattention.SelfAttention
+	Attention *multiheadattention.Model
 	// Norm is the layer normalization module.
 	Norm *layernorm.Model
 }
@@ -50,10 +50,8 @@ type SelfAttentionBlockConfig struct {
 // depending on the configuration.
 func NewSelfAttentionBlock[T float.DType](c SelfAttentionBlockConfig) ResidualNormSelfAttention {
 	block := &SelfAttentionBlock{
-		Attention: &multiheadattention.SelfAttention{
-			Model: multiheadattention.New[T](c.Dim, c.NumOfHeads, c.UseCausalMask, false),
-		},
-		Norm: layernorm.New[T](c.Dim, 1e-5),
+		Attention: multiheadattention.New[T](c.Dim, c.NumOfHeads, c.UseCausalMask, false),
+		Norm:      layernorm.New[T](c.Dim, 1e-5),
 	}
 	if c.NormalizeBefore {
 		return PreNormSelfAttentionBlock{block}

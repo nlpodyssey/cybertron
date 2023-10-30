@@ -8,6 +8,7 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -23,6 +24,6 @@ func init() {
 }
 
 // Forward performs the forward pass.
-func (m PreNormFeedForwardBlock) Forward(xs []ag.Node) []ag.Node {
+func (m PreNormFeedForwardBlock) Forward(xs []mat.Tensor) []mat.Tensor {
 	return ag.Map2(ag.Add, xs, m.FFN.Forward(m.Norm.Forward(xs...)...))
 }

@@ -7,6 +7,7 @@ package bert
 import (
 	"github.com/nlpodyssey/cybertron/pkg/tokenizers/wordpiecetokenizer"
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	emb "github.com/nlpodyssey/spago/nn/embedding"
@@ -42,8 +43,8 @@ func NewEmbeddings[T float.DType](c Config) *Embeddings {
 	}
 }
 
-// Encode performs the Bert input encoding.
-func (m *Embeddings) EncodeTokens(tokens []string) []ag.Node {
+// EncodeTokens performs the Bert input encoding.
+func (m *Embeddings) EncodeTokens(tokens []string) []mat.Tensor {
 	var (
 		encoded      = m.Tokens.MustEncode([]int{}) // TODO: temporary []int{} should the tokens be []int?
 		positions    = m.Positions.MustEncode(indices(len(tokens)))
@@ -62,7 +63,7 @@ func (m *Embeddings) EncodeTokens(tokens []string) []ag.Node {
 }
 
 // useProjection returns the output of the projector if it is not nil, otherwise the input.
-func (m *Embeddings) useProjection(xs []ag.Node) []ag.Node {
+func (m *Embeddings) useProjection(xs []mat.Tensor) []mat.Tensor {
 	if m.Projector == nil {
 		return xs
 	}

@@ -14,7 +14,7 @@ import (
 	"github.com/nlpodyssey/spago/nn/normalization/layernorm"
 )
 
-type paramsMap map[string]mat.Matrix
+type paramsMap map[string]mat.Tensor
 
 func mapEncoderParams(encoder *bert.Encoder, params paramsMap) {
 	for i := 0; i < encoder.Config.NumHiddenLayers; i++ {

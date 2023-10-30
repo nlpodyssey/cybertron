@@ -8,6 +8,7 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
@@ -32,7 +33,7 @@ func init() {
 type FeedForwardBlockConfig struct {
 	Dim        int
 	HiddenDim  int
-	Activation activation.Name
+	Activation activation.Activation
 }
 
 // NewFeedForwardBlock returns a new FeedForwardBlock.
@@ -48,6 +49,6 @@ func NewFeedForwardBlock[T float.DType](c FeedForwardBlockConfig) *FeedForwardBl
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m FeedForwardBlock) Forward(xs []ag.Node) []ag.Node {
+func (m FeedForwardBlock) Forward(xs []mat.Tensor) []mat.Tensor {
 	return m.Norm.Forward(ag.Map2(ag.Add, xs, m.MLP.Forward(xs...))...)
 }

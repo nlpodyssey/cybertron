@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -47,11 +48,11 @@ func NewModelForSequenceEncoding(bert *Model) *ModelForSequenceEncoding {
 }
 
 // Encode returns the vector representation for the input sequence.
-func (m *ModelForSequenceEncoding) Encode(tokens []string, poolingStrategy PoolingStrategyType) (ag.Node, error) {
+func (m *ModelForSequenceEncoding) Encode(tokens []string, poolingStrategy PoolingStrategyType) (mat.Tensor, error) {
 	return m.pooling(m.Bert.EncodeTokens(tokens), poolingStrategy)
 }
 
-func (m *ModelForSequenceEncoding) pooling(lastHiddenStates []ag.Node, ps PoolingStrategyType) (ag.Node, error) {
+func (m *ModelForSequenceEncoding) pooling(lastHiddenStates []mat.Tensor, ps PoolingStrategyType) (mat.Tensor, error) {
 	switch ps {
 	case MeanPooling:
 		return ag.Mean(lastHiddenStates), nil

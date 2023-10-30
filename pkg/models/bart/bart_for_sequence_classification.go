@@ -7,7 +7,7 @@ package bart
 import (
 	"encoding/gob"
 
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
@@ -42,11 +42,11 @@ func NewModelForSequenceClassification[T float.DType](bart *Model) *ModelForSequ
 }
 
 // Forward performs the classification using the last transformed state.
-func (m *ModelForSequenceClassification) Forward(inputIds []int) ag.Node {
+func (m *ModelForSequenceClassification) Forward(inputIds []int) mat.Tensor {
 	return m.Classifier.Forward(lastState(m.Bart.Forward(inputIds)))
 }
 
 // lastState returns the last state of the encoded sequence.
-func lastState(xs []ag.Node) ag.Node {
+func lastState(xs []mat.Tensor) mat.Tensor {
 	return xs[len(xs)-1]
 }

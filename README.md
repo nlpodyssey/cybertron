@@ -92,7 +92,7 @@ echo "CYBERTRON_MODEL_TASK=text-generation" >> .env
 and execute the following command:
 
 ```console
-GOARCH=amd64 go run ./cmd/server
+GOARCH=amd64 go run ./cmd/server -address 0.0.0.0:8080
 ```
 
 To test the server, run:
@@ -119,7 +119,7 @@ GOARCH=amd64 go run ./examples/textgeneration
 ```
 
 ### Zero-Shot Text Classification
-
+⚠️ If the model specified in `.env` file is not compatible, an error will be returned. In this case, remove the specified model from the configuration file, so the default one will be used.
 ```
 GOARCH=amd64 go run ./examples/zeroshotclassification politics,business,science,technology,health,culture,sports
 ```

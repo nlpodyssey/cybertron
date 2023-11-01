@@ -1,4 +1,4 @@
-FROM golang:1.18.3-alpine3.16 as Builder
+FROM golang:1.21.3-alpine3.18 as Builder
 
 WORKDIR /go/src/cybertron
 COPY . .
@@ -11,7 +11,7 @@ RUN go build \
       -o /go/bin/cybertron \
       ./cmd/server
 
-FROM alpine:3.16
+FROM alpine:3.18
 
 COPY --from=Builder /go/bin/cybertron /bin/cybertron
 

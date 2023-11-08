@@ -64,7 +64,7 @@ func stripPrefix(label string) string {
 	switch {
 	case label == "O": // outside
 		return ""
-	case len(label) > 2:
+	case len(label) > 2 && label[1] == '-':
 		return label[2:]
 	default:
 		return label

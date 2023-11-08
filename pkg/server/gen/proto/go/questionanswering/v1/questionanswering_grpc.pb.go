@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	QuestionAnsweringService_Answer_FullMethodName = "/questionanswering.v1.QuestionAnsweringService/Answer"
+	QuestionAnsweringService_Answer_FullMethodName = "/questionanswering.v1.QuestionAnsweringService/ExtractAnswer"
 )
 
 // QuestionAnsweringServiceClient is the client API for QuestionAnsweringService service.
@@ -50,7 +50,7 @@ func (c *questionAnsweringServiceClient) Answer(ctx context.Context, in *AnswerR
 // All implementations must embed UnimplementedQuestionAnsweringServiceServer
 // for forward compatibility
 type QuestionAnsweringServiceServer interface {
-	Answer(context.Context, *AnswerRequest) (*AnswerResponse, error)
+	ExtractAnswer(context.Context, *AnswerRequest) (*AnswerResponse, error)
 	mustEmbedUnimplementedQuestionAnsweringServiceServer()
 }
 
@@ -58,8 +58,8 @@ type QuestionAnsweringServiceServer interface {
 type UnimplementedQuestionAnsweringServiceServer struct {
 }
 
-func (UnimplementedQuestionAnsweringServiceServer) Answer(context.Context, *AnswerRequest) (*AnswerResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Answer not implemented")
+func (UnimplementedQuestionAnsweringServiceServer) ExtractAnswer(context.Context, *AnswerRequest) (*AnswerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExtractAnswer not implemented")
 }
 func (UnimplementedQuestionAnsweringServiceServer) mustEmbedUnimplementedQuestionAnsweringServiceServer() {
 }
@@ -81,14 +81,14 @@ func _QuestionAnsweringService_Answer_Handler(srv interface{}, ctx context.Conte
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QuestionAnsweringServiceServer).Answer(ctx, in)
+		return srv.(QuestionAnsweringServiceServer).ExtractAnswer(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
 		FullMethod: QuestionAnsweringService_Answer_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QuestionAnsweringServiceServer).Answer(ctx, req.(*AnswerRequest))
+		return srv.(QuestionAnsweringServiceServer).ExtractAnswer(ctx, req.(*AnswerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -101,7 +101,7 @@ var QuestionAnsweringService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*QuestionAnsweringServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Answer",
+			MethodName: "ExtractAnswer",
 			Handler:    _QuestionAnsweringService_Answer_Handler,
 		},
 	},

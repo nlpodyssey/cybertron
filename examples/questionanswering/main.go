@@ -37,7 +37,7 @@ func main() {
 
 	fn := func(text string) error {
 		start := time.Now()
-		result, err := m.Answer(context.Background(), text, content, opts)
+		result, err := m.ExtractAnswer(context.Background(), text, content, opts)
 		if err != nil {
 			return err
 		}

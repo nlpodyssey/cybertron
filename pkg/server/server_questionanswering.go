@@ -32,8 +32,8 @@ func (s *serverForQuestionAnswering) RegisterHandlerServer(ctx context.Context, 
 	return questionansweringv1.RegisterQuestionAnsweringServiceHandlerServer(ctx, mux, s)
 }
 
-// Answer handles the Answer request.
-func (s *serverForQuestionAnswering) Answer(ctx context.Context, req *questionansweringv1.AnswerRequest) (*questionansweringv1.AnswerResponse, error) {
+// ExtractAnswer handles the Answer request.
+func (s *serverForQuestionAnswering) ExtractAnswer(ctx context.Context, req *questionansweringv1.AnswerRequest) (*questionansweringv1.AnswerResponse, error) {
 	params := req.GetOptions()
 	opts := &questionanswering.Options{
 		MaxAnswers:      int(params.GetMaxAnswers()),
@@ -42,7 +42,7 @@ func (s *serverForQuestionAnswering) Answer(ctx context.Context, req *questionan
 		MaxCandidates:   int(params.GetMaxCandidates()),
 	}
 
-	result, err := s.engine.Answer(ctx, req.GetQuestion(), req.GetPassage(), opts)
+	result, err := s.engine.ExtractAnswer(ctx, req.GetQuestion(), req.GetPassage(), opts)
 	if err != nil {
 		return nil, err
 	}

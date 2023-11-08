@@ -25,7 +25,7 @@ var ErrInputSequenceTooLong = errors.New("input sequence too long")
 
 // Interface defines the main functions for question-answering task.
 type Interface interface {
-	Answer(ctx context.Context, question string, passage string, opts *Options) (Response, error)
+	ExtractAnswer(ctx context.Context, question string, passage string, opts *Options) (Response, error)
 }
 
 // Options defines the options for question-answering task.

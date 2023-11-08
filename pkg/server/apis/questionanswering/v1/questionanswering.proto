@@ -7,7 +7,7 @@ import "google/api/annotations.proto";
 option go_package = "github.com/nlpodyssey/cybertron/pkg/server/apis/questionanswering/v1;questionansweringv1";
 
 service QuestionAnsweringService {
-  rpc Answer(AnswerRequest) returns (AnswerResponse) {
+  rpc ExtractAnswer(AnswerRequest) returns (AnswerResponse) {
     option (google.api.http) = {
       post: "/v1/answer"
       body: "*"

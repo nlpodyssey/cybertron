@@ -57,9 +57,9 @@ func LoadQuestionAnswering(modelPath string) (*QuestionAnswering, error) {
 	}, nil
 }
 
-// Answer returns the answers for the given question and passage.
+// ExtractAnswer returns the answers for the given question and passage.
 // The options may assume default values if those are not set.
-func (qa *QuestionAnswering) Answer(_ context.Context, question string, passage string, opts *questionanswering.Options) (questionanswering.Response, error) {
+func (qa *QuestionAnswering) ExtractAnswer(_ context.Context, question string, passage string, opts *questionanswering.Options) (questionanswering.Response, error) {
 	checkOptions(opts)
 
 	qt, pt := qa.tokenize(question, passage)

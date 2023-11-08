@@ -32,8 +32,8 @@ func NewClientForQuestionAnswering(target string, opts Options) questionanswerin
 	}
 }
 
-// Answer answers the given question.
-func (c *clientForQuestionAnswering) Answer(ctx context.Context, question, passage string, opts *questionanswering.Options) (questionanswering.Response, error) {
+// ExtractAnswer answers the given question.
+func (c *clientForQuestionAnswering) ExtractAnswer(ctx context.Context, question, passage string, opts *questionanswering.Options) (questionanswering.Response, error) {
 	if opts == nil {
 		opts = &questionanswering.Options{}
 	}

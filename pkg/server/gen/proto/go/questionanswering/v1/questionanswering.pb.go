@@ -240,7 +240,7 @@ func (x *Answer) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Answer.ProtoReflect.Descriptor instead.
+// Deprecated: Use ExtractAnswer.ProtoReflect.Descriptor instead.
 func (*Answer) Descriptor() ([]byte, []int) {
 	return file_questionanswering_v1_questionanswering_proto_rawDescGZIP(), []int{3}
 }
@@ -353,13 +353,13 @@ var file_questionanswering_v1_questionanswering_proto_goTypes = []interface{}{
 	(*AnswerRequest)(nil),            // 0: questionanswering.v1.AnswerRequest
 	(*QuestionAnsweringOptions)(nil), // 1: questionanswering.v1.QuestionAnsweringOptions
 	(*AnswerResponse)(nil),           // 2: questionanswering.v1.AnswerResponse
-	(*Answer)(nil),                   // 3: questionanswering.v1.Answer
+	(*Answer)(nil),                   // 3: questionanswering.v1.ExtractAnswer
 }
 var file_questionanswering_v1_questionanswering_proto_depIdxs = []int32{
 	1, // 0: questionanswering.v1.AnswerRequest.options:type_name -> questionanswering.v1.QuestionAnsweringOptions
-	3, // 1: questionanswering.v1.AnswerResponse.answers:type_name -> questionanswering.v1.Answer
-	0, // 2: questionanswering.v1.QuestionAnsweringService.Answer:input_type -> questionanswering.v1.AnswerRequest
-	2, // 3: questionanswering.v1.QuestionAnsweringService.Answer:output_type -> questionanswering.v1.AnswerResponse
+	3, // 1: questionanswering.v1.AnswerResponse.answers:type_name -> questionanswering.v1.ExtractAnswer
+	0, // 2: questionanswering.v1.QuestionAnsweringService.ExtractAnswer:input_type -> questionanswering.v1.AnswerRequest
+	2, // 3: questionanswering.v1.QuestionAnsweringService.ExtractAnswer:output_type -> questionanswering.v1.AnswerResponse
 	3, // [3:4] is the sub-list for method output_type
 	2, // [2:3] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name

@@ -60,7 +60,7 @@ func local_request_QuestionAnsweringService_Answer_0(ctx context.Context, marsha
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.Answer(ctx, &protoReq)
+	msg, err := server.ExtractAnswer(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -79,7 +79,7 @@ func RegisterQuestionAnsweringServiceHandlerServer(ctx context.Context, mux *run
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/questionanswering.v1.QuestionAnsweringService/Answer", runtime.WithHTTPPathPattern("/v1/answer"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/questionanswering.v1.QuestionAnsweringService/ExtractAnswer", runtime.WithHTTPPathPattern("/v1/answer"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -143,7 +143,7 @@ func RegisterQuestionAnsweringServiceHandlerClient(ctx context.Context, mux *run
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/questionanswering.v1.QuestionAnsweringService/Answer", runtime.WithHTTPPathPattern("/v1/answer"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/questionanswering.v1.QuestionAnsweringService/ExtractAnswer", runtime.WithHTTPPathPattern("/v1/answer"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return

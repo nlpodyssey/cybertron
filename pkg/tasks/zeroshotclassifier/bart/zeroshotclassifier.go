@@ -82,6 +82,12 @@ func (m *ZeroShotClassifier) Classify(_ context.Context, text string, parameters
 		return zeroshotclassifier.Response{}, fmt.Errorf("%w: %d > %d", zeroshotclassifier.ErrInputSequenceTooLong, l, k)
 	}
 
+	// If the API request does not specify a HypothesisTemplate, then use the default
+	// I believe its more robust to do this here, rather than modifying ZeroShotParameters.GetHypothesisTemplate() PB definition
+	if parameters.HypothesisTemplate == "" {
+		parameters.HypothesisTemplate = zeroshotclassifier.DefaultHypothesisTemplate
+	}
+
 	multiClass := parameters.MultiLabel || len(parameters.CandidateLabels) == 1
 	scoreFn := m.score(premise, multiClass)
 
